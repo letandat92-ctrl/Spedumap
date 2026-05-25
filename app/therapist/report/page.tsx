@@ -262,7 +262,7 @@ export default function ReportPage() {
       <ReportKPI
         current={currentTotal}
         baseline={baselineTotal}
-        target={computeTotal({ ...baseline.blocks, ...target } as Record<string, { score: number }>)}
+        target={computeTotal(Object.fromEntries(Object.entries({ ...baseline.blocks, ...target }).map(([k, v]: [string, any]) => [k, typeof v === 'number' ? v : v?.score || 0])))}
         sessionsDone={sessions}
         planned={planned}
         startedAt={cycle.started_at as string}

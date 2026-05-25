@@ -1,0 +1,103 @@
+// app/page-groups.css
+/* Page Group Colors - Starter (Baseline + Goal) */
+.page-group-starter {
+  --group-accent: #E89A62; /* Coral/Orange - warm, beginning */
+  --group-light: #FFF5EF;  /* Lightest coral */
+  --group-border: #E8A882; /* Medium coral */
+}
+
+/* Apply to baseline + goal pages */
+div[data-page="baseline"],
+div[data-page="goal"] {
+  @apply page-group-starter;
+  background: var(--group-light);
+}
+
+div[data-page="baseline"]::before,
+div[data-page="goal"]::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(to right, var(--group-accent), transparent);
+  pointer-events: none;
+}
+
+/* Page Group Colors - Daily Progress (Cycle + Session + Report) */
+.page-group-progress {
+  --group-accent: #2D6A9A; /* Dark Blue - professional, ongoing */
+  --group-light: #F0F5FB;  /* Light blue */
+  --group-border: #7A9CBB; /* Medium blue */
+}
+
+/* Apply to cycle, session, report pages */
+div[data-page="cycle"],
+div[data-page="session"],
+div[data-page="report"] {
+  @apply page-group-progress;
+  background: var(--group-light);
+}
+
+div[data-page="cycle"]::before,
+div[data-page="session"]::before,
+div[data-page="report"]::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(to right, var(--group-accent), transparent);
+  pointer-events: none;
+}
+
+/* Page Group Colors - Governance & Parent (Parent pages) */
+.page-group-governance {
+  --group-accent: #2D7A4A; /* Deep Green - growth, family */
+  --group-light: #F0F8F4;  /* Light green */
+  --group-border: #7AAA94; /* Medium green */
+}
+
+/* Apply to parent pages */
+div[data-page="parent-engagement"],
+div[data-page="parent-observations"],
+div[data-page="admin"] {
+  @apply page-group-governance;
+  background: var(--group-light);
+}
+
+div[data-page="parent-engagement"]::before,
+div[data-page="parent-observations"]::before,
+div[data-page="admin"]::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(to right, var(--group-accent), transparent);
+  pointer-events: none;
+}
+
+/* Card styling per group */
+.page-group-starter .card,
+div[data-page="baseline"] .card,
+div[data-page="goal"] .card {
+  border-left: 3px solid var(--group-accent);
+}
+
+.page-group-progress .card,
+div[data-page="cycle"] .card,
+div[data-page="session"] .card,
+div[data-page="report"] .card {
+  border-left: 3px solid var(--group-accent);
+}
+
+.page-group-governance .card,
+div[data-page="parent-engagement"] .card,
+div[data-page="parent-observations"] .card,
+div[data-page="admin"] .card {
+  border-left: 3px solid var(--group-accent);
+}

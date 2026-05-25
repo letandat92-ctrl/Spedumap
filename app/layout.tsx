@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import './globals.css'
+import { PageGroupStyler } from '@/components/PageGroupStyler'
 
 export const metadata: Metadata = {
   title: 'SPEDUMAP',
@@ -14,6 +15,7 @@ export default function RootLayout({
   return (
     <html lang="vi">
       <body className="font-sans antialiased bg-white text-neutral-900">
+        <PageGroupStyler />
         {children}
       </body>
     </html>

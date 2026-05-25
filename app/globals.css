@@ -36,3 +36,29 @@ body {
   background: var(--bg);
   color: var(--ink);
 }
+
+/* Page Group Colors */
+
+/* Starter (Baseline, Goal) - Warm Coral */
+.page-starter {
+  background: #FFF5EF !important;
+}
+.page-starter .bg-warm-white {
+  background: #FFF5EF;
+}
+
+/* Daily Progress (Cycle, Session, Report) - Cool Blue */
+.page-progress {
+  background: #F0F5FB !important;
+}
+.page-progress .bg-warm-white {
+  background: #F0F5FB;
+}
+
+/* Governance (Parent, Admin) - Growth Green */
+.page-governance {
+  background: #F0F8F4 !important;
+}
+.page-governance .bg-warm-white {
+  background: #F0F8F4;
+}
