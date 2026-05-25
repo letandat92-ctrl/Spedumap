@@ -2,6 +2,7 @@
 
 import { usePathname, useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import { LogoSVG } from '@/components/LogoSVG'
 
 const NAV_ITEMS = [
   { href: '/therapist/baseline', label: 'Baseline',  short: 'B' },
@@ -21,8 +22,9 @@ export function TherapistNav({ childName }: { childName?: string }) {
   return (
     <div className="sticky top-0 z-20 bg-[var(--navy)] px-4 py-0 flex items-stretch">
       {/* Logo */}
-      <div className="flex items-center pr-4 border-r border-white/10 mr-2">
-        <span className="font-serif font-bold text-white text-sm">SPEDUMAP</span>
+      <div className="flex items-center gap-2 pr-4 border-r border-white/10 mr-2">
+        <LogoSVG size={32} />
+        <span className="font-serif font-bold text-white text-sm hidden sm:inline">SPEDUMAP</span>
       </div>
 
       {/* Flow steps */}
