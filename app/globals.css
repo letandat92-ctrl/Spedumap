@@ -1,0 +1,38 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --navy:      #0D2240;
+  --navy-mid:  #1A3A6A;
+  --red:       #B52020;
+  --red-bg:    #FDF2F0;
+  --red-bd:    #F0CACA;
+  --green:     #1A6A3A;
+  --green-bg:  #EEF8F2;
+  --green-bd:  #B0D8C0;
+  --gold:      #8A6200;
+  --gold-bg:   #FDF8EC;
+  --gold-bd:   #E8C880;
+  --ink:       #111827;
+  --ink-2:     #374151;
+  --ink-3:     #6B7280;
+  --rule:      #E5E7EB;
+  --rule-2:    #F3F4F6;
+  --paper:     #FFFFFF;
+  --bg:        #F9FAFB;
+  /* Layer colors */
+  --L0: #8B1A1A;
+  --L1: #A02020;
+  --L2: #B83030;
+  --L3: #C55030;
+  --L4: #C87020;
+  --L5: #4A8A60;
+  --L6: #2A6A9A;
+  --L7: #3A5AAA;
+}
+
+body {
+  background: var(--bg);
+  color: var(--ink);
+}
