@@ -7,7 +7,6 @@ import { createClient } from '@/lib/supabase/client'
 import { LS_KEYS } from '@/types/spedumap'
 import { SignalStrip, BaselineReadonly, TargetReadonly } from '@/components/charts/CycleComponents'
 import { LogoSVG } from '@/components/LogoSVG'
-import HypothesisForm from '@/components/forms/HypothesisForm'
 import LayerProgressionChart from '@/components/charts/LayerProgressionChart'
 import { getLayerProgressionByCycle, getLatestAssessment } from '@/lib/supabase/migrations'
 
@@ -241,15 +240,12 @@ export default function CyclePage() {
               </div>
             </div>
 
-            {/* Hypothesis Form */}
+            {/* Hypothesis library — placeholder (free-text hypothesis removed; not in
+                ui_cycle_open.html spec; library data not available yet) */}
             <Card title="Giả thuyết can thiệp">
-              {data && data.supabase_cycle_id && (
-                <HypothesisForm
-                  cycleId={data.supabase_cycle_id}
-                  supabaseClient={supabase}
-                  onSuccess={() => { console.log('Hypothesis saved') }}
-                />
-              )}
+              <div style={{ fontSize: 12, color: 'var(--ink-3)', fontStyle: 'italic', padding: '4px 0' }}>
+                Hypothesis library — sẽ được cập nhật sau
+              </div>
             </Card>
 
             {/* Layer Progression Chart */}

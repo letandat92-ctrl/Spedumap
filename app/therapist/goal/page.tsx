@@ -611,6 +611,7 @@ export default function GoalPage() {
             )}
             goals={goals}
             baselineStage={bd.engine_snapshot?.stage ?? 'L0'}
+            baselineTotal={bd.engine_snapshot?.total ?? 0}
             signals={bd.engine_snapshot?.signals}
           />
         </div>

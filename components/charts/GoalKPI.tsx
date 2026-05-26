@@ -68,14 +68,17 @@ interface GoalKPIProps {
   targetBlocks:    BlocksMap
   goals:           Record<string, GoalEntry>
   baselineStage:   string
+  baselineTotal:   number   // locked baseline snapshot (engine_snapshot.total) — single source of truth
   signals?:        Record<string, number>
 }
 
-export function GoalKPI({ baselineBlocks, targetBlocks, goals, baselineStage, signals }: GoalKPIProps) {
-  const baseTotal   = computeTotal(baselineBlocks)
-  const merged      = { ...baselineBlocks, ...targetBlocks }
-  const targetTotal = computeTotal(merged)
-  const delta       = targetTotal - baseTotal
+export function GoalKPI({ baselineBlocks, targetBlocks, goals, baselineStage, baselineTotal, signals }: GoalKPIProps) {
+  // Anchor baseline + delta to the locked snapshot total so the goal KPI matches
+  // Cycle Open's bTotal. `gain` keeps the existing scoring formula unchanged.
+  const baseTotal   = baselineTotal
+  const gain        = computeTotal({ ...baselineBlocks, ...targetBlocks }) - computeTotal(baselineBlocks)
+  const targetTotal = baseTotal + gain
+  const delta       = gain
   const goalCount   = Object.keys(goals).length
 
   // Dominant signal
