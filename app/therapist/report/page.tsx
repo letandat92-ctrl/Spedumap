@@ -3,13 +3,13 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import { runEngine } from '@/lib/engine'
 import { LS_KEYS } from '@/types/spedumap'
 import { ReportKPI, ChildStrip, MetadataStrip, SessionTimeline } from '@/components/charts/ReportComponents'
 
 export const dynamic = 'force-dynamic'
 
 
-const LAYER_IDS = ['L0','L1','L2','L3','L4','L5','L6','L7']
 const B2L: Record<string,string> = {
   sleep:'L0',microbiome:'L0',nutrition:'L0',immune:'L0',metabolic:'L0',
   arousal:'L1',reflex_survival:'L1',reflex_postural:'L1',reflex_cortical:'L1',tone:'L1',ns_stability:'L1',
@@ -20,17 +20,6 @@ const B2L: Record<string,string> = {
   self_control:'L6',behavior:'L6',social_skills:'L6',daily_living:'L6',
   math:'L7',writing:'L7',reading:'L7',
 }
-const BW: Record<string,Record<string,number>> = {
-  L0:{sleep:.25,microbiome:.25,nutrition:.20,immune:.15,metabolic:.15},
-  L1:{arousal:.40,reflex_survival:.10,reflex_postural:.10,reflex_cortical:.05,tone:.20,ns_stability:.15},
-  L2:{vestibular:.20,proprioception:.15,auditory:.15,visual:.15,tactile:.10,interoception:.10,taste_smell:.15},
-  L3:{motor_planning:.2,gross_motor:.2,fine_motor:.2,postural_control:.2,bilateral_coord:.2},
-  L4:{attention:.35,auditory_processing:.30,visual_processing:.30,wm_link:.05},
-  L5:{oral_language:.2,word_finding:.2,phonemic_awareness:.2,auditory_memory:.2,visual_memory:.2},
-  L6:{self_control:.25,behavior:.25,social_skills:.25,daily_living:.25},
-  L7:{math:1/3,writing:1/3,reading:1/3},
-}
-const LAYER_W: Record<string,number> = {L0:18,L1:16,L2:14,L3:12,L4:12,L5:10,L6:10,L7:8}
 const BN: Record<string,string> = {
   sleep:'Sleep',microbiome:'Microbiome',nutrition:'Nutrition',immune:'Immune',metabolic:'Metabolic',
   arousal:'Arousal',reflex_survival:'Reflex Survival',reflex_postural:'Reflex Postural',
@@ -65,33 +54,6 @@ function computeCurrent(cycle: Record<string,unknown>): Record<string,number> {
     for (const a of (s.observed_activities||[])) cur[a.block] = getScore(a.current_after)
   }
   return cur
-}
-
-function computeTotal(cur: Record<string,number>): number {
-  let t = 0
-  LAYER_IDS.forEach(lid => {
-    let s = 0
-    Object.entries(BW[lid]).forEach(([k,w]) => { s += (cur[k]??0)*w })
-    t += (s/4)*LAYER_W[lid]
-  })
-  return t
-}
-
-function computeStage(cur: Record<string,number>): string {
-  const layerAvg: Record<string,number> = {}
-  LAYER_IDS.forEach(lid => {
-    const bw = BW[lid]; let s=0
-    Object.entries(bw).forEach(([k,w]) => { s+=(cur[k]??0)*w })
-    layerAvg[lid] = s
-  })
-  let stage = 'L0'
-  for (let i=0;i<LAYER_IDS.length;i++){
-    const l = LAYER_IDS[i]
-    const broken = LAYER_IDS.slice(0,i).some(p=>(layerAvg[p]??0)<2.0)
-    if (broken) break
-    if ((layerAvg[l]??0)>=2.5) stage=l; else break
-  }
-  return stage
 }
 
 const CLOSE_REASONS = [
@@ -140,13 +102,13 @@ export default function ReportPage() {
   const baselineBlocks = baseline?.blocks || {}
   const target = (cycle.target as {blocks:Record<string,{score:number}>})?.blocks || {}
   const cur = computeCurrent(cycle)
-  // Anchor current/target totals to the locked baseline snapshot (baseline.total_score),
-  // same scale as the Session page — avoids mixing computeTotal() with the engine snapshot.
+  // Current/target totals pass through the full v3 engine (lib/engine) — single source
+  // of truth (same engine that locks the baseline). baseline = locked snapshot.
   const toNum = (blocks: Record<string, unknown>): Record<string, number> =>
     Object.fromEntries(Object.entries(blocks).map(([k, v]) => [k, getScore(v)]))
-  const baseSum = computeTotal(toNum(baselineBlocks))
-  const currentTotal = baselineTotal + (computeTotal(cur) - baseSum)
-  const targetForKPI = baselineTotal + (computeTotal(toNum({ ...baselineBlocks, ...target })) - baseSum)
+  const curEngine    = runEngine(cur)
+  const currentTotal = curEngine.total
+  const targetForKPI = runEngine({ ...toNum(baselineBlocks), ...toNum(target) }).total
   const delta = currentTotal - baselineTotal
   const sessions = (cycle.daily_sessions as unknown[])?.length ?? 0
   const planned = (cycle.planned_sessions as number) ?? 24
@@ -163,7 +125,7 @@ export default function ReportPage() {
       const finalBlocks: Record<string,{score:number}> = {}
       for (const [k,v] of Object.entries(cur)) finalBlocks[k] = makeBlock(v)
 
-      const nextStage = computeStage(cur)
+      const nextStage = curEngine.stage
       const today = new Date().toISOString().split('T')[0]
 
       const closedCycle = {
@@ -204,7 +166,7 @@ export default function ReportPage() {
       const nextBaseline = {
         child: cycle.child,
         baseline_blocks: finalBlocks,
-        engine_snapshot: { total: currentTotal, stage: nextStage, layer_scores:{}, signals:{} },
+        engine_snapshot: { total: currentTotal, stage: nextStage, layer_scores: curEngine.layerScores, signals: curEngine.signals },
         baseline_source: cycle.baseline_source || 'behavioral',
         eval_date: today,
         knowledge_domain: (cycle.governance_meta as {knowledge_domain?:string})?.knowledge_domain || 'senior_therapist',

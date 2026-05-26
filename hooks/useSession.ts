@@ -245,14 +245,31 @@ export function useSession() {
     setSubmitted(true)
   }, [cycle])
 
-  // Computed: current scores
+  // Computed: current scores (baseline + committed sessions)
   const currentScores = cycle ? computeCurrent(cycle) : {}
+
+  // Live scores = committed current + IN-PROGRESS activity deltas (not yet submitted).
+  // Mirrors buildSessionOutput's current_after so the summary delta is real-time.
+  const liveScores: Record<string, number> = { ...currentScores }
+  if (cycle) {
+    const baseB   = (cycle.baseline as { blocks: Record<string, unknown> })?.blocks || {}
+    const targetB = (cycle.target as { blocks: Record<string, unknown> })?.blocks || {}
+    for (const [block, a] of Object.entries(activities)) {
+      if (a.localScore === null) continue
+      const baseVal     = getBlockScore(baseB[block])
+      const targetScore = getBlockScore(targetB[block])
+      const targetDelta = targetScore - baseVal
+      const cur         = currentScores[block] ?? baseVal
+      liveScores[block] = Math.min(targetScore, cur + targetDelta * (LOCAL_TO_DELTA[a.localScore] ?? 0))
+    }
+  }
+
   const sessionIndex  = cycle ? ((cycle.daily_sessions as unknown[]) || []).length + 1 : 1
   const plannedSessions = (cycle?.planned_sessions as number) || 24
 
   return {
     cycle, activities, sessionInfo, sessionDate, therapistNote, loadError, submitted,
-    currentScores, sessionIndex, plannedSessions,
+    currentScores, liveScores, sessionIndex, plannedSessions,
     observedActivities, cooperationStars, layerEval, regressionClass, regressionReason, planNote,
     setLocalScore, setActivityNote, setExercise, setPurpose,
     addObserved, removeObserved, setObservedNote,

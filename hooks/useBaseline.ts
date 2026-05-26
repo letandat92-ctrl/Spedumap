@@ -5,7 +5,7 @@ import type {
   CanonicalBlock, BlocksMap, CanonicalBaseline,
   Directionality, UserRole,
 } from '@/types/spedumap'
-import { signalsFromLayers } from '@/lib/signals'
+import { runEngine as engineV3 } from '@/lib/engine'
 
 // ── Types ─────────────────────────────────────────────────────
 
@@ -33,7 +33,6 @@ export interface MetaState {
 }
 
 export interface EngineResult {
-  rough:             Record<string, number>
   adj:               Record<string, number>
   sig:               { sensorimotor: number; regulation: number; cognitive: number }
   tot:               number
@@ -99,8 +98,6 @@ const BW: Record<string, Record<string, number>> = {
   L7:{math:1/3,writing:1/3,reading:1/3},
 }
 
-const LAYER_W: Record<string, number> = {L0:18,L1:16,L2:14,L3:12,L4:12,L5:10,L6:10,L7:8}
-
 // Initial block state
 function initBlockState(): Record<string, BlockState> {
   const state: Record<string, BlockState> = {}
@@ -131,55 +128,29 @@ function initMetaState(): MetaState {
   }
 }
 
-// ── Engine (mirrors ui_baseline_setting engine()) ─────────────
+// ── Engine — delegates to the shared full v3 engine (lib/engine.ts) ───────────
+// Maps the engine result into EngineResult and derives functional_ceiling /
+// foundation_gap from the post-lock layer scores.
 
 function runEngine(blocks: Record<string, BlockState>): EngineResult {
-  // Step 1: raw layer scores
-  const rough: Record<string, number> = {}
-  LAYER_IDS.forEach(lid => {
-    const bw = BW[lid]
-    let sum = 0
-    Object.keys(bw).forEach(k => {
-      sum += (blocks[k]?.score ?? 0) * bw[k]
-    })
-    rough[lid] = sum
-  })
+  const nums: Record<string, number> = {}
+  for (const k in blocks) nums[k] = blocks[k]?.score ?? 0
+  const r = engineV3(nums)   // { total, stage, signals, layerScores, lockActive }
 
-  // Step 2: deficit signals (shared Formula A — see lib/signals.ts)
-  const sig = signalsFromLayers(rough)
-
-  // Step 3: dynamic weighting (simplified — full version in spedumap_config.js)
-  const adj: Record<string, number> = { ...rough }
-
-  // Step 4: layer lock
-  for (let i = 1; i < LAYER_IDS.length; i++) {
-    const prev = rough[LAYER_IDS[i-1]]
-    if (prev < 1.5) adj[LAYER_IDS[i]] *= 0.4
-    else if (prev < 2.0) adj[LAYER_IDS[i]] *= 0.7
-  }
-
-  // Step 5: total score
-  let tot = 0
-  LAYER_IDS.forEach(lid => { tot += (adj[lid] / 4.0) * LAYER_W[lid] })
-
-  // Step 6: stage (full-chain check using rough)
-  let stage = 'L0'
-  for (let i = 0; i < LAYER_IDS.length; i++) {
-    const l = LAYER_IDS[i]
-    const foundationBroken = LAYER_IDS.slice(0, i).some(prev => rough[prev] < 2.0)
-    if (foundationBroken) break
-    if (rough[l] >= 2.5) stage = l
-    else break
-  }
-
-  // Step 7: functional ceiling
+  // Functional ceiling = highest layer with a post-lock score >= 2.0
   let functional_ceiling = 'L0'
-  LAYER_IDS.forEach(l => { if (rough[l] >= 2.0) functional_ceiling = l })
+  LAYER_IDS.forEach(l => { if ((r.layerScores[l] ?? 0) >= 2.0) functional_ceiling = l })
+  const foundation_gap = LAYER_IDS.indexOf(functional_ceiling) - LAYER_IDS.indexOf(r.stage)
 
-  const foundation_gap = LAYER_IDS.indexOf(functional_ceiling) - LAYER_IDS.indexOf(stage)
-  const lock = LAYER_IDS.slice(1).some((_, i) => rough[LAYER_IDS[i]] < 2.0)
-
-  return { rough, adj, sig, tot, stage, functional_ceiling, foundation_gap, lock }
+  return {
+    adj:                r.layerScores,
+    sig:                r.signals,
+    tot:                r.total,
+    stage:              r.stage,
+    functional_ceiling,
+    foundation_gap,
+    lock:               r.lockActive,
+  }
 }
 
 // ── Hook ──────────────────────────────────────────────────────

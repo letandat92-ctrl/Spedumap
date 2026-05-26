@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useSession, type LocalScore, type SessionInfo } from '@/hooks/useSession'
 import { createClient } from '@/lib/supabase/client'
+import { runEngine } from '@/lib/engine'
 import { A4PageWrapper } from '@/components/A4PageWrapper'
 import { DocumentHeader } from '@/components/DocumentHeader'
 
@@ -66,7 +67,6 @@ const BW: Record<string, Record<string, number>> = {
   L6:{self_control:.25,behavior:.25,social_skills:.25,daily_living:.25},
   L7:{math:1/3,writing:1/3,reading:1/3},
 }
-const LAYER_W: Record<string, number> = { L0:18,L1:16,L2:14,L3:12,L4:12,L5:10,L6:10,L7:8 }
 
 // Local-progress scale buttons (−2/0/+1/+2 — mirrors LS in template; hook supports all 5)
 const LS: Array<{ val: LocalScore; num: string; lbl: string; sel: { bg: string; bd: string; fg: string } }> = [
@@ -100,26 +100,13 @@ function layerScore(blocks: Record<string, unknown>, lid: string): number {
   const bw = BW[lid]; if (!bw) return 0
   return Object.entries(bw).reduce((s, [k, w]) => s + getScore(blocks[k] ?? 0) * w, 0)
 }
-// total = baseline.total_score + weighted delta of changed blocks
-function totalFromBaseline(cur: Record<string, number>, baselineBlocks: Record<string, unknown>, baselineTotal: number): number {
-  let delta = 0
-  for (const [key, curVal] of Object.entries(cur)) {
-    if (!(key in baselineBlocks)) continue
-    const baseVal = getScore(baselineBlocks[key])
-    const lid = B2L[key]
-    const blockWeight = BW[lid]?.[key] ?? 0
-    const layerWeight = LAYER_W[lid] ?? 0
-    delta += ((curVal - baseVal) * blockWeight / 4) * layerWeight
-  }
-  return baselineTotal + delta
-}
 
 export default function SessionPage() {
   const router   = useRouter()
   const supabase = createClient()
   const {
     cycle, activities, sessionInfo, sessionDate, therapistNote, loadError, submitted,
-    currentScores, sessionIndex, plannedSessions,
+    currentScores, liveScores, sessionIndex, plannedSessions,
     observedActivities, cooperationStars, layerEval, regressionClass, regressionReason, planNote,
     setLocalScore, setActivityNote, setExercise, setPurpose,
     addObserved, removeObserved, setObservedNote,
@@ -241,11 +228,12 @@ export default function SessionPage() {
     ageLabel = `${y}y${m}m`
   }
 
-  // Summary panel (current = baseline + delta of all scored blocks)
-  const totalCurrent = totalFromBaseline(currentScores as Record<string, number>, baselineBlocks, baselineTotal)
+  // Summary panel — current/target totals through the full v3 engine (lib/engine).
+  // `liveScores` includes in-progress (uncommitted) activity deltas → real-time delta.
+  const totalCurrent = runEngine(liveScores as Record<string, number>).total
   const targetCur: Record<string, number> = { ...(currentScores as Record<string, number>) }
   for (const [k, v] of Object.entries(targetBlocks)) targetCur[k] = getScore(v)
-  const totalTarget = totalFromBaseline(targetCur, baselineBlocks, baselineTotal)
+  const totalTarget = runEngine(targetCur).total
   const deltaFromBase = totalCurrent - baselineTotal
   const donutPct = Math.max(0, Math.min(100, Math.round(totalCurrent)))
   const donutCirc = 150.8
