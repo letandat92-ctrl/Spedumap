@@ -36,6 +36,9 @@ export interface ObservedActivity {
   note:  string
 }
 
+// Regression classifier — template 3-way (regWarnBox).
+export type RegressionClass = 'transitional' | 'pathological' | 'noise'
+
 export const LAYER_IDS = ['L0', 'L1', 'L2', 'L3', 'L4', 'L5', 'L6', 'L7']
 
 // Suggested exercise/purpose per block — mirrors MOCK_ACT in ui_daily_session.html.
@@ -95,7 +98,8 @@ export function useSession() {
   const [layerEval, setLayerEvalState]              = useState<Record<string, number | null>>(
     () => Object.fromEntries(LAYER_IDS.map(l => [l, null])) as Record<string, number | null>
   )
-  const [regressionFlag, setRegressionFlag]         = useState(false)
+  // Regression classifier — template 3-way (backed by regression_class text).
+  const [regressionClass, setRegressionClass]       = useState<RegressionClass | null>(null)
   const [regressionReason, setRegressionReason]     = useState('')
   const [planNote, setPlanNote]                     = useState('')
 
@@ -155,8 +159,6 @@ export function useSession() {
     setLayerEvalState(prev => ({ ...prev, [layer]: value }))
   }, [])
 
-  const toggleRegression = useCallback(() => setRegressionFlag(f => !f), [])
-
   // Build session output for Supabase + localStorage
   const buildSessionOutput = useCallback(() => {
     if (!cycle) return null
@@ -208,14 +210,15 @@ export function useSession() {
       observed_activities: builtObserved,
       notes:               therapistNote || null,
       cooperation_stars:   cooperationStars,
-      regression_flag:     regressionFlag,
+      regression_class:    regressionClass,
+      regression_flag:     regressionClass !== null,  // derived — keeps the boolean column consistent
       regression_reason:   regressionReason || null,
       plan_note:           planNote || null,
       layer_eval:          layerEval,
       parent_confirmed:    false,
       parent_email:        (cycle.child as {parent_email?: string})?.parent_email || null,
     }
-  }, [cycle, activities, sessionDate, therapistNote, sessionInfo, observedActivities, cooperationStars, regressionFlag, regressionReason, planNote, layerEval])
+  }, [cycle, activities, sessionDate, therapistNote, sessionInfo, observedActivities, cooperationStars, regressionClass, regressionReason, planNote, layerEval])
 
   // After submit — push session to localStorage
   const commitSession = useCallback((sessionData: ReturnType<typeof buildSessionOutput>) => {
@@ -229,6 +232,7 @@ export function useSession() {
         observed_activities: sessionData.observed_activities,
         notes:               sessionData.notes,
         cooperation_stars:   sessionData.cooperation_stars,
+        regression_class:    sessionData.regression_class,
         regression_flag:     sessionData.regression_flag,
         regression_reason:   sessionData.regression_reason,
         plan_note:           sessionData.plan_note,
@@ -249,11 +253,11 @@ export function useSession() {
   return {
     cycle, activities, sessionInfo, sessionDate, therapistNote, loadError, submitted,
     currentScores, sessionIndex, plannedSessions,
-    observedActivities, cooperationStars, layerEval, regressionFlag, regressionReason, planNote,
+    observedActivities, cooperationStars, layerEval, regressionClass, regressionReason, planNote,
     setLocalScore, setActivityNote, setExercise, setPurpose,
     addObserved, removeObserved, setObservedNote,
     setCooperationStars, setLayerEval,
-    toggleRegression, setRegressionFlag, setRegressionReason, setPlanNote,
+    setRegressionClass, setRegressionReason, setPlanNote,
     setSessionDate, setTherapistNote, setSessionInfo,
     buildSessionOutput, commitSession, setSubmitted,
   }

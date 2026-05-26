@@ -120,11 +120,11 @@ export default function SessionPage() {
   const {
     cycle, activities, sessionInfo, sessionDate, therapistNote, loadError, submitted,
     currentScores, sessionIndex, plannedSessions,
-    observedActivities, cooperationStars, layerEval, regressionFlag, regressionReason, planNote,
+    observedActivities, cooperationStars, layerEval, regressionClass, regressionReason, planNote,
     setLocalScore, setActivityNote, setExercise, setPurpose,
     addObserved, removeObserved, setObservedNote,
     setCooperationStars, setLayerEval,
-    toggleRegression, setRegressionReason, setPlanNote,
+    setRegressionClass, setRegressionReason, setPlanNote,
     setSessionDate, setTherapistNote, setSessionInfo,
     buildSessionOutput, commitSession,
   } = useSession()
@@ -157,6 +157,7 @@ export default function SessionPage() {
           observed_activities: output.observed_activities,
           notes:               output.notes,
           cooperation_stars:   output.cooperation_stars,
+          regression_class:    output.regression_class,
           regression_flag:     output.regression_flag,
           regression_reason:   output.regression_reason,
           plan_note:           output.plan_note,
@@ -913,13 +914,28 @@ export default function SessionPage() {
                   </tbody>
                 </table>
 
-                {/* Regression warning box + toggle → regressionFlag / regressionReason */}
-                <div style={{ marginTop: 8, padding: '9px 12px', background: 'var(--gold-bg)', border: '1px solid var(--gold-bd)', borderRadius: 4, fontSize: 11, color: '#885500' }}>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontWeight: 600, marginBottom: regressionFlag ? 6 : 0, cursor: 'pointer' }}>
-                    <input type="checkbox" checked={regressionFlag} onChange={toggleRegression} />
-                    ⚠ Có mục tiêu đang tệ hơn / cần theo dõi thoái lui
-                  </label>
-                  {regressionFlag && (
+                {/* Regression classifier (template regWarnBox) — shown when a layer eval ≤ 1 */}
+                {Object.values(layerEval).some(v => v !== null && v <= 1) && (
+                  <div style={{ marginTop: 8, padding: '9px 12px', background: 'var(--gold-bg)', border: '1px solid var(--gold-bd)', borderRadius: 4, fontSize: 11, color: '#885500' }}>
+                    <div style={{ fontWeight: 600, marginBottom: 6 }}>⚠ Có mục tiêu đang tệ hơn — Phân loại:</div>
+                    <div style={{ display: 'flex', gap: 6, alignItems: 'center', marginBottom: 6 }}>
+                      {([
+                        { val: 'transitional', label: 'Tạm thời',       bd: '#E8C880', fg: '#C07010' },
+                        { val: 'pathological', label: 'Cần điều tra',   bd: '#F0CACA', fg: '#B52020' },
+                        { val: 'noise',        label: 'Nhiễu đo lường', bd: '#E8C880', fg: '#C07010' },
+                      ] as const).map(b => {
+                        const active = regressionClass === b.val
+                        return (
+                          <button
+                            key={b.val}
+                            onClick={() => setRegressionClass(active ? null : b.val)}
+                            style={{ padding: '3px 10px', borderRadius: 3, border: `1.5px solid ${b.bd}`, background: active ? b.fg : 'transparent', color: active ? '#fff' : b.fg, fontSize: 10, fontWeight: 600, cursor: 'pointer' }}
+                          >
+                            {b.label}
+                          </button>
+                        )
+                      })}
+                    </div>
                     <input
                       type="text"
                       value={regressionReason}
@@ -927,8 +943,8 @@ export default function SessionPage() {
                       placeholder="Lý do lâm sàng (candida die-off, ngủ kém tối qua, sensory overload...)"
                       style={{ width: '100%', height: 26, border: '1px solid var(--gold-bd)', borderRadius: 3, padding: '0 8px', fontSize: 10, color: '#555', background: 'transparent', outline: 'none' }}
                     />
-                  )}
-                </div>
+                  </div>
+                )}
 
                 {/* Notes + plan */}
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginTop: 10 }}>
