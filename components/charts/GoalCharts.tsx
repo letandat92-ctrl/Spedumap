@@ -76,17 +76,17 @@ export function GoalCharts({ baselineBlocks, targetBlocks }: GoalChartsProps) {
   })
 
   return (
-    <div className="grid grid-cols-2 gap-4">
+    <div className="grid grid-cols-2 gap-2.5" style={{ fontFamily: "'Inter', sans-serif" }}>
       {/* Radar */}
-      <div className="bg-white border border-[var(--rule)] rounded-xl p-4">
+      <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 10, padding: '10px 12px' }}>
         <div className="flex items-center justify-between mb-2">
-          <div className="text-xs font-semibold text-[var(--ink-3)] uppercase tracking-wider">Radar — Baseline vs Target</div>
-          <div className="flex items-center gap-3 text-[10px] text-[var(--ink-3)]">
-            <span className="flex items-center gap-1"><span className="w-3 h-0.5 inline-block bg-red-600"/>&nbsp;Baseline</span>
-            <span className="flex items-center gap-1"><span className="w-3 h-0.5 inline-block bg-green-600" style={{borderTop:'2px dashed #1A6A3A'}}/>&nbsp;Target</span>
+          <div style={{ fontFamily: "'Oswald', sans-serif", fontSize: 10, fontWeight: 600, letterSpacing: '.07em', textTransform: 'uppercase', color: 'var(--sub)' }}>Radar — Baseline vs Target</div>
+          <div className="flex items-center gap-2.5" style={{ fontSize: 9, color: 'var(--sub)' }}>
+            <span className="flex items-center gap-1"><span className="inline-block" style={{ width: 12, height: 2, background: 'var(--red)' }}/>&nbsp;Baseline</span>
+            <span className="flex items-center gap-1"><span className="inline-block" style={{ width: 12, height: 0, borderTop: '2px dashed var(--good)' }}/>&nbsp;Target</span>
           </div>
         </div>
-        <ResponsiveContainer width="100%" height={200}>
+        <ResponsiveContainer width="100%" height={180}>
           <RadarChart data={radarData} margin={{ top: 10, right: 20, bottom: 10, left: 20 }}>
             <PolarGrid stroke="#E5E7EB" />
             <PolarAngleAxis dataKey="layer" tick={{ fontSize: 9, fill: '#6B7280' }} />
@@ -97,15 +97,15 @@ export function GoalCharts({ baselineBlocks, targetBlocks }: GoalChartsProps) {
       </div>
 
       {/* Pyramid bar */}
-      <div className="bg-white border border-[var(--rule)] rounded-xl p-4">
+      <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 10, padding: '10px 12px' }}>
         <div className="flex items-center justify-between mb-2">
-          <div className="text-xs font-semibold text-[var(--ink-3)] uppercase tracking-wider">Pyramid — Layer Delta</div>
-          <div className="flex items-center gap-3 text-[10px] text-[var(--ink-3)]">
-            <span className="flex items-center gap-1"><span className="w-3 h-3 inline-block rounded-sm bg-gray-400 opacity-70"/>&nbsp;Baseline</span>
-            <span className="flex items-center gap-1"><span className="w-3 h-3 inline-block rounded-sm bg-green-600 opacity-70"/>&nbsp;Target gain</span>
+          <div style={{ fontFamily: "'Oswald', sans-serif", fontSize: 10, fontWeight: 600, letterSpacing: '.07em', textTransform: 'uppercase', color: 'var(--sub)' }}>Pyramid — Layer Delta</div>
+          <div className="flex items-center gap-2.5" style={{ fontSize: 9, color: 'var(--sub)' }}>
+            <span className="flex items-center gap-1"><span className="inline-block rounded-sm" style={{ width: 10, height: 10, background: 'rgba(0,0,0,.15)' }}/>&nbsp;Baseline</span>
+            <span className="flex items-center gap-1"><span className="inline-block rounded-sm" style={{ width: 10, height: 10, background: 'rgba(26,122,74,.6)' }}/>&nbsp;Target gain</span>
           </div>
         </div>
-        <ResponsiveContainer width="100%" height={200}>
+        <ResponsiveContainer width="100%" height={180}>
           <BarChart data={barData} layout="vertical" margin={{ top: 4, right: 16, bottom: 4, left: 32 }} barSize={14}>
             <XAxis type="number" domain={[0, 4]} tick={{ fontSize: 9, fill: '#9CA3AF' }} />
             <YAxis type="category" dataKey="label" tick={{ fontSize: 9, fill: '#6B7280' }} width={28} />

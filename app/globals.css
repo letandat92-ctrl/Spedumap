@@ -23,6 +23,39 @@
   --bg:        #F9FAFB;
   --teal:      #0A6060;
   --teal-bg:   #EEF8F8;
+  --teal-bd:   #A0D0D0;
+  --navy-2:    #1A3A6A;
+  --navy-3:    #2A5A9A;
+  /* Template-match tokens (baseline / goal warm palette) */
+  --card:      #FFFFFF;
+  --border:    #E4E0DA;
+  --border-2:  #C8C3BA;
+  --text:      #1A1A1A;
+  --sub:       #888888;
+  --sub-2:     #555555;
+  --good:      #1A7A4A;
+  --good-bg:   #EEF8F2;
+  --good-bd:   #B0D8C0;
+  --warn:      #C07010;
+  --warn-bg:   #FBF3E8;
+  --warn-bd:   #E8C88A;
+  --bad:       #C0392B;
+  --bad-bg:    #FDF2F0;
+  --bad-bd:    #F0C0BA;
+  --red-dk:    #7A1010;
+  --purple:    #5A1A8A;
+  --purple-bg: #F3ECF9;
+  --purple-bd: #D8C0E8;
+  --blue:      #1A5A9A;
+  --blue-bg:   #ECF2F9;
+  --blue-bd:   #C0D4E8;
+  --warm-bg:   #F5F3F0;
+  /* Progress score scale (0..4) */
+  --s0: #C0392B;
+  --s1: #C07010;
+  --s2: #B08800;
+  --s3: #2A7A4A;
+  --s4: #1A6A3A;
   /* Layer colors */
   --L0: #8B1A1A;
   --L1: #A02020;

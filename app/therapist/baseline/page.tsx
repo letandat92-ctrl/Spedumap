@@ -5,10 +5,10 @@ import { useRouter } from 'next/navigation'
 import { useBaseline } from '@/hooks/useBaseline'
 import { createClient } from '@/lib/supabase/client'
 import { LS_KEYS } from '@/types/spedumap'
-import { BlockRow } from '@/components/blocks/BlockRow'
 import { LayerSection } from '@/components/blocks/LayerSection'
 import { BaselineKPI } from '@/components/blocks/BaselineKPI'
 import { BaselineCharts } from '@/components/charts/BaselineCharts'
+import { SignalStrip } from '@/components/charts/CycleComponents'
 import AssessmentForm from '@/components/forms/AssessmentForm'
 
 export const dynamic = 'force-dynamic'
@@ -179,19 +179,61 @@ export default function BaselinePage() {
     }
   }
 
+  const progressPct = totalCount > 0 ? Math.round((enteredCount / totalCount) * 100) : 0
+
   return (
-    <div className="flex h-screen bg-[var(--bg)] overflow-hidden">
+    <div
+      className="flex flex-col h-screen bg-[var(--warm-bg)] overflow-hidden"
+      style={{ fontFamily: "'Inter', sans-serif" }}
+    >
+
+      {/* ── TOP APP-BAR HEADER ── */}
+      <header className="flex-shrink-0 h-[52px] flex items-center justify-between px-5 bg-[var(--card)] border-b border-[var(--border)] z-30">
+        <h1 className="text-[15px] font-bold tracking-[0.04em]" style={{ fontFamily: "'Oswald', sans-serif" }}>
+          SPEDUMAP <span className="text-[var(--red)]">Baseline</span> Setting
+        </h1>
+        <div className="flex items-center gap-3">
+          {/* Blocks progress track */}
+          <div className="flex items-center gap-2">
+            <span className="text-[9px] font-semibold tracking-[0.1em] uppercase text-[var(--sub)]" style={{ fontFamily: "'Oswald', sans-serif" }}>
+              Blocks
+            </span>
+            <div className="w-[100px] h-[3px] bg-[var(--border)] rounded-sm overflow-hidden">
+              <div
+                className="h-full bg-[var(--red)] rounded-sm transition-[width] duration-300"
+                style={{ width: `${progressPct}%` }}
+              />
+            </div>
+            <span className="text-[11px] font-bold text-[var(--red)] min-w-[34px]" style={{ fontFamily: "'Oswald', sans-serif" }}>
+              {enteredCount}/{totalCount}
+            </span>
+          </div>
+          {/* Lock trigger */}
+          <button
+            onClick={() => setShowLockModal(true)}
+            disabled={!canLock || isLocked}
+            className={`text-[11px] font-semibold tracking-[0.06em] uppercase rounded-[3px] px-3.5 py-[7px] text-white transition-all ${
+              isLocked
+                ? 'bg-[var(--good)] cursor-default'
+                : canLock
+                  ? 'bg-[var(--red)] hover:bg-[var(--red-dk)] cursor-pointer'
+                  : 'bg-[var(--red)] opacity-35 cursor-not-allowed'
+            }`}
+            style={{ fontFamily: "'Oswald', sans-serif" }}
+          >
+            {isLocked ? '✓ Đã khóa' : 'Khóa Baseline'}
+          </button>
+        </div>
+      </header>
+
+      {/* ── WORKBENCH: two panes ── */}
+      <div className="flex flex-1 overflow-hidden">
 
       {/* ── LEFT: Input Panel ── */}
-      <div className="w-[380px] flex-shrink-0 border-r border-[var(--rule)] overflow-y-auto bg-white">
+      <div className="w-[340px] flex-shrink-0 border-r border-[var(--border)] overflow-y-auto bg-[var(--card)]">
 
-        {/* Meta fields */}
-        <div className="px-3 py-2 bg-[var(--navy)] text-right">
-          <span className="text-white/70 text-xs font-mono">{enteredCount}/{totalCount} blocks</span>
-        </div>
-
-        <div className="p-4 border-b border-[var(--rule-2)] space-y-3">
-          <h3 className="text-xs font-semibold text-[var(--ink-3)] uppercase tracking-wider">Thông tin chung</h3>
+        <div className="p-4 border-b border-[var(--border)] space-y-3 bg-[#FAFAF8]">
+          <h3 className="text-[9px] font-semibold text-[var(--sub)] uppercase tracking-[0.12em]" style={{ fontFamily: "'Oswald', sans-serif" }}>Thông tin chung</h3>
 
           <div className="grid grid-cols-2 gap-2">
             <div>
@@ -288,23 +330,39 @@ export default function BaselinePage() {
             />
           </div>
 
-          {/* Clinical toggle */}
-          <label className="flex items-center gap-2 cursor-pointer">
+          {/* Clinical / Behavioral source toggle + badge */}
+          <div className="flex items-center gap-2.5 px-3 py-2 bg-[#F5F1EB] border border-[var(--border)] rounded-md">
+            <div className="flex-1 text-[11px] font-semibold text-[var(--ink)] leading-snug">
+              Có kết quả lâm sàng / xét nghiệm cho L0
+              <span className="block text-[10px] text-[var(--sub)] font-normal mt-px">
+                Bật nếu có: xét nghiệm máu, vi sinh đường ruột, polysomnography... Ảnh hưởng đến rubric chấm điểm L0.
+              </span>
+            </div>
+            {/* Source badge */}
+            <span
+              className={`text-[9px] font-bold px-[7px] py-0.5 rounded-[3px] flex-shrink-0 border ${
+                meta.isClinic
+                  ? 'bg-[var(--green-bg)] text-[var(--green)] border-[var(--green-bd)]'
+                  : 'bg-[#F5F1EB] text-[var(--gold)] border-[var(--gold-bd)]'
+              }`}
+              style={{ fontFamily: "'Oswald', sans-serif" }}
+            >
+              {meta.isClinic ? 'Clinical' : 'Behavioral'}
+            </span>
             <div
               onClick={() => setMetaField('isClinic', !meta.isClinic)}
-              className={`w-9 h-5 rounded-full transition-colors ${meta.isClinic ? 'bg-[var(--navy)]' : 'bg-gray-300'}`}
+              className={`w-[38px] h-5 rounded-full transition-colors flex-shrink-0 cursor-pointer ${meta.isClinic ? 'bg-[var(--green)]' : 'bg-[#CCC]'}`}
             >
-              <div className={`w-4 h-4 bg-white rounded-full shadow transition-transform mt-0.5 ${meta.isClinic ? 'translate-x-4 ml-0.5' : 'translate-x-0.5'}`} />
+              <div className={`w-3.5 h-3.5 bg-white rounded-full shadow transition-transform mt-[3px] ${meta.isClinic ? 'translate-x-[21px]' : 'translate-x-[3px]'}`} />
             </div>
-            <span className="text-xs text-[var(--ink-2)]">Có kết quả lâm sàng / xét nghiệm cho L0</span>
-          </label>
+          </div>
 
           {/* File attachment L0 */}
-          <div className="mt-2 px-3 py-2 bg-[var(--rule-2)] rounded-lg">
-            <div className="text-[10px] text-[var(--ink-3)] mb-1.5">Tài liệu đính kèm (xét nghiệm, MRI, đo khúc xạ...)</div>
+          <div className="mt-2 px-3 py-2 bg-[#F7F5F1] rounded-lg border border-[var(--border)]">
+            <div className="text-[9px] font-semibold tracking-[0.1em] uppercase text-[var(--sub)] mb-1.5" style={{ fontFamily: "'Oswald', sans-serif" }}>Tài liệu đính kèm (xét nghiệm, MRI, đo khúc xạ...)</div>
             <div className="flex flex-wrap gap-1.5 mb-1.5">
               {attachments.map((f, i) => (
-                <div key={i} className="flex items-center gap-1 text-[10px] bg-white border border-[var(--rule)] rounded px-2 py-0.5">
+                <div key={i} className="flex items-center gap-1 text-[10px] bg-white border border-[var(--border)] rounded px-2 py-0.5">
                   <span>{f.type.includes('pdf') ? '📄' : f.type.includes('image') ? '🖼' : '📎'}</span>
                   <span className="text-[var(--ink-2)] max-w-24 truncate">{f.name}</span>
                   <button onClick={() => setAttachments(prev => prev.filter((_, j) => j !== i))}
@@ -312,7 +370,7 @@ export default function BaselinePage() {
                 </div>
               ))}
             </div>
-            <label className="inline-flex items-center gap-1 text-[10px] font-semibold text-[var(--navy)] cursor-pointer hover:underline">
+            <label className="inline-flex items-center gap-1 text-[10px] font-semibold text-[var(--red)] cursor-pointer hover:underline">
               <span>＋ Đính kèm</span>
               <input type="file" multiple accept=".pdf,.jpg,.jpeg,.png,.dcm,.doc,.docx"
                 onChange={handleFileAttach} className="hidden" />
@@ -343,10 +401,10 @@ export default function BaselinePage() {
           ))}
         </div>
 
-        {/* Lock button */}
-        <div className="sticky bottom-0 p-4 bg-white border-t border-[var(--rule)]">
+        {/* Lock button + validation */}
+        <div className="sticky bottom-0 p-4 bg-[var(--card)] border-t border-[var(--border)]">
           {!allBlocksScored && (
-            <p className="text-xs text-[var(--ink-3)] text-center mb-1">
+            <p className="text-xs text-[var(--sub)] text-center mb-1">
               Còn {Object.values(blocks).filter(b => b.score === null).length} blocks chưa nhập điểm
             </p>
           )}
@@ -368,53 +426,81 @@ export default function BaselinePage() {
           <button
             onClick={() => setShowLockModal(true)}
             disabled={!canLock || isLocked}
-            className="w-full h-10 bg-[var(--red)] text-white rounded-lg text-sm font-bold hover:bg-red-800 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+            className="w-full h-10 bg-[var(--red)] text-white rounded-lg text-sm font-bold hover:bg-[var(--red-dk)] transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+            style={{ fontFamily: "'Oswald', sans-serif" }}
           >
             {isLocked ? '✓ Đã khóa Baseline' : 'Khóa Baseline →'}
           </button>
         </div>
       </div>
 
-      {/* ── RIGHT: Summary Panel ── */}
-      <div className="flex-1 overflow-y-auto p-6">
-        <BaselineKPI engine={engine} />
-        <div className="mt-4">
+      {/* ── RIGHT: Result Panel ── */}
+      <div className="flex-1 flex flex-col overflow-hidden bg-[var(--warm-bg)]">
+
+        {/* Summary strip — KPIs + dominant deficit + lock warning */}
+        <div className="flex-shrink-0 px-3.5 py-2.5 bg-[var(--card)] border-b border-[var(--border)]">
+          <BaselineKPI engine={engine} enteredCount={enteredCount} totalCount={totalCount} />
+        </div>
+
+        {/* Signal panel — 3 deficit signal cards */}
+        <div className="flex-shrink-0 px-3.5 pt-2.5 pb-1 bg-[var(--card)] border-b border-[var(--border)]">
+          <div
+            className="text-[8px] font-semibold tracking-[0.1em] uppercase text-[var(--sub)] mb-1.5"
+            style={{ fontFamily: "'Oswald', sans-serif" }}
+          >
+            Deficit Signals
+          </div>
+          <SignalStrip blocks={blocks as Record<string, unknown>} />
+        </div>
+
+        {/* Charts */}
+        <div className="flex-1 px-3.5 py-2.5 overflow-hidden min-h-0">
           <BaselineCharts engine={engine} />
         </div>
       </div>
 
+      </div>{/* end workbench */}
+
       {/* ── Lock Modal ── */}
       {showLockModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl p-6 w-80 shadow-xl">
-            <h3 className="font-serif font-bold text-[var(--navy)] mb-1">Khóa Baseline</h3>
-            <p className="text-xs text-[var(--ink-3)] mb-4">
-              Sau khi khóa, điểm baseline sẽ được lưu vào Supabase và không thể thay đổi trong cycle này.
+        <div className="fixed inset-0 bg-[rgba(26,26,26,0.55)] flex items-center justify-center z-50" style={{ fontFamily: "'Inter', sans-serif" }}>
+          <div className="bg-white rounded-lg px-7 pt-7 pb-5 w-[90%] max-w-[420px] shadow-[0_8px_32px_rgba(0,0,0,0.18)]">
+            <div className="text-center text-[28px] mb-2.5">🔒</div>
+            <h3 className="text-center text-[16px] font-bold tracking-[0.04em] text-[var(--red)] mb-2.5" style={{ fontFamily: "'Oswald', sans-serif" }}>
+              Xác nhận Khóa Baseline
+            </h3>
+            <p className="text-center text-xs text-[var(--sub-2)] leading-relaxed mb-4">
+              Sau khi khóa, <strong className="text-[var(--ink)]">baseline không thể thay đổi</strong> trừ khi Quản trị viên mở lại.
+              Điểm baseline sẽ được lưu vào Supabase trong cycle này.
             </p>
-            <label className="block text-xs font-semibold text-[var(--ink-3)] uppercase tracking-wider mb-1.5">
-              Mật khẩu xác nhận
-            </label>
+            <div className="text-center text-[10px] text-[var(--sub)] tracking-[0.04em] mb-1.5">
+              Nhập mật khẩu của bạn để xác nhận
+            </div>
             <input
               type="password"
               value={lockPassword}
               onChange={e => { setLockPassword(e.target.value); setPasswordError('') }}
-              className="w-full h-9 px-3 border border-[var(--rule)] rounded-lg text-sm mb-2 focus:outline-none focus:border-[var(--navy)]"
-              placeholder="••••"
+              className="w-full h-9 px-3 bg-[var(--warm-bg)] border-[1.5px] border-[var(--border)] rounded text-center text-sm font-semibold tracking-[0.06em] mb-3.5 focus:outline-none focus:border-[var(--red)] focus:bg-white"
+              style={{ fontFamily: "'Oswald', sans-serif" }}
+              placeholder="••••••••"
+              autoComplete="off"
             />
-            {passwordError && <p className="text-xs text-[var(--red)] mb-2">{passwordError}</p>}
+            {passwordError && <p className="text-xs text-[var(--red)] mb-2 text-center">{passwordError}</p>}
             <div className="flex gap-2">
               <button
                 onClick={() => setShowLockModal(false)}
-                className="flex-1 h-9 border border-[var(--rule)] rounded-lg text-sm text-[var(--ink-3)] hover:bg-[var(--rule-2)]"
+                className="flex-1 h-[34px] border-[1.5px] border-[var(--border)] rounded bg-[var(--warm-bg)] text-[11px] font-semibold tracking-[0.04em] text-[var(--sub-2)] hover:border-[#999] hover:text-[var(--ink)]"
+                style={{ fontFamily: "'Oswald', sans-serif" }}
               >
-                Hủy
+                Hủy bỏ
               </button>
               <button
                 onClick={handleLock}
                 disabled={isSaving}
-                className="flex-1 h-9 bg-[var(--navy)] text-white rounded-lg text-sm font-semibold hover:bg-[var(--navy-mid)] disabled:opacity-40"
+                className="flex-1 h-[34px] bg-[var(--red)] text-white rounded text-[11px] font-bold tracking-[0.06em] hover:bg-[var(--red-dk)] disabled:opacity-40"
+                style={{ fontFamily: "'Oswald', sans-serif" }}
               >
-                {isSaving ? 'Đang lưu...' : 'Xác nhận khóa'}
+                {isSaving ? 'Đang lưu...' : 'Khóa Baseline'}
               </button>
             </div>
           </div>

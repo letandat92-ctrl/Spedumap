@@ -45,10 +45,13 @@ export function BaselineCharts({ engine }: BaselineChartsProps) {
   }))
 
   return (
-    <div className="grid grid-cols-2 gap-4">
+    <div className="grid grid-cols-2 gap-2.5 h-full">
       {/* Radar */}
-      <div className="bg-white border border-[var(--rule)] rounded-xl p-4">
-        <div className="text-xs font-semibold text-[var(--ink-3)] uppercase tracking-wider mb-2">
+      <div className="bg-[var(--card)] border border-[var(--border)] rounded-lg p-3 flex flex-col overflow-hidden">
+        <div
+          className="text-[10px] font-semibold text-[var(--sub)] uppercase tracking-[0.07em] mb-1.5"
+          style={{ fontFamily: "'Oswald', sans-serif" }}
+        >
           Layer Scores — Radar
         </div>
         <ResponsiveContainer width="100%" height={220}>
@@ -71,9 +74,12 @@ export function BaselineCharts({ engine }: BaselineChartsProps) {
       </div>
 
       {/* Bar */}
-      <div className="bg-white border border-[var(--rule)] rounded-xl p-4">
-        <div className="text-xs font-semibold text-[var(--ink-3)] uppercase tracking-wider mb-2">
-          Points Contribution
+      <div className="bg-[var(--card)] border border-[var(--border)] rounded-lg p-3 flex flex-col overflow-hidden">
+        <div
+          className="text-[10px] font-semibold text-[var(--sub)] uppercase tracking-[0.07em] mb-1.5"
+          style={{ fontFamily: "'Oswald', sans-serif" }}
+        >
+          Layer Points Contribution
         </div>
         <ResponsiveContainer width="100%" height={220}>
           <BarChart

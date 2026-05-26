@@ -11,10 +11,12 @@ import { GoalCharts } from '@/components/charts/GoalCharts'
 
 export const dynamic = 'force-dynamic'
 
+const OSWALD = "'Oswald', sans-serif"
+const INTER  = "'Inter', sans-serif"
 
 const LAYER_COLORS: Record<string, string> = {
-  L0:'#8B1A1A',L1:'#A02020',L2:'#B83030',L3:'#C55030',
-  L4:'#C87020',L5:'#4A8A60',L6:'#2A6A9A',L7:'#3A5AAA',
+  L0:'var(--L0)',L1:'var(--L1)',L2:'var(--L2)',L3:'var(--L3)',
+  L4:'var(--L4)',L5:'var(--L5)',L6:'var(--L6)',L7:'var(--L7)',
 }
 
 const BM: Record<string, { label: string; blocks: Record<string, string> }> = {
@@ -29,6 +31,15 @@ const BM: Record<string, { label: string; blocks: Record<string, string> }> = {
 }
 
 const LAYER_IDS = ['L0','L1','L2','L3','L4','L5','L6','L7']
+
+// Score → scale color (var(--s0)..var(--s4))
+function scoreColor(score: number): string {
+  if (score >= 3.5) return 'var(--s4)'
+  if (score >= 2.5) return 'var(--s3)'
+  if (score >= 1.5) return 'var(--s2)'
+  if (score >= 0.5) return 'var(--s1)'
+  return 'var(--s0)'
+}
 
 export default function GoalPage() {
   const router = useRouter()
@@ -76,13 +87,14 @@ export default function GoalPage() {
 
   if (loadError) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center" style={{ fontFamily: INTER, background: 'var(--warm-bg)' }}>
         <div className="max-w-sm text-center p-6">
-          <div className="text-[var(--red)] font-semibold mb-2">Chưa có Baseline</div>
-          <p className="text-sm text-[var(--ink-3)] mb-4">{loadError}</p>
+          <div className="text-[var(--red)] font-semibold mb-2" style={{ fontFamily: OSWALD }}>Chưa có Baseline</div>
+          <p className="text-sm text-[var(--sub)] mb-4">{loadError}</p>
           <button
             onClick={() => router.push('/therapist/baseline')}
-            className="px-4 py-2 bg-[var(--navy)] text-white rounded-lg text-sm"
+            className="px-4 py-2 bg-[var(--red)] text-white rounded-lg text-sm"
+            style={{ fontFamily: OSWALD }}
           >
             Đến Baseline Setting →
           </button>
@@ -91,93 +103,317 @@ export default function GoalPage() {
     )
   }
 
-  if (!bd) return <div className="p-8 text-sm text-[var(--ink-3)]">Đang tải...</div>
+  if (!bd) return <div className="p-8 text-sm text-[var(--sub)]" style={{ fontFamily: INTER }}>Đang tải...</div>
+
+  const childInitials = bd.child.name.split(' ').filter(Boolean).map(w => w[0].toUpperCase()).slice(-2).join('')
 
   return (
-    <div className="flex h-screen bg-[var(--bg)] overflow-hidden">
+    <div
+      className="grid h-screen overflow-hidden"
+      style={{
+        fontFamily: INTER,
+        background: 'var(--warm-bg)',
+        color: 'var(--ink)',
+        gridTemplateColumns: '480px 1fr',
+        gridTemplateRows: '52px 1fr',
+      }}
+    >
 
-      {/* ── LEFT: Block selector ── */}
-      <div className="w-[380px] flex-shrink-0 border-r border-[var(--rule)] overflow-y-auto bg-white">
-
-        {/* Header */}
-        <div className="sticky top-0 z-10 bg-[var(--navy)] px-4 py-3 flex items-center justify-between">
-          <div>
-            <span className="font-serif font-bold text-white text-sm">SPEDUMAP</span>
-            <span className="text-white/50 text-xs ml-2">/ Goal Setting</span>
-          </div>
-          <div className="text-white/70 text-xs font-mono">{goalCount} blocks</div>
+      {/* ── HEADER: step-indicator wizard ── */}
+      <header
+        className="flex items-center justify-between px-5"
+        style={{ gridColumn: '1 / -1', background: '#fff', borderBottom: '1.5px solid var(--border)', zIndex: 50 }}
+      >
+        <div style={{ fontFamily: OSWALD, fontSize: 15, fontWeight: 700, letterSpacing: '.04em' }}>
+          SPEDUMAP <span style={{ color: 'var(--red)' }}>Goal Setting</span>
         </div>
 
-        {/* Child info */}
-        <div className="px-4 py-3 border-b border-[var(--rule-2)] bg-[var(--rule-2)]">
-          <div className="text-xs font-semibold text-[var(--ink)]">{bd.child.name}</div>
-          <div className="text-xs text-[var(--ink-3)]">
-            Stage: <span className="font-mono font-bold text-[var(--navy)]">{bd.engine_snapshot.stage}</span>
-            {' · '}Total: <span className="font-mono font-bold text-[var(--navy)]">{bd.engine_snapshot.total.toFixed(1)}</span>
+        {/* Wizard: Baseline ✓ → Goals (active) → Cycle → Daily */}
+        <div className="flex items-center gap-2">
+          <div className="w-[7px] h-[7px] rounded-full" style={{ background: 'var(--good)' }} />
+          <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: '.08em', textTransform: 'uppercase', color: 'var(--sub)' }}>Baseline</div>
+          <div className="w-5 h-px" style={{ background: 'var(--border)' }} />
+          <div className="w-[7px] h-[7px] rounded-full" style={{ background: 'var(--red)' }} />
+          <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: '.08em', textTransform: 'uppercase', color: 'var(--red)' }}>Goals</div>
+          <div className="w-5 h-px" style={{ background: 'var(--border)' }} />
+          <div className="w-[7px] h-[7px] rounded-full" style={{ background: 'var(--border)' }} />
+          <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: '.08em', textTransform: 'uppercase', color: 'var(--sub)' }}>Open Cycle</div>
+          <div className="w-5 h-px" style={{ background: 'var(--border)' }} />
+          <div className="w-[7px] h-[7px] rounded-full" style={{ background: 'var(--border)' }} />
+          <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: '.08em', textTransform: 'uppercase', color: 'var(--sub)' }}>Daily</div>
+        </div>
+
+        <div className="flex items-center gap-2.5">
+          <button
+            onClick={() => router.push('/therapist/baseline')}
+            className="h-8 px-3.5 rounded transition-colors"
+            style={{ border: '1.5px solid var(--border)', background: 'transparent', fontFamily: OSWALD, fontSize: 11, fontWeight: 600, letterSpacing: '.04em', color: 'var(--sub)' }}
+          >
+            ← Baseline
+          </button>
+          <button
+            onClick={handleConfirm}
+            disabled={!goalCount || saving}
+            className="h-8 px-[18px] rounded text-white transition-colors"
+            style={{
+              border: 'none',
+              background: 'var(--red)',
+              fontFamily: OSWALD, fontSize: 11, fontWeight: 700, letterSpacing: '.06em',
+              opacity: goalCount && !saving ? 1 : 0.35,
+              cursor: goalCount && !saving ? 'pointer' : 'not-allowed',
+            }}
+          >
+            {saving ? 'Đang lưu...' : 'Bắt đầu Cycle →'}
+          </button>
+        </div>
+      </header>
+
+      {/* ── LEFT PANEL: block selector ── */}
+      <div
+        className="overflow-y-auto flex flex-col"
+        style={{ background: 'var(--card)', borderRight: '1.5px solid var(--border)' }}
+      >
+        {/* Child strip */}
+        <div
+          className="flex items-center gap-2.5 px-4 py-2.5 flex-shrink-0"
+          style={{ background: '#FAFAF8', borderBottom: '1px solid var(--border)' }}
+        >
+          <div
+            className="flex items-center justify-center flex-shrink-0 rounded-full"
+            style={{ width: 30, height: 30, background: 'var(--red-bg)', border: '1px solid var(--red-bd)', fontFamily: OSWALD, fontSize: 10, fontWeight: 700, color: 'var(--red)' }}
+          >
+            {childInitials || 'NA'}
           </div>
+          <div>
+            <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--ink)' }}>{bd.child.name}</div>
+            <div style={{ fontSize: 10, color: 'var(--sub)' }}>{bd.eval_date ?? '—'}</div>
+          </div>
+          <div
+            className="ml-auto whitespace-nowrap"
+            style={{ background: 'var(--good-bg)', border: '1px solid var(--good-bd)', borderRadius: 4, padding: '3px 8px', fontFamily: OSWALD, fontSize: 10, fontWeight: 600, color: 'var(--good)', letterSpacing: '.04em' }}
+          >
+            Baseline {bd.engine_snapshot.total.toFixed(1)} · {bd.engine_snapshot.stage}
+          </div>
+        </div>
+
+        {/* Section head */}
+        <div className="flex items-center gap-2 px-4 pt-2.5 pb-1.5 flex-shrink-0">
+          <span style={{ fontFamily: OSWALD, fontSize: 9, fontWeight: 600, letterSpacing: '.12em', textTransform: 'uppercase', color: 'var(--sub)', background: 'var(--border)', padding: '2px 6px', borderRadius: 2 }}>
+            Chọn block
+          </span>
+          <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--ink)' }}>Chọn goal cho cycle này</span>
+          <span className="ml-auto" style={{ fontFamily: OSWALD, fontSize: 10, fontWeight: 700, color: 'var(--red)' }}>{goalCount} đã chọn</span>
         </div>
 
         {/* Search */}
-        <div className="px-3 py-2 border-b border-[var(--rule-2)]">
+        <div className="px-3 pb-2 flex-shrink-0">
           <input
             value={search}
             onChange={e => setSearch(e.target.value)}
             placeholder="Tìm block..."
-            className="w-full h-7 px-2 text-xs border border-[var(--rule)] rounded focus:outline-none focus:border-[var(--navy)]"
+            className="w-full h-7 px-2 text-xs rounded focus:outline-none"
+            style={{ border: '1px solid var(--border)', background: 'var(--warm-bg)', fontFamily: INTER }}
           />
         </div>
 
-        {/* Block list by layer */}
-        <div className="p-2">
+        {/* GAS list (block selector + selected goal config) */}
+        <div className="flex flex-col gap-1.5 px-3 pb-4">
           {LAYER_IDS.map(lid => {
             const filteredBlocks = Object.entries(BM[lid].blocks).filter(([k, name]) =>
               !search || name.toLowerCase().includes(search.toLowerCase()) || k.includes(search.toLowerCase())
             )
             if (!filteredBlocks.length) return null
             return (
-              <div key={lid} className="mb-1">
+              <div key={lid}>
                 <div
-                  className="px-2 py-1 text-xs font-semibold text-white rounded mb-0.5"
-                  style={{ background: LAYER_COLORS[lid] }}
+                  className="px-2 py-1 rounded mb-1"
+                  style={{ fontFamily: OSWALD, fontSize: 9, fontWeight: 600, letterSpacing: '.08em', textTransform: 'uppercase', color: '#fff', background: LAYER_COLORS[lid] }}
                 >
                   {BM[lid].label}
                 </div>
-                {filteredBlocks.map(([key, name]) => {
-                  const baseScore = getBlockScore(bd.baseline_blocks[key])
-                  const selected  = key in goals
-                  return (
-                    <div
-                      key={key}
-                      onClick={() => toggleGoal(key)}
-                      className={`flex items-center gap-2 px-2 py-1.5 rounded cursor-pointer transition-colors text-xs ${
-                        selected
-                          ? 'bg-[var(--navy)] text-white'
-                          : 'hover:bg-[var(--rule-2)] text-[var(--ink)]'
-                      }`}
-                    >
-                      <div className={`w-4 h-4 rounded border flex items-center justify-center flex-shrink-0 ${
-                        selected ? 'bg-white border-white' : 'border-[var(--rule)]'
-                      }`}>
-                        {selected && <span className="text-[var(--navy)] text-[10px] font-bold">✓</span>}
+
+                <div className="flex flex-col gap-1.5">
+                  {filteredBlocks.map(([key, name]) => {
+                    const baseScore = getBlockScore(bd.baseline_blocks[key])
+                    const selected  = key in goals
+                    const goal      = goals[key]
+                    const baselinePct = (baseScore / 4) * 100
+                    const sc = scoreColor(baseScore)
+                    const targetScore = goal ? Math.min(4, baseScore + goal.delta) : baseScore
+
+                    return (
+                      <div
+                        key={key}
+                        className="overflow-hidden transition-colors"
+                        style={{
+                          background: '#FAFAF8',
+                          border: `1.5px solid ${selected ? 'var(--red)' : 'var(--border)'}`,
+                          borderRadius: 8,
+                        }}
+                      >
+                        {/* Row top — toggle */}
+                        <div
+                          onClick={() => toggleGoal(key)}
+                          className="flex items-center gap-2.5 px-3 py-2 cursor-pointer select-none transition-colors"
+                          style={{ background: selected ? 'var(--red-bg)' : '#FAFAF8' }}
+                        >
+                          <div
+                            className="flex items-center justify-center flex-shrink-0"
+                            style={{
+                              width: 16, height: 16, borderRadius: 3,
+                              border: `1.5px solid ${selected ? 'var(--red)' : 'var(--border-2)'}`,
+                              background: selected ? 'var(--red)' : '#fff',
+                            }}
+                          >
+                            {selected && (
+                              <svg viewBox="0 0 12 10" style={{ width: 9, height: 9, stroke: '#fff', strokeWidth: 2.5, fill: 'none' }}>
+                                <polyline points="1,5 4,8 11,1" />
+                              </svg>
+                            )}
+                          </div>
+                          <div className="rounded-sm flex-shrink-0" style={{ width: 3, height: 26, background: LAYER_COLORS[lid] }} />
+                          <span style={{ fontFamily: OSWALD, fontSize: 12, fontWeight: 700, letterSpacing: '.03em', color: 'var(--ink)' }}>{name}</span>
+                          <span
+                            className="flex-shrink-0"
+                            style={{ fontSize: 9, fontWeight: 600, letterSpacing: '.06em', textTransform: 'uppercase', color: 'var(--sub)', background: 'var(--border)', padding: '1px 5px', borderRadius: 2 }}
+                          >
+                            {lid}
+                          </span>
+                          <span className="ml-auto flex-shrink-0" style={{ fontFamily: OSWALD, fontSize: 11, fontWeight: 700, color: sc }}>{baseScore.toFixed(1)}</span>
+                          {selected && (
+                            <button
+                              onClick={(e) => { e.stopPropagation(); toggleGoal(key) }}
+                              title="Bỏ block này"
+                              className="flex items-center justify-center flex-shrink-0 transition-colors"
+                              style={{ width: 20, height: 20, borderRadius: '50%', border: '1.5px solid var(--border-2)', background: 'transparent', color: 'var(--sub)', fontSize: 13, lineHeight: 1, padding: 0 }}
+                            >
+                              ×
+                            </button>
+                          )}
+                        </div>
+
+                        {/* Body — only when selected */}
+                        {selected && goal && (
+                          <div className="px-3 pt-2 pb-2.5" style={{ borderTop: '1px solid var(--border)' }}>
+
+                            {/* Baseline bar */}
+                            <div className="flex items-center gap-2 mb-2">
+                              <div style={{ fontSize: 9, fontWeight: 600, letterSpacing: '.08em', textTransform: 'uppercase', color: 'var(--sub)', width: 52, flexShrink: 0 }}>Baseline</div>
+                              <div className="flex-1 relative overflow-hidden" style={{ height: 10, background: 'var(--border)', borderRadius: 5 }}>
+                                <div className="h-full" style={{ width: `${baselinePct}%`, background: sc, borderRadius: 5, transition: 'width .3s' }} />
+                              </div>
+                              <div className="text-right flex-shrink-0" style={{ fontFamily: OSWALD, fontSize: 12, fontWeight: 700, width: 28, color: sc }}>{baseScore.toFixed(1)}</div>
+                            </div>
+
+                            {/* Target readout */}
+                            <div className="flex items-center justify-between mb-1.5">
+                              <div style={{ fontSize: 9, fontWeight: 600, letterSpacing: '.08em', textTransform: 'uppercase', color: 'var(--sub)' }}>
+                                Kỳ vọng cải thiện
+                              </div>
+                              <div style={{ fontFamily: OSWALD, fontSize: 10, color: 'var(--sub)' }}>
+                                {baseScore.toFixed(1)} → <span style={{ fontWeight: 700, color: goal.delta >= 2.0 ? 'var(--warn)' : 'var(--good)' }}>{targetScore.toFixed(1)}</span>{' '}
+                                <span style={{ fontWeight: 700, color: goal.delta >= 2.0 ? 'var(--warn)' : 'var(--good)' }}>(+{goal.delta.toFixed(1)})</span>
+                              </div>
+                            </div>
+
+                            {/* Segmented GAS scale */}
+                            <div
+                              className="flex items-stretch overflow-hidden"
+                              style={{ borderRadius: 6, border: '1px solid var(--border)' }}
+                            >
+                              {getScaleOptions(baseScore).map((opt, i, arr) => {
+                                const active = goal.optionId === opt.id
+                                return (
+                                  <button
+                                    key={opt.id}
+                                    disabled={opt.locked}
+                                    onClick={() => !opt.locked && setGoalDelta(key, opt.delta, opt.id)}
+                                    title={opt.locked ? 'Không khả dụng với baseline hiện tại' : undefined}
+                                    className="flex-1 flex flex-col items-center justify-center transition-colors"
+                                    style={{
+                                      padding: '6px 2px',
+                                      gap: 3,
+                                      borderRight: i < arr.length - 1 ? '1px solid var(--border)' : 'none',
+                                      background: active ? 'var(--red-bg)' : 'transparent',
+                                      opacity: opt.locked ? 0.35 : 1,
+                                      cursor: opt.locked ? 'not-allowed' : 'pointer',
+                                    }}
+                                  >
+                                    <div
+                                      className="rounded-full flex-shrink-0"
+                                      style={{
+                                        width: 14, height: 14,
+                                        border: `2px solid ${active ? 'var(--red)' : 'var(--border-2)'}`,
+                                        background: active ? 'var(--red)' : '#fff',
+                                      }}
+                                    />
+                                    <div
+                                      className="text-center"
+                                      style={{ fontSize: 8.5, fontWeight: 600, lineHeight: 1.2, letterSpacing: '.01em', color: active ? 'var(--red)' : 'var(--sub)', whiteSpace: 'pre-line' }}
+                                    >
+                                      {opt.label}
+                                    </div>
+                                    <div style={{ fontFamily: OSWALD, fontSize: 8, fontWeight: 700, color: active ? 'var(--red)' : '#aaa' }}>
+                                      {opt.delta > 0 ? `+${opt.delta.toFixed(1)}` : opt.delta === 0 ? '=' : opt.delta.toFixed(1)}
+                                    </div>
+                                  </button>
+                                )
+                              })}
+                            </div>
+
+                            {/* Goal-size warning */}
+                            {goal.delta >= 2.0 && (
+                              <div
+                                className="mt-1.5"
+                                style={{
+                                  padding: '5px 8px', borderRadius: 4, fontSize: 10, lineHeight: 1.5,
+                                  background: goal.delta >= 2.5 ? 'var(--bad-bg)' : 'var(--warn-bg)',
+                                  border: `1px solid ${goal.delta >= 2.5 ? 'var(--bad-bd)' : 'var(--warn-bd)'}`,
+                                  color: goal.delta >= 2.5 ? 'var(--red)' : 'var(--warn)',
+                                }}
+                              >
+                                {goal.delta >= 2.5
+                                  ? '⚠ Goal rất lớn. Cân nhắc chia 2 cycles hoặc cần can thiệp y tế trực tiếp.'
+                                  : 'Goal ambitious. Đảm bảo có kế hoạch can thiệp cụ thể cho cycle này.'}
+                              </div>
+                            )}
+
+                            {/* Regression toggle */}
+                            <div className="flex items-center gap-1.5 mt-1.5 pt-1.5" style={{ borderTop: '1px dashed var(--border)' }}>
+                              <div className="flex-1" style={{ fontSize: 10, color: 'var(--sub)' }}>Dự kiến regression tạm thời (die-off, detox...)</div>
+                              <div
+                                onClick={() => toggleRegression(key)}
+                                className="relative cursor-pointer flex-shrink-0 transition-colors"
+                                style={{ width: 28, height: 16, borderRadius: 8, background: goal.regression ? 'var(--warn)' : 'var(--border)' }}
+                              >
+                                <div
+                                  className="absolute rounded-full"
+                                  style={{ width: 12, height: 12, top: 2, left: goal.regression ? 14 : 2, background: '#fff', boxShadow: '0 1px 3px rgba(0,0,0,.2)', transition: 'left .15s' }}
+                                />
+                              </div>
+                            </div>
+                          </div>
+                        )}
                       </div>
-                      <span className="flex-1">{name}</span>
-                      <span className={`font-mono ${selected ? 'text-white/70' : 'text-[var(--ink-3)]'}`}>
-                        {baseScore.toFixed(1)}
-                      </span>
-                    </div>
-                  )
-                })}
+                    )
+                  })}
+                </div>
               </div>
             )
           })}
         </div>
       </div>
 
-      {/* ── RIGHT: KPI + Charts + Goal config + cycle settings ── */}
-      <div className="flex-1 overflow-y-auto">
-
+      {/* ── RIGHT PANEL: KPI + Charts + Goal chips + Cycle settings ── */}
+      <div
+        className="overflow-hidden grid"
+        style={{ background: 'var(--warm-bg)', gridTemplateRows: 'auto auto 1fr auto auto' }}
+      >
         {/* KPI strip */}
-        <div className="p-6 pb-0">
+        <div
+          className="px-3.5 py-2.5"
+          style={{ background: '#fff', borderBottom: '1.5px solid var(--border)' }}
+        >
           <GoalKPI
             baselineBlocks={bd.baseline_blocks}
             targetBlocks={Object.fromEntries(
@@ -190,7 +426,7 @@ export default function GoalPage() {
         </div>
 
         {/* Charts */}
-        <div className="px-6 pb-4">
+        <div className="px-3.5 py-2.5 overflow-hidden">
           <GoalCharts
             baselineBlocks={bd.baseline_blocks}
             targetBlocks={Object.fromEntries(
@@ -199,180 +435,66 @@ export default function GoalPage() {
           />
         </div>
 
-        {/* Goal chips */}
-        <div className="px-6 pb-4">
+        {/* Goal chips summary */}
+        <div className="px-3.5 py-2 overflow-y-auto" style={{ background: '#fff', borderTop: '1.5px solid var(--border)' }}>
           <GoalChips
             goals={goals}
             baselineBlocks={bd.baseline_blocks}
           />
         </div>
 
-        {/* Top: goal entries */}
-        <div className="px-6 pb-4">
-          {goalCount === 0 ? (
-            <div className="text-center py-16 text-[var(--ink-3)] text-sm">
-              Chọn blocks bên trái để đặt mục tiêu
-            </div>
-          ) : (
-            <div className="space-y-3">
-              <h2 className="text-sm font-semibold text-[var(--ink)] mb-3">
-                Mục tiêu can thiệp ({goalCount} blocks)
-              </h2>
-              {Object.entries(goals).map(([key, goal]) => {
-                const baseScore   = getBlockScore(bd.baseline_blocks[key])
-                const targetScore = Math.min(4, baseScore + goal.delta)
-                const layerId     = Object.entries(BM).find(([, m]) => key in m.blocks)?.[0] ?? 'L0'
-                return (
-                  <div key={key} className="bg-white border border-[var(--rule)] rounded-xl p-4">
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="flex items-center gap-2">
-                        <div className="w-2 h-2 rounded-full" style={{ background: LAYER_COLORS[layerId] }} />
-                        <span className="text-sm font-semibold text-[var(--ink)]">
-                          {BM[layerId]?.blocks[key] ?? key}
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-2 text-xs font-mono">
-                        <span className="text-[var(--ink-3)]">{baseScore.toFixed(1)}</span>
-                        <span className="text-[var(--ink-3)]">→</span>
-                        <span className="font-bold text-[var(--navy)]">{targetScore.toFixed(1)}</span>
-                        <span className="text-[var(--green)]">(+{goal.delta.toFixed(1)})</span>
-                      </div>
-                    </div>
-
-                    {/* Delta options — mirrors HTML getScaleOptions() with lock */}
-                    <div className="flex gap-1.5 flex-wrap">
-                      {getScaleOptions(baseScore).map(opt => (
-                        <button
-                          key={opt.id}
-                          disabled={opt.locked}
-                          onClick={() => !opt.locked && setGoalDelta(key, opt.delta, opt.id)}
-                          title={opt.locked ? 'Không khả dụng với baseline hiện tại' : undefined}
-                          className={`px-2 py-1 text-xs rounded border transition-colors whitespace-pre-line text-center leading-tight ${
-                            goal.optionId === opt.id
-                              ? 'text-white border-transparent'
-                              : opt.locked
-                              ? 'border-[var(--rule)] text-gray-300 cursor-not-allowed bg-gray-50'
-                              : 'border-[var(--rule)] text-[var(--ink-3)] hover:border-[var(--navy)]'
-                          }`}
-                          style={goal.optionId === opt.id ? { background: opt.color, borderColor: opt.color } : {}}
-                        >
-                          {opt.label}
-                          <div className="text-[10px] font-mono mt-0.5 opacity-75">
-                            {opt.delta > 0 ? `+${opt.delta.toFixed(1)}` : opt.delta === 0 ? '=' : opt.delta.toFixed(1)}
-                          </div>
-                        </button>
-                      ))}
-                      {/* Custom delta input */}
-                      <div className="flex items-center gap-1">
-                        <span className="text-xs text-[var(--ink-3)]">+</span>
-                        <input
-                          type="number"
-                          min="0"
-                          max={4 - baseScore}
-                          step="0.5"
-                          value={goal.delta}
-                          onChange={e => setGoalDelta(key, parseFloat(e.target.value) || 0, 'custom')}
-                          className="w-14 h-7 text-center text-xs font-mono border border-[var(--rule)] rounded focus:outline-none focus:border-[var(--navy)]"
-                        />
-                      </div>
-                    </div>
-
-                    {/* Regression toggle */}
-                    <div className="mt-2 flex items-center gap-2">
-                      <label className="flex items-center gap-1.5 cursor-pointer text-xs text-[var(--ink-3)]">
-                        <input
-                          type="checkbox"
-                          checked={goal.regression}
-                          onChange={() => toggleRegression(key)}
-                          className="w-3.5 h-3.5"
-                        />
-                        Có thể tụt điểm (regression expected)
-                      </label>
-                    </div>
-
-                    {/* Remove */}
-                    <button
-                      onClick={() => toggleGoal(key)}
-                      className="mt-2 text-xs text-[var(--ink-3)] hover:text-[var(--red)] transition-colors"
-                    >
-                      ✕ Xóa mục tiêu
-                    </button>
-                  </div>
-                )
-              })}
-            </div>
-          )}
+        {/* Cycle settings bar */}
+        <div
+          className="flex flex-wrap items-center gap-2.5 px-3.5 py-2"
+          style={{ background: '#fff', borderTop: '1px solid var(--border)' }}
+        >
+          <span style={{ fontSize: 9, fontWeight: 600, letterSpacing: '.1em', textTransform: 'uppercase', color: 'var(--sub)' }}>Cycle</span>
+          <input
+            type="number"
+            min={1}
+            max={52}
+            value={settings.duration}
+            onChange={e => setSettingsField('duration', parseInt(e.target.value) || 8)}
+            className="h-7 px-1.5 rounded text-center focus:outline-none"
+            style={{ width: 56, border: '1.5px solid var(--border)', background: 'var(--warm-bg)', fontFamily: INTER, fontSize: 11, color: 'var(--ink)' }}
+          />
+          <select
+            value={settings.unit}
+            onChange={e => setSettingsField('unit', e.target.value as 'weeks' | 'sessions')}
+            className="h-7 px-1.5 rounded focus:outline-none"
+            style={{ width: 90, border: '1.5px solid var(--border)', background: 'var(--warm-bg)', fontFamily: INTER, fontSize: 11, color: 'var(--ink)' }}
+          >
+            <option value="weeks">Tuần</option>
+            <option value="sessions">Sessions</option>
+          </select>
+          <span className="ml-1" style={{ fontSize: 9, fontWeight: 600, letterSpacing: '.1em', textTransform: 'uppercase', color: 'var(--sub)' }}>Bắt đầu</span>
+          <input
+            type="date"
+            value={settings.start_date}
+            onChange={e => setSettingsField('start_date', e.target.value)}
+            className="h-7 px-1.5 rounded focus:outline-none"
+            style={{ width: 130, border: '1.5px solid var(--border)', background: 'var(--warm-bg)', fontFamily: INTER, fontSize: 11, color: 'var(--ink)' }}
+          />
+          <span className="ml-1 flex items-center px-2 h-7 rounded" style={{ border: '1.5px solid var(--border)', background: 'var(--warm-bg)', fontFamily: OSWALD, fontSize: 11, fontWeight: 700, color: 'var(--good)' }}>
+            {settings.planned_sessions} sessions
+          </span>
+          <input
+            value={settings.notes}
+            onChange={e => setSettingsField('notes', e.target.value)}
+            placeholder="Ghi chú cycle (ưu tiên, lưu ý phụ huynh...)"
+            className="flex-1 h-7 px-1.5 rounded focus:outline-none"
+            style={{ minWidth: 160, border: '1.5px solid var(--border)', background: 'var(--warm-bg)', fontFamily: INTER, fontSize: 11, color: 'var(--ink)' }}
+          />
         </div>
 
-        {/* Cycle settings */}
-        <div className="px-6 pb-6">
-          <div className="bg-white border border-[var(--rule)] rounded-xl p-4">
-            <h3 className="text-sm font-semibold text-[var(--ink)] mb-3">Thiết lập chu kỳ</h3>
-            <div className="grid grid-cols-3 gap-3">
-              <div>
-                <label className="block text-xs text-[var(--ink-3)] mb-1">Thời lượng</label>
-                <div className="flex gap-1">
-                  <input
-                    type="number"
-                    min="1"
-                    max="52"
-                    value={settings.duration}
-                    onChange={e => setSettingsField('duration', parseInt(e.target.value) || 8)}
-                    className="w-16 h-8 text-center text-sm border border-[var(--rule)] rounded focus:outline-none focus:border-[var(--navy)]"
-                  />
-                  <select
-                    value={settings.unit}
-                    onChange={e => setSettingsField('unit', e.target.value as 'weeks' | 'sessions')}
-                    className="flex-1 h-8 text-xs border border-[var(--rule)] rounded focus:outline-none focus:border-[var(--navy)]"
-                  >
-                    <option value="weeks">tuần</option>
-                    <option value="sessions">sessions</option>
-                  </select>
-                </div>
-              </div>
-              <div>
-                <label className="block text-xs text-[var(--ink-3)] mb-1">Ngày bắt đầu</label>
-                <input
-                  type="date"
-                  value={settings.start_date}
-                  onChange={e => setSettingsField('start_date', e.target.value)}
-                  className="w-full h-8 px-2 text-sm border border-[var(--rule)] rounded focus:outline-none focus:border-[var(--navy)]"
-                />
-              </div>
-              <div>
-                <label className="block text-xs text-[var(--ink-3)] mb-1">Sessions dự kiến</label>
-                <div className="h-8 flex items-center px-2 border border-[var(--rule-2)] rounded bg-[var(--rule-2)] text-sm font-mono font-bold text-[var(--navy)]">
-                  {settings.planned_sessions}
-                </div>
-              </div>
-            </div>
-            <div className="mt-3">
-              <label className="block text-xs text-[var(--ink-3)] mb-1">Ghi chú</label>
-              <input
-                value={settings.notes}
-                onChange={e => setSettingsField('notes', e.target.value)}
-                placeholder="Mục tiêu tổng quát, lưu ý đặc biệt..."
-                className="w-full h-8 px-2 text-sm border border-[var(--rule)] rounded focus:outline-none focus:border-[var(--navy)]"
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* Footer */}
-        <div className="sticky bottom-0 px-6 pb-6 pt-2 bg-[var(--bg)]">
-          {error && (
-            <div className="mb-2 p-2 bg-[var(--red-bg)] border border-[var(--red-bd)] rounded text-xs text-[var(--red)]">
+        {/* Error banner */}
+        {error && (
+          <div className="px-3.5 py-2" style={{ background: '#fff', borderTop: '1px solid var(--border)' }}>
+            <div style={{ padding: '6px 10px', borderRadius: 4, fontSize: 11, background: 'var(--red-bg)', border: '1px solid var(--red-bd)', color: 'var(--red)' }}>
               {error}
             </div>
-          )}
-          <button
-            onClick={handleConfirm}
-            disabled={!goalCount || saving}
-            className="w-full h-10 bg-[var(--navy)] text-white rounded-lg text-sm font-bold hover:bg-[var(--navy-mid)] transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-          >
-            {saving ? 'Đang lưu...' : `Xác nhận ${goalCount} mục tiêu → Mở Cycle`}
-          </button>
-        </div>
+          </div>
+        )}
       </div>
     </div>
   )

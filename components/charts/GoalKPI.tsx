@@ -88,20 +88,37 @@ export function GoalKPI({ baselineBlocks, targetBlocks, goals, baselineStage, si
   }
 
   const kpis = [
-    { label: 'Baseline',     value: baseTotal.toFixed(1),                    color: 'text-[var(--gold)]'  },
-    { label: 'Target',       value: targetTotal.toFixed(1),                  color: 'text-[var(--green)]' },
-    { label: 'Tổng delta',   value: `+${delta.toFixed(1)}`,                  color: 'text-[var(--navy)]'  },
-    { label: 'Stage',        value: baselineStage,                           color: 'text-[var(--navy)]'  },
-    { label: 'Goals',        value: String(goalCount),                       color: goalCount > 0 ? 'text-[var(--green)]' : 'text-[var(--ink-3)]' },
-    { label: 'Signal chính', value: topSignal,                               color: 'text-[var(--red)]', small: true },
+    { label: 'Baseline',     value: baseTotal.toFixed(1),     color: 'var(--warn)', delta: false, small: false },
+    { label: 'Target',       value: targetTotal.toFixed(1),   color: 'var(--good)', delta: false, small: false },
+    { label: 'Tổng delta',   value: `+${delta.toFixed(1)}`,   color: 'var(--good)', delta: true,  small: false },
+    { label: 'Stage',        value: baselineStage,            color: 'var(--warn)', delta: false, small: false },
+    { label: 'Goals',        value: String(goalCount),        color: goalCount > 0 ? 'var(--good)' : 'var(--sub)', delta: false, small: false },
+    { label: 'Signal chính', value: topSignal,                color: 'var(--red)',  delta: false, small: true  },
   ]
 
   return (
-    <div className="grid grid-cols-6 gap-2 mb-4">
+    <div className="flex flex-wrap items-center gap-2" style={{ fontFamily: "'Inter', sans-serif" }}>
       {kpis.map(kpi => (
-        <div key={kpi.label} className="bg-[var(--navy)] rounded-lg p-3 text-center">
-          <div className="text-[10px] text-white/50 uppercase tracking-wider mb-1">{kpi.label}</div>
-          <div className={`font-mono font-bold ${kpi.small ? 'text-xs' : 'text-xl'} ${kpi.color}`}>
+        <div
+          key={kpi.label}
+          className="flex flex-col items-center"
+          style={{
+            minWidth: kpi.delta ? 90 : 70,
+            padding: '6px 12px',
+            borderRadius: 7,
+            background: kpi.delta ? 'var(--good-bg)' : 'var(--warm-bg)',
+            border: `1px solid ${kpi.delta ? 'var(--good-bd)' : 'var(--border)'}`,
+          }}
+        >
+          <div
+            className="uppercase"
+            style={{ fontSize: 8, fontWeight: 600, letterSpacing: '.1em', marginBottom: 2, color: kpi.delta ? 'var(--good)' : 'var(--sub)' }}
+          >
+            {kpi.label}
+          </div>
+          <div
+            style={{ fontFamily: "'Oswald', sans-serif", fontWeight: 700, lineHeight: 1, fontSize: kpi.small ? 11 : kpi.delta ? 18 : 20, paddingTop: kpi.small ? 3 : 0, color: kpi.color }}
+          >
             {kpi.value}
           </div>
         </div>
@@ -122,42 +139,39 @@ export function GoalChips({ goals, baselineBlocks }: GoalChipsProps) {
 
   if (!entries.length) {
     return (
-      <div className="bg-white border border-[var(--rule)] rounded-xl p-4 text-center text-xs text-[var(--ink-3)]">
+      <div style={{ fontFamily: "'Inter', sans-serif", fontSize: 11, fontStyle: 'italic', color: 'var(--sub)', padding: '6px 0' }}>
         Chưa chọn goal nào
       </div>
     )
   }
 
   return (
-    <div className="bg-white border border-[var(--rule)] rounded-xl p-4">
-      <div className="text-xs font-semibold text-[var(--ink-3)] uppercase tracking-wider mb-3">
-        Mục tiêu đã chọn ({entries.length} blocks)
-      </div>
-      <div className="flex flex-wrap gap-2">
-        {entries.map(([key, goal]) => {
-          const lid      = B2L[key] ?? 'L0'
-          const color    = LAYER_COLORS[lid]
-          const base     = getScore(baselineBlocks[key] ?? 0)
-          const target   = base + goal.delta
-          const isWarn   = goal.delta >= 2.0
+    <div className="flex flex-wrap gap-1.5" style={{ fontFamily: "'Inter', sans-serif" }}>
+      {entries.map(([key, goal]) => {
+        const lid      = B2L[key] ?? 'L0'
+        const color    = LAYER_COLORS[lid]
+        const base     = getScore(baselineBlocks[key] ?? 0)
+        const target   = base + goal.delta
+        const isWarn   = goal.delta >= 2.0
+        const deltaColor = isWarn ? 'var(--warn)' : 'var(--good)'
 
-          return (
-            <div
-              key={key}
-              className="flex items-center gap-2 px-3 py-1.5 bg-[var(--rule-2)] rounded-lg border border-[var(--rule)]"
-            >
-              <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: color }} />
-              <div>
-                <div className="text-xs font-medium text-[var(--ink)]">{BN[key] ?? key}</div>
-                <div className="text-[10px] font-mono text-[var(--ink-3)]">
-                  {base.toFixed(1)} → <span className={`font-bold ${isWarn ? 'text-[var(--gold)]' : 'text-[var(--navy)]'}`}>{target.toFixed(1)}</span>
-                  <span className={`ml-1 ${isWarn ? 'text-[var(--gold)]' : 'text-[var(--green)]'}`}>(+{goal.delta.toFixed(1)})</span>
-                </div>
+        return (
+          <div
+            key={key}
+            className="flex items-center gap-1.5 whitespace-nowrap"
+            style={{ background: 'var(--warm-bg)', border: '1px solid var(--border)', borderRadius: 5, padding: '4px 8px' }}
+          >
+            <div className="rounded-sm flex-shrink-0" style={{ width: 3, height: 22, background: color }} />
+            <div>
+              <div style={{ fontSize: 10, fontWeight: 600, color: 'var(--ink)' }}>{BN[key] ?? key}</div>
+              <div style={{ fontFamily: "'Oswald', sans-serif", fontSize: 10, color: 'var(--sub)' }}>
+                {base.toFixed(1)} → <span style={{ fontWeight: 700, color: deltaColor }}>{target.toFixed(1)}</span>{' '}
+                <span style={{ fontWeight: 700, color: deltaColor }}>(+{goal.delta.toFixed(1)})</span>
               </div>
             </div>
-          )
-        })}
-      </div>
+          </div>
+        )
+      })}
     </div>
   )
 }
