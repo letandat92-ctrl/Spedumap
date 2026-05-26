@@ -1,13 +1,11 @@
 'use client'
 
-import { useState, type CSSProperties } from 'react'
+import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useSession, type LocalScore, type SessionInfo } from '@/hooks/useSession'
 import { createClient } from '@/lib/supabase/client'
-import {
-  SessionSummary, LayerTable, TargetBlocksTable,
-  ReferenceCard, EvaluationSection, SignatureRow,
-} from '@/components/charts/SessionComponents'
+import ActivityOutcomeForm from '@/components/forms/ActivityOutcomeForm'
+import { SessionSummary, LayerTable, TargetBlocksTable } from '@/components/charts/SessionComponents'
 import { A4PageWrapper } from '@/components/A4PageWrapper'
 import { DocumentHeader } from '@/components/DocumentHeader'
 
@@ -38,28 +36,14 @@ const LOCAL_LABELS: Record<number, { label: string; color: string }> = {
    '2': { label: '+2', color: 'bg-emerald-100 text-emerald-800 border-emerald-300' },
 }
 
-// Compute "{y}y{m}m" age from a date-of-birth string — template init().
-function computeAge(dob?: string): string {
-  if (!dob) return '—'
-  const d = new Date(dob)
-  if (isNaN(d.getTime())) return '—'
-  const now = new Date()
-  const years  = Math.floor((now.getTime() - d.getTime()) / 31557600000)
-  const months = Math.floor(((now.getTime() - d.getTime()) / 2628000000) % 12)
-  return `${years}y${months}m`
-}
-
-// Info-grid row styles — template .info-row / .info-label / .info-val.
-const infoRow: CSSProperties = {
-  display: 'flex', alignItems: 'baseline', gap: 5, padding: '2px 0',
-  borderBottom: '1px solid var(--rule-2)', fontSize: 11.5,
-}
-const infoLabel: CSSProperties = {
-  color: 'var(--ink-3)', fontSize: 10.5, whiteSpace: 'nowrap', flexShrink: 0,
-}
-const infoVal: CSSProperties = {
-  fontWeight: 600, color: 'var(--ink)', fontSize: 11.5,
-}
+// Legend for the −2…+2 local-progress scale used in TargetBlocksTable.
+const SCALE_LEGEND: Array<{ label: string; desc: string; color: string }> = [
+  { label: '−2', desc: 'Tệ hơn\nrõ rệt',  color: 'var(--red)' },
+  { label: '−1', desc: 'Tệ hơn',          color: '#C07010' },
+  { label: '0',  desc: 'Không đổi',       color: 'var(--ink-3)' },
+  { label: '+1', desc: 'Cải thiện',       color: 'var(--green)' },
+  { label: '+2', desc: 'Tiến bộ\nnhiều',  color: 'var(--green)' },
+]
 
 export default function SessionPage() {
   const router   = useRouter()
@@ -74,8 +58,6 @@ export default function SessionPage() {
 
   const [saving, setSaving]   = useState(false)
   const [error, setError]     = useState<string | null>(null)
-  // "Kế hoạch điều chỉnh cho buổi tới" — presentation-only (hook has no plan field).
-  const [plan, setPlan]       = useState('')
 
   const enteredCount = Object.values(activities).filter(a => a.localScore !== null).length
   const totalBlocks  = Object.keys(activities).length
@@ -130,7 +112,7 @@ export default function SessionPage() {
 
   if (!cycle) return <div className="p-8 text-sm text-[var(--ink-3)]">Đang tải...</div>
 
-  const child = cycle.child as {name:string; dob?:string; id?:string}
+  const child = cycle.child as {name:string; dob?:string}
 
   if (submitted) {
     return (
@@ -301,120 +283,110 @@ export default function SessionPage() {
               </div>
             }
           />
-          <div className="doc-body">
+          <div className="doc-body space-y-4">
 
-            {/* ROW 1: Thông tin chung + Tóm tắt nhanh */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 10 }}>
-
-              {/* Thông tin chung */}
-              <div style={{ border: '1px solid var(--rule)', borderRadius: 5, overflow: 'hidden' }}>
-                <div style={{ fontFamily: "'Source Sans 3', sans-serif", background: 'var(--navy)', padding: '5px 11px', fontSize: 10, fontWeight: 700, letterSpacing: '.1em', textTransform: 'uppercase', color: '#fff' }}>
-                  Thông tin chung
-                </div>
-                <div style={{ padding: '10px 11px' }}>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '4px 14px' }}>
-                    {[
-                      { label: 'Họ và tên trẻ', value: child.name },
-                      { label: 'ID trẻ',        value: child.id || '—' },
-                      { label: 'Tuổi',          value: computeAge(child.dob) },
-                      { label: 'Chu kỳ',        value: (cycle.cycle_id as string) || '—' },
-                      { label: 'Buổi số',       value: `${sessionIndex} / ${plannedSessions}` },
-                    ].map(row => (
-                      <div key={row.label} style={infoRow}>
-                        <span style={infoLabel}>{row.label}:</span>
-                        <span style={infoVal}>{row.value}</span>
-                      </div>
-                    ))}
-                    <div style={infoRow}>
-                      <span style={infoLabel}>Therapist:</span>
-                      <input
-                        value={sessionInfo.therapistName}
-                        onChange={e => setSessionInfo({ ...sessionInfo, therapistName: e.target.value })}
-                        placeholder="Tên therapist"
-                        style={{ ...infoVal, border: 'none', background: 'transparent', outline: 'none', cursor: 'text', width: '100%' }}
-                      />
-                    </div>
-                    <div style={infoRow}>
-                      <span style={infoLabel}>Thời gian:</span>
-                      <div style={{ display: 'flex', gap: 4, alignItems: 'center' }}>
-                        <input type="time" value={sessionInfo.timeStart}
-                          onChange={e => setSessionInfo({ ...sessionInfo, timeStart: e.target.value })}
-                          style={{ ...infoVal, fontSize: 11, border: 'none', background: 'transparent', outline: 'none', cursor: 'pointer', width: 72 }}
-                        />
-                        <span style={{ color: 'var(--ink-3)', fontSize: 11 }}>–</span>
-                        <input type="time" value={sessionInfo.timeEnd}
-                          onChange={e => setSessionInfo({ ...sessionInfo, timeEnd: e.target.value })}
-                          style={{ ...infoVal, fontSize: 11, border: 'none', background: 'transparent', outline: 'none', cursor: 'pointer', width: 72 }}
-                        />
-                      </div>
-                    </div>
-                    <div style={{ ...infoRow, borderBottom: 'none' }}>
-                      <span style={infoLabel}>Địa điểm:</span>
-                      <select
-                        value={sessionInfo.location}
-                        onChange={e => setSessionInfo({ ...sessionInfo, location: e.target.value as SessionInfo['location'] })}
-                        style={{ ...infoVal, border: 'none', background: 'transparent', outline: 'none', cursor: 'pointer' }}
-                      >
-                        <option value="clinic">Tại clinic</option>
-                        <option value="home">Tại nhà</option>
-                        <option value="school">Tại trường</option>
-                        <option value="online">Online</option>
-                      </select>
-                    </div>
-                  </div>
-                </div>
+        {/* Info card */}
+        <div className="bg-white border border-[var(--rule)] rounded-xl p-4">
+          <div className="text-xs font-semibold text-[var(--ink-3)] uppercase tracking-wider mb-3">Thông tin chung</div>
+          <div className="space-y-2 text-xs">
+            {[
+              { label: 'Họ và tên trẻ', value: child.name },
+              { label: 'Chu kỳ',        value: (cycle.cycle_name as string) || '—' },
+              { label: 'Buổi số',       value: `${sessionIndex} / ${plannedSessions}` },
+            ].map(row => (
+              <div key={row.label} className="flex items-center justify-between">
+                <span className="text-[var(--ink-3)]">{row.label}</span>
+                <span className="font-semibold text-[var(--ink)]">{row.value}</span>
               </div>
-
-              {/* Tóm tắt nhanh */}
-              <SessionSummary
-                currentBlocks={currentScores as Record<string, number>}
-                baselineBlocks={(cycle.baseline as {blocks: Record<string, unknown>})?.blocks ?? {}}
-                targetBlocks={(cycle.target as {blocks: Record<string, unknown>})?.blocks ?? {}}
-                baselineTotal={(cycle.baseline as {total_score?: number})?.total_score}
+            ))}
+            <div className="flex items-center justify-between">
+              <span className="text-[var(--ink-3)]">Therapist</span>
+              <input
+                value={sessionInfo.therapistName}
+                onChange={e => setSessionInfo({ ...sessionInfo, therapistName: e.target.value })}
+                placeholder="Tên therapist"
+                className="text-right text-xs font-semibold text-[var(--ink)] border-0 border-b border-[var(--rule)] outline-none w-36"
               />
             </div>
-
-            {/* ROW 2: Layer table + Reference data */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 10 }}>
-              <LayerTable
-                currentBlocks={currentScores as Record<string, number>}
-                baselineBlocks={(cycle.baseline as {blocks: Record<string, unknown>})?.blocks ?? {}}
-                targetBlocks={(cycle.target as {blocks: Record<string, unknown>})?.blocks ?? {}}
-              />
-              <ReferenceCard
-                baselineDate={(cycle.baseline as {date?: string})?.date}
-                baselineTotal={(cycle.baseline as {total_score?: number})?.total_score}
-                baselineStage={(cycle.baseline as {stage?: string})?.stage}
-                sessions={(cycle.daily_sessions as Array<{ session_index: number; date: string }>) ?? []}
-                currentSessionIndex={sessionIndex}
-              />
+            <div className="flex items-center justify-between">
+              <span className="text-[var(--ink-3)]">Thời gian</span>
+              <div className="flex items-center gap-1">
+                <input type="time" value={sessionInfo.timeStart}
+                  onChange={e => setSessionInfo({ ...sessionInfo, timeStart: e.target.value })}
+                  className="text-xs font-semibold text-[var(--ink)] border-0 border-b border-[var(--rule)] outline-none w-20"
+                />
+                <span className="text-[var(--ink-3)]">–</span>
+                <input type="time" value={sessionInfo.timeEnd}
+                  onChange={e => setSessionInfo({ ...sessionInfo, timeEnd: e.target.value })}
+                  className="text-xs font-semibold text-[var(--ink)] border-0 border-b border-[var(--rule)] outline-none w-20"
+                />
+              </div>
             </div>
-
-            {/* ROW 3: Hoạt động hôm nay */}
-            <div style={{ marginBottom: 10 }}>
-              <TargetBlocksTable
-                activities={activities}
-                baselineBlocks={(cycle.baseline as {blocks: Record<string, unknown>})?.blocks ?? {}}
-                targetBlocks={(cycle.target as {blocks: Record<string, unknown>})?.blocks ?? {}}
-                currentScores={currentScores as Record<string, number>}
-                onLocalScore={setLocalScore}
-                onNote={setActivityNote}
-              />
+            <div className="flex items-center justify-between">
+              <span className="text-[var(--ink-3)]">Địa điểm</span>
+              <select
+                value={sessionInfo.location}
+                onChange={e => setSessionInfo({ ...sessionInfo, location: e.target.value as SessionInfo['location'] })}
+                className="text-xs font-semibold text-[var(--ink)] border-0 outline-none bg-transparent"
+              >
+                <option value="clinic">Tại clinic</option>
+                <option value="home">Tại nhà</option>
+                <option value="school">Tại trường</option>
+                <option value="online">Online</option>
+              </select>
             </div>
+          </div>
+        </div>
+        <SessionSummary
+          currentBlocks={currentScores as Record<string, number>}
+          baselineBlocks={(cycle.baseline as {blocks: Record<string, unknown>})?.blocks ?? {}}
+          targetBlocks={(cycle.target as {blocks: Record<string, unknown>})?.blocks ?? {}}
+        />
+        <LayerTable
+          currentBlocks={currentScores as Record<string, number>}
+          baselineBlocks={(cycle.baseline as {blocks: Record<string, unknown>})?.blocks ?? {}}
+          targetBlocks={(cycle.target as {blocks: Record<string, unknown>})?.blocks ?? {}}
+        />
+        {/* Evaluation scale legend (−2 … +2) */}
+        <div>
+          <div className="text-xs font-semibold text-[var(--ink-3)] uppercase tracking-wider mb-1.5">
+            Thang đánh giá tiến bộ
+          </div>
+          <div className="eval-scale-header">
+            {SCALE_LEGEND.map(item => (
+              <div key={item.label} className="esh-item" style={{ color: item.color }}>
+                {item.label}
+                <span>
+                  {item.desc.split('\n').map((line, i) => (
+                    <span key={i} style={{ display: 'block' }}>{line}</span>
+                  ))}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+        <TargetBlocksTable
+          activities={activities}
+          baselineBlocks={(cycle.baseline as {blocks: Record<string, unknown>})?.blocks ?? {}}
+          targetBlocks={(cycle.target as {blocks: Record<string, unknown>})?.blocks ?? {}}
+          currentScores={currentScores as Record<string, number>}
+          onLocalScore={setLocalScore}
+          onNote={setActivityNote}
+        />
 
-            {/* ROW 4: Nhận xét cuối ngày & Đánh giá tiến bộ */}
-            <div style={{ marginBottom: 10 }}>
-              <EvaluationSection
-                targetBlocks={(cycle.target as {blocks: Record<string, unknown>})?.blocks ?? {}}
-                notes={therapistNote}
-                plan={plan}
-                onNotes={setTherapistNote}
-                onPlan={setPlan}
-              />
-            </div>
-
-            {/* Signatures */}
-            <SignatureRow therapistName={sessionInfo.therapistName} />
+        {/* Therapist notes */}
+        <div className="bg-white border border-[var(--rule)] rounded-xl p-4">
+          <div className="text-xs font-semibold text-[var(--ink-3)] uppercase tracking-wider mb-2">
+            Ghi chú buổi trị liệu
+          </div>
+          <textarea
+            value={therapistNote}
+            onChange={e => setTherapistNote(e.target.value)}
+            placeholder="Quan sát chung, mức độ hợp tác, kế hoạch cho buổi tiếp theo..."
+            rows={4}
+            className="w-full px-3 py-2 text-xs text-[var(--ink-2)] border border-[var(--rule)] rounded-lg outline-none focus:border-[var(--navy)] resize-y"
+          />
+        </div>
 
           </div>
         </A4PageWrapper>
