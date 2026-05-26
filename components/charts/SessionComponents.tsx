@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import type { LocalScore } from '@/hooks/useSession'
 
 
 const LAYER_IDS = ['L0','L1','L2','L3','L4','L5','L6','L7']
@@ -53,7 +54,7 @@ interface TargetBlocksTableProps {
   baselineBlocks: Record<string, unknown>
   targetBlocks:   Record<string, unknown>
   currentScores:  Record<string, number>
-  onLocalScore:   (block: string, score: number | null) => void
+  onLocalScore:   (block: string, score: LocalScore | null) => void
   onNote:         (block: string, note: string) => void
 }
 
@@ -235,9 +236,9 @@ function Donut({ pct }: { pct: number }) {
 // ── Session Summary Panel ─────────────────────────────────────
 
 interface SessionSummaryProps {
-  currentBlocks:  BlocksMap
+  currentBlocks:  Record<string, number>
   baselineBlocks: Record<string, unknown>
-  targetBlocks:   BlocksMap
+  targetBlocks:   Record<string, unknown>
 }
 
 export function SessionSummary({ currentBlocks, baselineBlocks, targetBlocks }: SessionSummaryProps) {
@@ -277,9 +278,9 @@ export function SessionSummary({ currentBlocks, baselineBlocks, targetBlocks }: 
 // ── Layer Progress Table ──────────────────────────────────────
 
 interface LayerTableProps {
-  currentBlocks:  BlocksMap
+  currentBlocks:  Record<string, number>
   baselineBlocks: Record<string, unknown>
-  targetBlocks:   BlocksMap
+  targetBlocks:   Record<string, unknown>
 }
 
 export function LayerTable({ currentBlocks, baselineBlocks, targetBlocks }: LayerTableProps) {

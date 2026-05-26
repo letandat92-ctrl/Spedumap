@@ -1,6 +1,7 @@
 'use client'
 
 import type { GoalEntry } from '@/hooks/useGoal'
+import type { BlocksMap } from '@/types/spedumap'
 
 const B2L: Record<string,string> = {
   sleep:'L0',microbiome:'L0',nutrition:'L0',immune:'L0',metabolic:'L0',

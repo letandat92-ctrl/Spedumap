@@ -4,7 +4,7 @@
 import { SupabaseClient } from '@supabase/supabase-js'
 import {
   Assessment, CycleHypothesis, LayerProgression, ActivityOutcome,
-  ParentEngagement, ParentObservation
+  ParentEngagement, ParentEngagementSummary, ParentObservation
 } from '@/types/spedumap'
 
 // ============ ASSESSMENTS ============

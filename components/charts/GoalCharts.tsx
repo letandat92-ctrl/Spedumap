@@ -5,6 +5,7 @@ import {
   BarChart, Bar, XAxis, YAxis, Cell, Tooltip,
   ResponsiveContainer,
 } from 'recharts'
+import type { BlocksMap } from '@/types/spedumap'
 
 const LAYER_IDS = ['L0','L1','L2','L3','L4','L5','L6','L7']
 const LAYER_LABELS: Record<string,string> = {

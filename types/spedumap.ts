@@ -224,6 +224,15 @@ export interface ParentEngagement {
   updated_at: string
 }
 
+export interface ParentEngagementSummary {
+  child_id: string
+  total_homework_assigned: number
+  completed_count: number
+  completion_rate: number
+  avg_quality_score: number
+  pending_homework: ParentEngagement[]
+}
+
 export interface ParentObservation {
   id: string
   child_id: string
