@@ -186,11 +186,12 @@ export default function HeadDashboard() {
 
   const main    = filtered.filter(c => !c.isSandbox)
   const sandbox = filtered.filter(c => c.isSandbox)
-  const allFlags = filtered.flatMap(c => (c.flags||[]).map(f => ({ ...f, childName: c.child.name })))
+  // Sandbox cycles are excluded from all governance aggregates (main only).
+  const allFlags = main.flatMap(c => (c.flags||[]).map(f => ({ ...f, childName: c.child.name })))
 
   // KPIs
   const weekAgo = new Date(); weekAgo.setDate(weekAgo.getDate() - 7)
-  const sessThisWeek = cycles.flatMap(c => (c.daily_sessions||[]).filter(s => new Date(s.date) >= weekAgo)).length
+  const sessThisWeek = main.flatMap(c => (c.daily_sessions||[]).filter(s => new Date(s.date) >= weekAgo)).length
 
   return (
     <div className="min-h-screen bg-[var(--bg)]">
@@ -220,7 +221,7 @@ export default function HeadDashboard() {
         {/* KPI strip */}
         <div className="grid grid-cols-4 gap-4">
           {[
-            { label:'Active Cycles',    value: cycles.length,                      sub:'đang can thiệp' },
+            { label:'Active Cycles',    value: main.length,                        sub:'đang can thiệp' },
             { label:'Main Pool',        value: main.length,                        sub:'cycles chính' },
             { label:'Sandbox',          value: sandbox.length,                     sub:'thử nghiệm protocol' },
             { label:'Flags',            value: allFlags.length,                    sub:'cần chú ý', alert: allFlags.length > 0 },
