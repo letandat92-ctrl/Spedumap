@@ -99,7 +99,11 @@ export function BlockRow({
             // Resync from the committed score so a later blur can never commit a
             // stale empty value (which would wipe a real score → onScore(null)).
             setInputVal(score !== null ? String(score) : '')
-            setTimeout(() => inputRef.current?.select(), 0)
+            // Select synchronously within the focus event — a deferred select()
+            // (setTimeout) races fast input: a keystroke landing before it fires
+            // appends to the old value (e.g. "2"→"22"→clamp 4) or the commit is
+            // dropped during rapid arrow-key navigation.
+            inputRef.current?.select()
           }}
           onBlur={() => { setIsFocused(false); commitValue(inputVal) }}
           onKeyDown={e => {
