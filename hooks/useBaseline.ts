@@ -5,6 +5,7 @@ import type {
   CanonicalBlock, BlocksMap, CanonicalBaseline,
   Directionality, UserRole,
 } from '@/types/spedumap'
+import { signalsFromLayers } from '@/lib/signals'
 
 // ── Types ─────────────────────────────────────────────────────
 
@@ -144,12 +145,8 @@ function runEngine(blocks: Record<string, BlockState>): EngineResult {
     rough[lid] = sum
   })
 
-  // Step 2: deficit signals
-  const T = 2.5
-  const sensorimotor = Math.max(0, T - (rough.L2 * 0.55 + rough.L3 * 0.45))
-  const regulation   = Math.max(0, T - (rough.L1 * 0.70 + rough.L0 * 0.30))
-  const cognitive    = Math.max(0, T - (rough.L4 * 0.60 + rough.L5 * 0.40))
-  const sig = { sensorimotor, regulation, cognitive }
+  // Step 2: deficit signals (shared Formula A — see lib/signals.ts)
+  const sig = signalsFromLayers(rough)
 
   // Step 3: dynamic weighting (simplified — full version in spedumap_config.js)
   const adj: Record<string, number> = { ...rough }

@@ -2,6 +2,7 @@
 
 import type { GoalEntry } from '@/hooks/useGoal'
 import type { BlocksMap } from '@/types/spedumap'
+import { computeSignals, SIGNAL_T } from '@/lib/signals'
 
 const BN: Record<string,string> = {
   sleep:'Sleep',microbiome:'Microbiome',nutrition:'Nutrition',immune:'Immune',metabolic:'Metabolic',
@@ -45,15 +46,15 @@ function getScore(v: unknown): number {
 interface SignalStripProps { blocks: Record<string, unknown> }
 
 export function SignalStrip({ blocks }: SignalStripProps) {
-  const T = 2.5
-  const sm  = getScore(blocks.vestibular??0)*.20 + getScore(blocks.proprioception??0)*.15 + getScore(blocks.arousal??0)*.20 + getScore(blocks.attention??0)*.15
-  const reg = getScore(blocks.arousal??0)*.40 + getScore(blocks.sleep??0)*.30 + getScore(blocks.microbiome??0)*.30
-  const cog = getScore(blocks.attention??0)*.35 + getScore(blocks.oral_language??0)*.25 + getScore(blocks.auditory_processing??0)*.20
+  const T = SIGNAL_T
+  // Shared Formula A (see lib/signals.ts) — same ranking as the baseline engine
+  // and the goal page's Dominant-Deficit badge.
+  const sig = computeSignals(blocks)
 
   const signals = [
-    { label: 'Sensorimotor Deficit', val: Math.max(0, T - sm),  color: '#B83030' },
-    { label: 'Regulation Deficit',   val: Math.max(0, T - reg), color: '#A02020' },
-    { label: 'Cognitive Deficit',    val: Math.max(0, T - cog), color: '#C87020' },
+    { label: 'Sensorimotor Deficit', val: sig.sensorimotor, color: '#B83030' },
+    { label: 'Regulation Deficit',   val: sig.regulation,   color: '#A02020' },
+    { label: 'Cognitive Deficit',    val: sig.cognitive,    color: '#C87020' },
   ]
 
   return (
