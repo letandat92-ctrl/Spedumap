@@ -6,6 +6,8 @@ import { useSession, type LocalScore, type SessionInfo } from '@/hooks/useSessio
 import { createClient } from '@/lib/supabase/client'
 import ActivityOutcomeForm from '@/components/forms/ActivityOutcomeForm'
 import { SessionSummary, LayerTable, TargetBlocksTable } from '@/components/charts/SessionComponents'
+import { A4PageWrapper } from '@/components/A4PageWrapper'
+import { DocumentHeader } from '@/components/DocumentHeader'
 
 export const dynamic = 'force-dynamic'
 
@@ -33,6 +35,15 @@ const LOCAL_LABELS: Record<number, { label: string; color: string }> = {
    '1': { label: '+1', color: 'bg-green-100 text-green-800 border-green-300' },
    '2': { label: '+2', color: 'bg-emerald-100 text-emerald-800 border-emerald-300' },
 }
+
+// Legend for the −2…+2 local-progress scale used in TargetBlocksTable.
+const SCALE_LEGEND: Array<{ label: string; desc: string; color: string }> = [
+  { label: '−2', desc: 'Tệ hơn\nrõ rệt',  color: 'var(--red)' },
+  { label: '−1', desc: 'Tệ hơn',          color: '#C07010' },
+  { label: '0',  desc: 'Không đổi',       color: 'var(--ink-3)' },
+  { label: '+1', desc: 'Cải thiện',       color: 'var(--green)' },
+  { label: '+2', desc: 'Tiến bộ\nnhiều',  color: 'var(--green)' },
+]
 
 export default function SessionPage() {
   const router   = useRouter()
@@ -255,8 +266,24 @@ export default function SessionPage() {
         </div>
       </div>
 
-      {/* RIGHT: Progress summary */}
-      <div className="flex-1 overflow-y-auto p-6 space-y-4">
+      {/* RIGHT: Progress summary (A4 document) */}
+      <div className="flex-1 overflow-y-auto bg-[var(--bg)] py-6">
+        <A4PageWrapper>
+          <DocumentHeader
+            title="SPEDUMAP — Daily Session Report"
+            subtitle="Báo cáo buổi trị liệu · Tài liệu lâm sàng nội bộ"
+            right={
+              <div className="date-field">
+                <span>Ngày:</span>
+                <input
+                  type="date"
+                  value={sessionDate}
+                  onChange={e => setSessionDate(e.target.value)}
+                />
+              </div>
+            }
+          />
+          <div className="doc-body space-y-4">
 
         {/* Info card */}
         <div className="bg-white border border-[var(--rule)] rounded-xl p-4">
@@ -320,6 +347,24 @@ export default function SessionPage() {
           baselineBlocks={(cycle.baseline as {blocks: Record<string, unknown>})?.blocks ?? {}}
           targetBlocks={(cycle.target as {blocks: Record<string, unknown>})?.blocks ?? {}}
         />
+        {/* Evaluation scale legend (−2 … +2) */}
+        <div>
+          <div className="text-xs font-semibold text-[var(--ink-3)] uppercase tracking-wider mb-1.5">
+            Thang đánh giá tiến bộ
+          </div>
+          <div className="eval-scale-header">
+            {SCALE_LEGEND.map(item => (
+              <div key={item.label} className="esh-item" style={{ color: item.color }}>
+                {item.label}
+                <span>
+                  {item.desc.split('\n').map((line, i) => (
+                    <span key={i} style={{ display: 'block' }}>{line}</span>
+                  ))}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
         <TargetBlocksTable
           activities={activities}
           baselineBlocks={(cycle.baseline as {blocks: Record<string, unknown>})?.blocks ?? {}}
@@ -328,6 +373,23 @@ export default function SessionPage() {
           onLocalScore={setLocalScore}
           onNote={setActivityNote}
         />
+
+        {/* Therapist notes */}
+        <div className="bg-white border border-[var(--rule)] rounded-xl p-4">
+          <div className="text-xs font-semibold text-[var(--ink-3)] uppercase tracking-wider mb-2">
+            Ghi chú buổi trị liệu
+          </div>
+          <textarea
+            value={therapistNote}
+            onChange={e => setTherapistNote(e.target.value)}
+            placeholder="Quan sát chung, mức độ hợp tác, kế hoạch cho buổi tiếp theo..."
+            rows={4}
+            className="w-full px-3 py-2 text-xs text-[var(--ink-2)] border border-[var(--rule)] rounded-lg outline-none focus:border-[var(--navy)] resize-y"
+          />
+        </div>
+
+          </div>
+        </A4PageWrapper>
       </div>
     </div>
   )
