@@ -1,10 +1,10 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
-import { useGoal, getScaleOptions } from '@/hooks/useGoal'
+import { useGoal, getScaleOptions, type GoalEntry } from '@/hooks/useGoal'
 import { createClient } from '@/lib/supabase/client'
-import { LS_KEYS } from '@/types/spedumap'
+import { LS_KEYS, type BlocksMap, type CanonicalBlock } from '@/types/spedumap'
 import { GoalKPI } from '@/components/charts/GoalKPI'
 import { GoalChips } from '@/components/charts/GoalKPI'
 import { GoalCharts } from '@/components/charts/GoalCharts'
@@ -32,6 +32,96 @@ const BM: Record<string, { label: string; blocks: Record<string, string> }> = {
 
 const LAYER_IDS = ['L0','L1','L2','L3','L4','L5','L6','L7']
 
+// Block → layer and block → display-name, derived from BM (single source).
+const B2L: Record<string, string> = {}
+const BN:  Record<string, string> = {}
+for (const lid of LAYER_IDS) {
+  for (const [k, name] of Object.entries(BM[lid].blocks)) { B2L[k] = lid; BN[k] = name }
+}
+
+// Propagation graph — verbatim from ui_goal_setting.html (drives Leverage).
+const PROP: Record<string, Record<string, number>> = {
+  gut:                 { arousal:.70, sleep:.50, tone:.30 },
+  sleep:               { arousal:.60, ns_stability:.50, attention:.40 },
+  arousal:             { vestibular:.50, attention:.60, ns_stability:.70 },
+  reflex:              { vestibular:.60, proprioception:.50, motor_planning:.40 },
+  vestibular:          { motor_planning:.60, postural_control:.70 },
+  attention:           { oral_language:.50, word_finding:.45, auditory_memory:.40 },
+  auditory_processing: { phonemic_awareness:.65, oral_language:.50 },
+  phonemic_awareness:  { reading:.70, writing:.50 },
+  interoception:       { arousal:.40, self_control:.35 },
+}
+
+type RecType = 'leverage' | 'outlier' | 'bottleneck' | 'custom'
+interface Rec { key: string; type: RecType; reasons: RecType[] }
+
+const REASON_LABEL: Record<RecType, { cls: string; label: string }> = {
+  leverage:   { cls: 'lev', label: 'Leverage' },
+  outlier:    { cls: 'out', label: 'Outlier' },
+  bottleneck: { cls: 'bot', label: 'Bottleneck' },
+  custom:     { cls: 'cus', label: 'Custom' },
+}
+// Reason-chip colors (template .rc-lev / .rc-out / .rc-bot / .rc-cus).
+const REASON_STYLE: Record<string, { bg: string; fg: string; bd: string }> = {
+  lev: { bg: 'var(--purple-bg)', fg: 'var(--purple)', bd: 'var(--purple-bd)' },
+  out: { bg: 'var(--red-bg)',    fg: 'var(--red)',    bd: 'var(--red-bd)' },
+  bot: { bg: 'var(--warn-bg)',   fg: 'var(--warn)',   bd: 'var(--warn-bd)' },
+  cus: { bg: '#F0EDE8',          fg: '#888',          bd: '#DDD' },
+}
+
+// Recommendation engine — verbatim port of analyze() in ui_goal_setting.html.
+function analyze(blocks: BlocksMap, getScore: (b: CanonicalBlock | undefined) => number): Rec[] {
+  const acc: Record<string, { sum: number; n: number }> = {}
+  const layerBlocks: Record<string, Array<[string, number]>> = {}
+  for (const [k, raw] of Object.entries(blocks)) {
+    const v = getScore(raw)
+    const l = B2L[k]; if (!l) continue
+    if (!acc[l]) acc[l] = { sum: 0, n: 0 }
+    acc[l].sum += v; acc[l].n += 1
+    ;(layerBlocks[l] ??= []).push([k, v])
+  }
+  const avgs: Record<string, number> = {}
+  for (const l in acc) avgs[l] = acc[l].sum / acc[l].n
+
+  const out: Rec[] = []
+  const seen = new Set<string>()
+
+  // Leverage — low-score blocks with downstream propagation, ranked by lscore.
+  const lev: Array<Rec & { lscore: number }> = []
+  for (const [k, raw] of Object.entries(blocks)) {
+    const v = getScore(raw)
+    if (v >= 2.5 || !PROP[k]) continue
+    const ds = Object.entries(PROP[k])
+    if (!ds.length) continue
+    const ls = ds.reduce((s, [, x]) => s + x, 0) / ds.length
+    lev.push({ key: k, type: 'leverage', reasons: ['leverage'], lscore: ds.length * ls * (2.5 - v) / 2.5 })
+    seen.add(k)
+  }
+  lev.sort((a, b) => b.lscore - a.lscore)
+  out.push(...lev.map(({ key, type, reasons }) => ({ key, type, reasons })))
+
+  // Outlier — block ≥1.0 below its layer average.
+  for (const [k, raw] of Object.entries(blocks)) {
+    const v = getScore(raw)
+    if (seen.has(k)) continue
+    const l = B2L[k]; if (avgs[l] === undefined) continue
+    if (avgs[l] - v < 1.0) continue
+    out.push({ key: k, type: 'outlier', reasons: ['outlier'] })
+    seen.add(k)
+  }
+
+  // Bottleneck — weakest block in each weak (<2.0) layer.
+  for (const [l, avg] of Object.entries(avgs)) {
+    if (avg >= 2.0) continue
+    const worst = (layerBlocks[l] || []).filter(([k]) => !seen.has(k)).sort((a, b) => a[1] - b[1])[0]
+    if (!worst) continue
+    out.push({ key: worst[0], type: 'bottleneck', reasons: ['bottleneck'] })
+    seen.add(worst[0])
+  }
+
+  return out.slice(0, 6)
+}
+
 // Score → scale color (var(--s0)..var(--s4))
 function scoreColor(score: number): string {
   if (score >= 3.5) return 'var(--s4)'
@@ -54,15 +144,89 @@ export default function GoalPage() {
   const supabase = createClient()
   const {
     bd, goals, settings, loadError,
-    toggleGoal, setGoalDelta, toggleRegression, setRegressionNote,
+    selectOpt, removeGoal, restoreGoal,
+    toggleRegression, setRegressionNote,
     setSettingsField, buildOutput, getBlockScore,
   } = useGoal()
 
   const [saving, setSaving]   = useState(false)
   const [error, setError]     = useState<string | null>(null)
-  const [search, setSearch]   = useState('')
+
+  // Recommended list (analyze) + custom-added blocks — the rows actually shown.
+  const [recs, setRecs] = useState<Rec[]>([])
+  // Undo state for the per-row remove × (+ Ctrl+Z).
+  const [undo, setUndo] = useState<{ key: string; rec: Rec; goal: GoalEntry | null; index: number } | null>(null)
+  const undoRef   = useRef(undo);   undoRef.current = undo
+  const undoTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  // Custom-block picker.
+  const [pickerOpen, setPickerOpen]     = useState(false)
+  const [pickerSearch, setPickerSearch] = useState('')
 
   const goalCount = Object.keys(goals).length
+
+  // Build the recommended list once baseline data is available.
+  useEffect(() => {
+    if (bd) setRecs(analyze(bd.baseline_blocks, getBlockScore))
+  }, [bd, getBlockScore])
+
+  // First selectable option for a block (mirrors template auto-select).
+  function firstOption(baseScore: number) {
+    const opts = getScaleOptions(baseScore)
+    return opts.find(o => !o.locked && o.delta > 0) || opts[0]
+  }
+
+  function selectRow(key: string, baseScore: number) {
+    if (key in goals) { removeGoal(key); return }
+    const f = firstOption(baseScore)
+    selectOpt(key, f.delta, f.id)
+  }
+
+  function removeRec(key: string) {
+    const index = recs.findIndex(r => r.key === key)
+    const rec   = recs[index]
+    if (!rec) return
+    const goalSnapshot = goals[key] ? { ...goals[key] } : null
+    setRecs(prev => prev.filter(r => r.key !== key))
+    removeGoal(key)
+    setUndo({ key, rec, goal: goalSnapshot, index })
+    if (undoTimer.current) clearTimeout(undoTimer.current)
+    undoTimer.current = setTimeout(() => setUndo(null), 5000)
+  }
+
+  function doUndo() {
+    const u = undoRef.current
+    if (!u) return
+    if (undoTimer.current) clearTimeout(undoTimer.current)
+    setRecs(prev => {
+      if (prev.find(r => r.key === u.key)) return prev
+      const next = [...prev]
+      next.splice(Math.min(u.index, next.length), 0, u.rec)
+      return next
+    })
+    if (u.goal) restoreGoal(u.key, u.goal)
+    setUndo(null)
+  }
+
+  function addCustom(key: string) {
+    setRecs(prev => prev.find(r => r.key === key) ? prev : [...prev, { key, type: 'custom', reasons: ['custom'] }])
+    const f = firstOption(getBlockScore(bd!.baseline_blocks[key]))
+    selectOpt(key, f.delta, f.id)
+    setPickerOpen(false)
+    setPickerSearch('')
+  }
+
+  // Ctrl/Cmd+Z → undo the last removed block.
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z' && !e.shiftKey && undoRef.current) {
+        e.preventDefault()
+        doUndo()
+      }
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   async function handleConfirm() {
     if (!goalCount) return
@@ -212,209 +376,221 @@ export default function GoalPage() {
           <span className="ml-auto" style={{ fontFamily: OSWALD, fontSize: 10, fontWeight: 700, color: 'var(--red)' }}>{goalCount} đã chọn</span>
         </div>
 
-        {/* Search */}
-        <div className="px-3 pb-2 flex-shrink-0">
-          <input
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-            placeholder="Tìm block..."
-            className="w-full h-7 px-2 text-xs rounded focus:outline-none"
-            style={{ border: '1px solid var(--border)', background: 'var(--warm-bg)', fontFamily: INTER }}
-          />
-        </div>
-
-        {/* GAS list (block selector + selected goal config) */}
-        <div className="flex flex-col gap-1.5 px-3 pb-4">
-          {LAYER_IDS.map(lid => {
-            const filteredBlocks = Object.entries(BM[lid].blocks).filter(([k, name]) =>
-              !search || name.toLowerCase().includes(search.toLowerCase()) || k.includes(search.toLowerCase())
-            )
-            if (!filteredBlocks.length) return null
+        {/* GAS list — recommended blocks (analyze) + custom-added, always expanded */}
+        <div className="flex flex-col gap-1.5 px-3 pb-2">
+          {recs.map(rec => {
+            const key = rec.key
+            const lid = B2L[key]
+            const color = LAYER_COLORS[lid]
+            const baseScore = getBlockScore(bd.baseline_blocks[key])
+            const selected = key in goals
+            const goal = goals[key]
+            const baselinePct = (baseScore / 4) * 100
+            const sc = scoreColor(baseScore)
             return (
-              <div key={lid}>
+              <div
+                key={key}
+                className="overflow-hidden transition-colors"
+                style={{ background: '#FAFAF8', border: `1.5px solid ${selected ? 'var(--red)' : 'var(--border)'}`, borderRadius: 8 }}
+              >
+                {/* Row top — checkbox toggles selection */}
                 <div
-                  className="px-2 py-1 rounded mb-1"
-                  style={{ fontFamily: OSWALD, fontSize: 9, fontWeight: 600, letterSpacing: '.08em', textTransform: 'uppercase', color: '#fff', background: LAYER_COLORS[lid] }}
+                  onClick={() => selectRow(key, baseScore)}
+                  className="flex items-center gap-2.5 px-3 py-2 cursor-pointer select-none transition-colors"
+                  style={{ background: selected ? 'var(--red-bg)' : '#FAFAF8' }}
                 >
-                  {BM[lid].label}
+                  <div
+                    className="flex items-center justify-center flex-shrink-0"
+                    style={{ width: 16, height: 16, borderRadius: 3, border: `1.5px solid ${selected ? 'var(--red)' : 'var(--border-2)'}`, background: selected ? 'var(--red)' : '#fff' }}
+                  >
+                    {selected && (
+                      <svg viewBox="0 0 12 10" style={{ width: 9, height: 9, stroke: '#fff', strokeWidth: 2.5, fill: 'none' }}>
+                        <polyline points="1,5 4,8 11,1" />
+                      </svg>
+                    )}
+                  </div>
+                  <div className="rounded-sm flex-shrink-0" style={{ width: 3, height: 26, background: color }} />
+                  <span style={{ fontFamily: OSWALD, fontSize: 12, fontWeight: 700, letterSpacing: '.03em', color: 'var(--ink)' }}>{BN[key]}</span>
+                  <span
+                    className="flex-shrink-0"
+                    style={{ fontSize: 9, fontWeight: 600, letterSpacing: '.06em', textTransform: 'uppercase', color: 'var(--sub)', background: 'var(--border)', padding: '1px 5px', borderRadius: 2 }}
+                  >
+                    {lid}
+                  </span>
+                  {/* Reason chips */}
+                  <div className="flex gap-[3px] ml-auto">
+                    {rec.reasons.map(r => {
+                      const m = REASON_LABEL[r]; const st = REASON_STYLE[m.cls]
+                      return (
+                        <span
+                          key={r}
+                          style={{ fontSize: 8, fontWeight: 700, letterSpacing: '.04em', textTransform: 'uppercase', padding: '1px 5px', borderRadius: 2, background: st.bg, color: st.fg, border: `1px solid ${st.bd}` }}
+                        >
+                          {m.label}
+                        </span>
+                      )
+                    })}
+                  </div>
+                  {/* Remove × */}
+                  <button
+                    onClick={(e) => { e.stopPropagation(); removeRec(key) }}
+                    title="Bỏ block này"
+                    className="flex items-center justify-center flex-shrink-0 transition-colors"
+                    style={{ width: 20, height: 20, borderRadius: '50%', border: '1.5px solid var(--border-2)', background: 'transparent', color: 'var(--sub)', fontSize: 13, lineHeight: 1, padding: 0 }}
+                  >
+                    ×
+                  </button>
                 </div>
 
-                <div className="flex flex-col gap-1.5">
-                  {filteredBlocks.map(([key, name]) => {
-                    const baseScore = getBlockScore(bd.baseline_blocks[key])
-                    const selected  = key in goals
-                    const goal      = goals[key]
-                    const baselinePct = (baseScore / 4) * 100
-                    const sc = scoreColor(baseScore)
+                {/* Body — always expanded (recommended rows) */}
+                <div className="px-3 pt-2 pb-2.5" style={{ borderTop: '1px solid var(--border)' }}>
+                  {/* Baseline bar */}
+                  <div className="flex items-center gap-2 mb-2">
+                    <div style={{ fontSize: 9, fontWeight: 600, letterSpacing: '.08em', textTransform: 'uppercase', color: 'var(--sub)', width: 52, flexShrink: 0 }}>Baseline</div>
+                    <div className="flex-1 relative overflow-hidden" style={{ height: 10, background: 'var(--border)', borderRadius: 5 }}>
+                      <div className="h-full" style={{ width: `${baselinePct}%`, background: sc, borderRadius: 5, transition: 'width .3s' }} />
+                    </div>
+                    <div className="text-right flex-shrink-0" style={{ fontFamily: OSWALD, fontSize: 12, fontWeight: 700, width: 28, color: sc }}>{baseScore.toFixed(1)}</div>
+                  </div>
 
-                    return (
-                      <div
-                        key={key}
-                        className="overflow-hidden transition-colors"
-                        style={{
-                          background: '#FAFAF8',
-                          border: `1.5px solid ${selected ? 'var(--red)' : 'var(--border)'}`,
-                          borderRadius: 8,
-                        }}
-                      >
-                        {/* Row top — toggle */}
-                        <div
-                          onClick={() => toggleGoal(key)}
-                          className="flex items-center gap-2.5 px-3 py-2 cursor-pointer select-none transition-colors"
-                          style={{ background: selected ? 'var(--red-bg)' : '#FAFAF8' }}
+                  {/* GAS scale label */}
+                  <div style={{ fontSize: 9, fontWeight: 600, letterSpacing: '.08em', textTransform: 'uppercase', color: 'var(--sub)', marginBottom: 6 }}>
+                    Kỳ vọng cải thiện trong cycle này
+                  </div>
+
+                  {/* Segmented GAS scale */}
+                  <div className="flex items-stretch overflow-hidden" style={{ borderRadius: 6, border: '1px solid var(--border)' }}>
+                    {getScaleOptions(baseScore).map((opt, i, arr) => {
+                      const active = goal?.optionId === opt.id
+                      return (
+                        <button
+                          key={opt.id}
+                          disabled={opt.locked}
+                          onClick={() => !opt.locked && selectOpt(key, opt.delta, opt.id)}
+                          title={opt.locked ? 'Không khả dụng với baseline hiện tại' : undefined}
+                          className="flex-1 flex flex-col items-center justify-center transition-colors"
+                          style={{
+                            padding: '6px 4px',
+                            gap: 3,
+                            borderRight: i < arr.length - 1 ? '1px solid var(--border)' : 'none',
+                            background: active ? 'var(--red-bg)' : 'transparent',
+                            opacity: opt.locked ? 0.35 : 1,
+                            cursor: opt.locked ? 'not-allowed' : 'pointer',
+                          }}
                         >
                           <div
-                            className="flex items-center justify-center flex-shrink-0"
-                            style={{
-                              width: 16, height: 16, borderRadius: 3,
-                              border: `1.5px solid ${selected ? 'var(--red)' : 'var(--border-2)'}`,
-                              background: selected ? 'var(--red)' : '#fff',
-                            }}
+                            className="rounded-full flex-shrink-0"
+                            style={{ width: 16, height: 16, border: `2px solid ${active ? 'var(--red)' : 'var(--border-2)'}`, background: active ? 'var(--red)' : '#fff' }}
+                          />
+                          <div
+                            className="text-center"
+                            style={{ fontSize: 8.5, fontWeight: 600, lineHeight: 1.2, letterSpacing: '.01em', color: active ? 'var(--red)' : 'var(--sub)', whiteSpace: 'pre-line' }}
                           >
-                            {selected && (
-                              <svg viewBox="0 0 12 10" style={{ width: 9, height: 9, stroke: '#fff', strokeWidth: 2.5, fill: 'none' }}>
-                                <polyline points="1,5 4,8 11,1" />
-                              </svg>
-                            )}
+                            {opt.label}
                           </div>
-                          <div className="rounded-sm flex-shrink-0" style={{ width: 3, height: 26, background: LAYER_COLORS[lid] }} />
-                          <span style={{ fontFamily: OSWALD, fontSize: 12, fontWeight: 700, letterSpacing: '.03em', color: 'var(--ink)' }}>{name}</span>
-                          <span
-                            className="flex-shrink-0"
-                            style={{ fontSize: 9, fontWeight: 600, letterSpacing: '.06em', textTransform: 'uppercase', color: 'var(--sub)', background: 'var(--border)', padding: '1px 5px', borderRadius: 2 }}
-                          >
-                            {lid}
-                          </span>
-                          <span className="ml-auto flex-shrink-0" style={{ fontFamily: OSWALD, fontSize: 11, fontWeight: 700, color: sc }}>{baseScore.toFixed(1)}</span>
-                          {selected && (
-                            <button
-                              onClick={(e) => { e.stopPropagation(); toggleGoal(key) }}
-                              title="Bỏ block này"
-                              className="flex items-center justify-center flex-shrink-0 transition-colors"
-                              style={{ width: 20, height: 20, borderRadius: '50%', border: '1.5px solid var(--border-2)', background: 'transparent', color: 'var(--sub)', fontSize: 13, lineHeight: 1, padding: 0 }}
-                            >
-                              ×
-                            </button>
-                          )}
-                        </div>
-
-                        {/* Body — only when selected */}
-                        {selected && goal && (
-                          <div className="px-3 pt-2 pb-2.5" style={{ borderTop: '1px solid var(--border)' }}>
-
-                            {/* Baseline bar */}
-                            <div className="flex items-center gap-2 mb-2">
-                              <div style={{ fontSize: 9, fontWeight: 600, letterSpacing: '.08em', textTransform: 'uppercase', color: 'var(--sub)', width: 52, flexShrink: 0 }}>Baseline</div>
-                              <div className="flex-1 relative overflow-hidden" style={{ height: 10, background: 'var(--border)', borderRadius: 5 }}>
-                                <div className="h-full" style={{ width: `${baselinePct}%`, background: sc, borderRadius: 5, transition: 'width .3s' }} />
-                              </div>
-                              <div className="text-right flex-shrink-0" style={{ fontFamily: OSWALD, fontSize: 12, fontWeight: 700, width: 28, color: sc }}>{baseScore.toFixed(1)}</div>
-                            </div>
-
-                            {/* GAS scale label — matches template `.gas-scale-label` */}
-                            <div style={{ fontSize: 9, fontWeight: 600, letterSpacing: '.08em', textTransform: 'uppercase', color: 'var(--sub)', marginBottom: 6 }}>
-                              Kỳ vọng cải thiện trong cycle này
-                            </div>
-
-                            {/* Segmented GAS scale */}
-                            <div
-                              className="flex items-stretch overflow-hidden"
-                              style={{ borderRadius: 6, border: '1px solid var(--border)' }}
-                            >
-                              {getScaleOptions(baseScore).map((opt, i, arr) => {
-                                const active = goal.optionId === opt.id
-                                return (
-                                  <button
-                                    key={opt.id}
-                                    disabled={opt.locked}
-                                    onClick={() => !opt.locked && setGoalDelta(key, opt.delta, opt.id)}
-                                    title={opt.locked ? 'Không khả dụng với baseline hiện tại' : undefined}
-                                    className="flex-1 flex flex-col items-center justify-center transition-colors"
-                                    style={{
-                                      padding: '6px 4px',
-                                      gap: 3,
-                                      borderRight: i < arr.length - 1 ? '1px solid var(--border)' : 'none',
-                                      background: active ? 'var(--red-bg)' : 'transparent',
-                                      opacity: opt.locked ? 0.35 : 1,
-                                      cursor: opt.locked ? 'not-allowed' : 'pointer',
-                                    }}
-                                  >
-                                    <div
-                                      className="rounded-full flex-shrink-0"
-                                      style={{
-                                        width: 16, height: 16,
-                                        border: `2px solid ${active ? 'var(--red)' : 'var(--border-2)'}`,
-                                        background: active ? 'var(--red)' : '#fff',
-                                      }}
-                                    />
-                                    <div
-                                      className="text-center"
-                                      style={{ fontSize: 8.5, fontWeight: 600, lineHeight: 1.2, letterSpacing: '.01em', color: active ? 'var(--red)' : 'var(--sub)', whiteSpace: 'pre-line' }}
-                                    >
-                                      {opt.label}
-                                    </div>
-                                    <div style={{ fontFamily: OSWALD, fontSize: 8, fontWeight: 700, color: active ? 'var(--red)' : '#aaa' }}>
-                                      {opt.delta > 0 ? `+${opt.delta.toFixed(1)}` : opt.delta === 0 ? '=' : opt.delta.toFixed(1)}
-                                    </div>
-                                  </button>
-                                )
-                              })}
-                            </div>
-
-                            {/* Goal-size warning */}
-                            {goal.delta >= 2.0 && (
-                              <div
-                                className="mt-1.5"
-                                style={{
-                                  padding: '5px 8px', borderRadius: 4, fontSize: 10, lineHeight: 1.5,
-                                  background: goal.delta >= 2.5 ? 'var(--bad-bg)' : 'var(--warn-bg)',
-                                  border: `1px solid ${goal.delta >= 2.5 ? 'var(--bad-bd)' : 'var(--warn-bd)'}`,
-                                  color: goal.delta >= 2.5 ? 'var(--red)' : 'var(--warn)',
-                                }}
-                              >
-                                {goal.delta >= 2.5
-                                  ? '⚠ Goal rất lớn. Có thể đạt được nếu có can thiệp y tế trực tiếp (ví dụ: đeo kính, điều trị ký sinh trùng). Cân nhắc chia 2 cycles.'
-                                  : 'Goal ambitious. Đảm bảo có kế hoạch can thiệp cụ thể cho cycle này.'}
-                              </div>
-                            )}
-
-                            {/* Regression toggle */}
-                            <div className="flex items-center gap-1.5 mt-1.5 pt-1.5" style={{ borderTop: '1px dashed var(--border)' }}>
-                              <div className="flex-1" style={{ fontSize: 10, color: 'var(--sub)' }}>Dự kiến regression tạm thời (die-off, detox...)</div>
-                              <div
-                                onClick={() => toggleRegression(key)}
-                                className="relative cursor-pointer flex-shrink-0 transition-colors"
-                                style={{ width: 28, height: 16, borderRadius: 8, background: goal.regression ? 'var(--warn)' : 'var(--border)' }}
-                              >
-                                <div
-                                  className="absolute rounded-full"
-                                  style={{ width: 12, height: 12, top: 2, left: goal.regression ? 14 : 2, background: '#fff', boxShadow: '0 1px 3px rgba(0,0,0,.2)', transition: 'left .15s' }}
-                                />
-                              </div>
-                            </div>
-
-                            {/* Regression clinical-reason note — shown when toggle on */}
-                            {goal.regression && (
-                              <div className="mt-1.5">
-                                <input
-                                  type="text"
-                                  value={goal.regressionNote ?? ''}
-                                  onChange={e => setRegressionNote(key, e.target.value)}
-                                  placeholder="Lý do lâm sàng (ví dụ: candida die-off, sensory overload...)"
-                                  className="w-full focus:outline-none"
-                                  style={{ height: 26, border: '1px solid var(--warn-bd)', borderRadius: 4, padding: '0 8px', fontSize: 10, background: 'var(--warn-bg)', color: 'var(--ink)' }}
-                                />
-                              </div>
-                            )}
+                          <div style={{ fontFamily: OSWALD, fontSize: 8, fontWeight: 700, color: active ? 'var(--red)' : '#aaa' }}>
+                            {opt.delta > 0 ? `+${opt.delta.toFixed(1)}` : opt.delta === 0 ? '=' : opt.delta.toFixed(1)}
                           </div>
-                        )}
-                      </div>
-                    )
-                  })}
+                        </button>
+                      )
+                    })}
+                  </div>
+
+                  {/* Goal-size warning */}
+                  {goal && goal.delta >= 2.0 && (
+                    <div
+                      className="mt-1.5"
+                      style={{
+                        padding: '5px 8px', borderRadius: 4, fontSize: 10, lineHeight: 1.5,
+                        background: goal.delta >= 2.5 ? 'var(--bad-bg)' : 'var(--warn-bg)',
+                        border: `1px solid ${goal.delta >= 2.5 ? 'var(--bad-bd)' : 'var(--warn-bd)'}`,
+                        color: goal.delta >= 2.5 ? 'var(--red)' : 'var(--warn)',
+                      }}
+                    >
+                      {goal.delta >= 2.5
+                        ? '⚠ Goal rất lớn. Có thể đạt được nếu có can thiệp y tế trực tiếp (ví dụ: đeo kính, điều trị ký sinh trùng). Cân nhắc chia 2 cycles.'
+                        : 'Goal ambitious. Đảm bảo có kế hoạch can thiệp cụ thể cho cycle này.'}
+                    </div>
+                  )}
+
+                  {/* Regression toggle */}
+                  <div className="flex items-center gap-1.5 mt-1.5 pt-1.5" style={{ borderTop: '1px dashed var(--border)' }}>
+                    <div className="flex-1" style={{ fontSize: 10, color: 'var(--sub)' }}>Dự kiến regression tạm thời (die-off, detox...)</div>
+                    <div
+                      onClick={() => toggleRegression(key)}
+                      className="relative cursor-pointer flex-shrink-0 transition-colors"
+                      style={{ width: 28, height: 16, borderRadius: 8, background: goal?.regression ? 'var(--warn)' : 'var(--border)' }}
+                    >
+                      <div
+                        className="absolute rounded-full"
+                        style={{ width: 12, height: 12, top: 2, left: goal?.regression ? 14 : 2, background: '#fff', boxShadow: '0 1px 3px rgba(0,0,0,.2)', transition: 'left .15s' }}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Regression clinical-reason note — shown when toggle on */}
+                  {goal?.regression && (
+                    <div className="mt-1.5">
+                      <input
+                        type="text"
+                        value={goal.regressionNote ?? ''}
+                        onChange={e => setRegressionNote(key, e.target.value)}
+                        placeholder="Lý do lâm sàng (ví dụ: candida die-off, sensory overload...)"
+                        className="w-full focus:outline-none"
+                        style={{ height: 26, border: '1px solid var(--warn-bd)', borderRadius: 4, padding: '0 8px', fontSize: 10, background: 'var(--warn-bg)', color: 'var(--ink)' }}
+                      />
+                    </div>
+                  )}
                 </div>
               </div>
             )
           })}
+          {recs.length === 0 && (
+            <div style={{ fontSize: 11, fontStyle: 'italic', color: 'var(--sub)', padding: '10px 4px' }}>
+              Không có đề xuất — thêm block bên dưới.
+            </div>
+          )}
+        </div>
+
+        {/* Add custom block — button + searchable picker */}
+        <div className="px-3 pb-4">
+          <button
+            onClick={() => setPickerOpen(o => !o)}
+            className="w-full transition-colors"
+            style={{ height: 34, border: '1.5px dashed var(--border-2)', borderRadius: 6, background: 'transparent', fontFamily: OSWALD, fontSize: 11, fontWeight: 600, letterSpacing: '.04em', color: 'var(--sub)', cursor: 'pointer' }}
+          >
+            ＋ Thêm block khác
+          </button>
+          {pickerOpen && (
+            <div style={{ background: 'var(--card)', border: '1.5px solid var(--border)', borderRadius: 6, padding: 8, marginTop: 5 }}>
+              <input
+                autoFocus
+                value={pickerSearch}
+                onChange={e => setPickerSearch(e.target.value)}
+                placeholder="Tìm block..."
+                className="w-full focus:outline-none"
+                style={{ height: 28, border: '1px solid var(--border)', borderRadius: 4, padding: '0 8px', fontSize: 11, background: 'var(--bg)', marginBottom: 6, fontFamily: INTER }}
+              />
+              <div className="flex flex-col" style={{ gap: 1, maxHeight: 140, overflowY: 'auto' }}>
+                {Object.keys(BN)
+                  .filter(k => { const q = pickerSearch.toLowerCase(); return !q || BN[k].toLowerCase().includes(q) || B2L[k].toLowerCase().includes(q) })
+                  .map(k => {
+                    const disabled = recs.some(r => r.key === k)
+                    return (
+                      <div
+                        key={k}
+                        onClick={() => !disabled && addCustom(k)}
+                        className="flex justify-between"
+                        style={{ padding: '4px 8px', borderRadius: 3, fontSize: 11, color: 'var(--sub-2)', cursor: disabled ? 'not-allowed' : 'pointer', opacity: disabled ? 0.4 : 1 }}
+                      >
+                        <span style={{ fontWeight: 500 }}>{BN[k]}</span>
+                        <span style={{ fontSize: 9, color: 'var(--sub)', fontFamily: OSWALD }}>{B2L[k]}</span>
+                      </div>
+                    )
+                  })}
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
@@ -508,6 +684,23 @@ export default function GoalPage() {
           </div>
         )}
       </div>
+
+      {/* Undo toast — per-row remove (+ Ctrl+Z) */}
+      {undo && (
+        <div
+          className="fixed left-1/2 flex items-center gap-3"
+          style={{ bottom: 24, transform: 'translateX(-50%)', background: '#1A1814', color: '#fff', borderRadius: 6, padding: '9px 16px', fontSize: 12, boxShadow: '0 4px 16px rgba(0,0,0,.25)', zIndex: 999, whiteSpace: 'nowrap' }}
+        >
+          <span>&quot;{BN[undo.key]}&quot; đã bị xóa</span>
+          <button
+            onClick={doUndo}
+            style={{ fontFamily: OSWALD, fontSize: 11, fontWeight: 700, letterSpacing: '.06em', background: 'var(--red)', color: '#fff', border: 'none', borderRadius: 3, padding: '3px 10px', cursor: 'pointer' }}
+          >
+            Hoàn tác
+          </button>
+          <span style={{ fontSize: 10, color: '#888' }}>Ctrl+Z</span>
+        </div>
+      )}
     </div>
   )
 }

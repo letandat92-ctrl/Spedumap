@@ -157,6 +157,37 @@ export function useGoal() {
     })
   }, [])
 
+  // Select a scale option — adds the goal if missing, else updates it (mirrors
+  // ui_goal_setting.html selectOpt). Used by the always-expanded recommended rows.
+  const selectOpt = useCallback((blockKey: string, delta: number, optionId: string) => {
+    setGoals(prev => ({
+      ...prev,
+      [blockKey]: {
+        key:            blockKey,
+        delta,
+        optionId,
+        regression:     prev[blockKey]?.regression ?? false,
+        regressionNote: prev[blockKey]?.regressionNote ?? '',
+        note:           prev[blockKey]?.note,
+      },
+    }))
+  }, [])
+
+  // Remove a goal entirely (used by the per-row remove ×).
+  const removeGoal = useCallback((blockKey: string) => {
+    setGoals(prev => {
+      if (!(blockKey in prev)) return prev
+      const next = { ...prev }
+      delete next[blockKey]
+      return next
+    })
+  }, [])
+
+  // Restore a previously-removed goal (undo).
+  const restoreGoal = useCallback((blockKey: string, entry: GoalEntry) => {
+    setGoals(prev => ({ ...prev, [blockKey]: entry }))
+  }, [])
+
   // Toggle regression flag
   const toggleRegression = useCallback((blockKey: string) => {
     setGoals(prev => {
@@ -206,7 +237,8 @@ export function useGoal() {
 
   return {
     bd, goals, settings, loadError,
-    toggleGoal, setGoalDelta, toggleRegression, setRegressionNote,
+    toggleGoal, setGoalDelta, selectOpt, removeGoal, restoreGoal,
+    toggleRegression, setRegressionNote,
     setSettingsField, buildOutput,
     getBlockScore,
   }
