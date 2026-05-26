@@ -26,6 +26,24 @@ export interface ActivityEntry {
   block:       string
   localScore:  LocalScore | null
   note:        string
+  exercise:    string   // "Bài tập" — intervention activity (template MOCK_ACT)
+  purpose:     string   // "Mục đích" — focus / downstream purpose
+}
+
+// Observed progress on a non-target block (template obs-picker).
+export interface ObservedActivity {
+  block: string
+  note:  string
+}
+
+export const LAYER_IDS = ['L0', 'L1', 'L2', 'L3', 'L4', 'L5', 'L6', 'L7']
+
+// Suggested exercise/purpose per block — mirrors MOCK_ACT in ui_daily_session.html.
+const SUGGEST: Record<string, { exercise: string; purpose: string }> = {
+  microbiome: { exercise: 'Massage bụng + Probiotic feeding', purpose: 'Kích thích nhu động ruột, cân bằng vi sinh' },
+  arousal:    { exercise: 'Bài sờ chạm sâu (Deep Pressure)',  purpose: 'Giảm over-arousal, ổn định hệ thần kinh' },
+  attention:  { exercise: 'Bài phân loại đồ vật theo hình',   purpose: 'Tăng thời gian duy trì chú ý' },
+  sleep:      { exercise: 'Breathing routine + đèn mờ',        purpose: 'Thiết lập tín hiệu ngủ, giảm arousal tối' },
 }
 
 // delta map — mirrors spedumap_config.js
@@ -71,17 +89,33 @@ export function useSession() {
   const [loadError, setLoadError] = useState<string | null>(null)
   const [submitted, setSubmitted] = useState(false)
 
+  // ── New session-detail state (backed by daily_sessions columns / JSONB) ──
+  const [observedActivities, setObservedActivities] = useState<ObservedActivity[]>([])
+  const [cooperationStars, setCooperationStars]     = useState<number | null>(null)
+  const [layerEval, setLayerEvalState]              = useState<Record<string, number | null>>(
+    () => Object.fromEntries(LAYER_IDS.map(l => [l, null])) as Record<string, number | null>
+  )
+  const [regressionFlag, setRegressionFlag]         = useState(false)
+  const [regressionReason, setRegressionReason]     = useState('')
+  const [planNote, setPlanNote]                     = useState('')
+
   useEffect(() => {
     try {
       const raw = localStorage.getItem(LS_KEYS.ACTIVE_CYCLE)
       if (!raw) { setLoadError('Chưa có chu kỳ active. Vui lòng mở chu kỳ trước.'); return }
       const parsed = JSON.parse(raw)
       setCycle(parsed)
-      // Init activities from target blocks
+      // Init activities from target blocks (with suggested exercise/purpose)
       const target = (parsed.target as {blocks: Record<string, unknown>})?.blocks || {}
       const init: Record<string, ActivityEntry> = {}
       for (const k of Object.keys(target)) {
-        init[k] = { block: k, localScore: null, note: '' }
+        init[k] = {
+          block:      k,
+          localScore: null,
+          note:       '',
+          exercise:   SUGGEST[k]?.exercise ?? '',
+          purpose:    SUGGEST[k]?.purpose ?? '',
+        }
       }
       setActivities(init)
     } catch {
@@ -96,6 +130,32 @@ export function useSession() {
   const setActivityNote = useCallback((block: string, note: string) => {
     setActivities(prev => ({ ...prev, [block]: { ...prev[block], note } }))
   }, [])
+
+  const setExercise = useCallback((block: string, exercise: string) => {
+    setActivities(prev => ({ ...prev, [block]: { ...prev[block], exercise } }))
+  }, [])
+
+  const setPurpose = useCallback((block: string, purpose: string) => {
+    setActivities(prev => ({ ...prev, [block]: { ...prev[block], purpose } }))
+  }, [])
+
+  // ── Observed activities (non-target blocks) ──
+  const addObserved = useCallback((block: string) => {
+    setObservedActivities(prev => prev.some(o => o.block === block) ? prev : [...prev, { block, note: '' }])
+  }, [])
+  const removeObserved = useCallback((index: number) => {
+    setObservedActivities(prev => prev.filter((_, i) => i !== index))
+  }, [])
+  const setObservedNote = useCallback((index: number, note: string) => {
+    setObservedActivities(prev => prev.map((o, i) => i === index ? { ...o, note } : o))
+  }, [])
+
+  // ── Layer evaluation (L0–L7 → 0–6) ──
+  const setLayerEval = useCallback((layer: string, value: number | null) => {
+    setLayerEvalState(prev => ({ ...prev, [layer]: value }))
+  }, [])
+
+  const toggleRegression = useCallback(() => setRegressionFlag(f => !f), [])
 
   // Build session output for Supabase + localStorage
   const buildSessionOutput = useCallback(() => {
@@ -121,8 +181,18 @@ export function useSession() {
           current_after: currentAfter,
           target_delta:  targetDelta,
           activity_note: a.note || null,
+          exercise:      a.exercise || null,
+          purpose:       a.purpose || null,
         }
       })
+
+    // Observed activities carry a no-change current_after so computeCurrent()
+    // does not zero these blocks when the session is reloaded.
+    const builtObserved = observedActivities.map(o => ({
+      block:         o.block,
+      note:          o.note || null,
+      current_after: makeBlock(cur[o.block] ?? 0),
+    }))
 
     return {
       session_id:          crypto.randomUUID(),
@@ -135,12 +205,17 @@ export function useSession() {
       time_end:            sessionInfo.timeEnd,
       location:            sessionInfo.location,
       activities:          builtActivities,
-      observed_activities: [],
+      observed_activities: builtObserved,
       notes:               therapistNote || null,
+      cooperation_stars:   cooperationStars,
+      regression_flag:     regressionFlag,
+      regression_reason:   regressionReason || null,
+      plan_note:           planNote || null,
+      layer_eval:          layerEval,
       parent_confirmed:    false,
       parent_email:        (cycle.child as {parent_email?: string})?.parent_email || null,
     }
-  }, [cycle, activities, sessionDate, therapistNote])
+  }, [cycle, activities, sessionDate, therapistNote, sessionInfo, observedActivities, cooperationStars, regressionFlag, regressionReason, planNote, layerEval])
 
   // After submit — push session to localStorage
   const commitSession = useCallback((sessionData: ReturnType<typeof buildSessionOutput>) => {
@@ -153,6 +228,11 @@ export function useSession() {
         activities:          sessionData.activities,
         observed_activities: sessionData.observed_activities,
         notes:               sessionData.notes,
+        cooperation_stars:   sessionData.cooperation_stars,
+        regression_flag:     sessionData.regression_flag,
+        regression_reason:   sessionData.regression_reason,
+        plan_note:           sessionData.plan_note,
+        layer_eval:          sessionData.layer_eval,
         parent_confirmed:    false,
       }]
     }
@@ -169,8 +249,12 @@ export function useSession() {
   return {
     cycle, activities, sessionInfo, sessionDate, therapistNote, loadError, submitted,
     currentScores, sessionIndex, plannedSessions,
-    setLocalScore, setActivityNote, setSessionDate, setTherapistNote,
-    setSessionInfo,
+    observedActivities, cooperationStars, layerEval, regressionFlag, regressionReason, planNote,
+    setLocalScore, setActivityNote, setExercise, setPurpose,
+    addObserved, removeObserved, setObservedNote,
+    setCooperationStars, setLayerEval,
+    toggleRegression, setRegressionFlag, setRegressionReason, setPlanNote,
+    setSessionDate, setTherapistNote, setSessionInfo,
     buildSessionOutput, commitSession, setSubmitted,
   }
 }

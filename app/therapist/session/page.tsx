@@ -4,14 +4,17 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useSession, type LocalScore, type SessionInfo } from '@/hooks/useSession'
 import { createClient } from '@/lib/supabase/client'
-import ActivityOutcomeForm from '@/components/forms/ActivityOutcomeForm'
-import { SessionSummary, LayerTable, TargetBlocksTable } from '@/components/charts/SessionComponents'
 import { A4PageWrapper } from '@/components/A4PageWrapper'
 import { DocumentHeader } from '@/components/DocumentHeader'
 
 export const dynamic = 'force-dynamic'
 
+// ── Fonts (inline, matching ui_daily_session.html) ──
+const FONT_HEAD = "'Libre Baskerville', Georgia, serif"
+const FONT_BODY = "'Source Sans 3', sans-serif"
+const FONT_MONO = "'DM Mono', ui-monospace, monospace"
 
+// ── Block display names (mirrors BN in template) ──
 const BN: Record<string, string> = {
   sleep:'Sleep',microbiome:'Microbiome',nutrition:'Nutrition',immune:'Immune',metabolic:'Metabolic',
   arousal:'Arousal',reflex_survival:'Reflex Survival',reflex_postural:'Reflex Postural',
@@ -28,22 +31,88 @@ const BN: Record<string, string> = {
   math:'Math',writing:'Writing',reading:'Reading',
 }
 
-const LOCAL_LABELS: Record<number, { label: string; color: string }> = {
-  '-2': { label: '−2', color: 'bg-red-100 text-red-800 border-red-300' },
-  '-1': { label: '−1', color: 'bg-orange-100 text-orange-800 border-orange-300' },
-   '0': { label: '0',  color: 'bg-gray-100 text-gray-600 border-gray-300' },
-   '1': { label: '+1', color: 'bg-green-100 text-green-800 border-green-300' },
-   '2': { label: '+2', color: 'bg-emerald-100 text-emerald-800 border-emerald-300' },
+// ── Block → Layer (mirrors B2L) ──
+const B2L: Record<string, string> = {
+  sleep:'L0',microbiome:'L0',nutrition:'L0',immune:'L0',metabolic:'L0',
+  arousal:'L1',reflex_survival:'L1',reflex_postural:'L1',reflex_cortical:'L1',tone:'L1',ns_stability:'L1',
+  vestibular:'L2',proprioception:'L2',auditory:'L2',visual:'L2',tactile:'L2',interoception:'L2',taste_smell:'L2',
+  motor_planning:'L3',gross_motor:'L3',fine_motor:'L3',postural_control:'L3',bilateral_coord:'L3',
+  attention:'L4',auditory_processing:'L4',visual_processing:'L4',wm_link:'L4',
+  oral_language:'L5',word_finding:'L5',phonemic_awareness:'L5',auditory_memory:'L5',visual_memory:'L5',
+  self_control:'L6',behavior:'L6',social_skills:'L6',daily_living:'L6',
+  math:'L7',writing:'L7',reading:'L7',
 }
 
-// Legend for the −2…+2 local-progress scale used in TargetBlocksTable.
-const SCALE_LEGEND: Array<{ label: string; desc: string; color: string }> = [
-  { label: '−2', desc: 'Tệ hơn\nrõ rệt',  color: 'var(--red)' },
-  { label: '−1', desc: 'Tệ hơn',          color: '#C07010' },
-  { label: '0',  desc: 'Không đổi',       color: 'var(--ink-3)' },
-  { label: '+1', desc: 'Cải thiện',       color: 'var(--green)' },
-  { label: '+2', desc: 'Tiến bộ\nnhiều',  color: 'var(--green)' },
+const LAYER_IDS = ['L0','L1','L2','L3','L4','L5','L6','L7']
+const LAYER_NAMES: Record<string, string> = {
+  L0:'L0 Health & Nutrition', L1:'L1 Regulation', L2:'L2 Sensory', L3:'L3 Motor',
+  L4:'L4 Processing', L5:'L5 Communication', L6:'L6 Social', L7:'L7 Academic',
+}
+const LC: Record<string, string> = {
+  L0:'#8B1A1A',L1:'#A02020',L2:'#B83030',L3:'#C55030',L4:'#C87020',L5:'#4A8A60',L6:'#2A6A9A',L7:'#3A5AAA',
+}
+const LAYER_BG: Record<string, string> = {
+  L0:'#FDF5F5',L1:'#FDF2F0',L2:'#FDF5F0',L3:'#FDF8F0',L4:'#FDF8EC',L5:'#EEF8F2',L6:'#EEF2FC',L7:'#F0F2FF',
+}
+
+// Block weights within layer + per-layer total weight (mirrors BW / LAYER_W)
+const BW: Record<string, Record<string, number>> = {
+  L0:{sleep:.25,microbiome:.25,nutrition:.20,immune:.15,metabolic:.15},
+  L1:{arousal:.40,reflex_survival:.10,reflex_postural:.10,reflex_cortical:.05,tone:.20,ns_stability:.15},
+  L2:{vestibular:.20,proprioception:.15,auditory:.15,visual:.15,tactile:.10,interoception:.10,taste_smell:.15},
+  L3:{motor_planning:.2,gross_motor:.2,fine_motor:.2,postural_control:.2,bilateral_coord:.2},
+  L4:{attention:.35,auditory_processing:.30,visual_processing:.30,wm_link:.05},
+  L5:{oral_language:.2,word_finding:.2,phonemic_awareness:.2,auditory_memory:.2,visual_memory:.2},
+  L6:{self_control:.25,behavior:.25,social_skills:.25,daily_living:.25},
+  L7:{math:1/3,writing:1/3,reading:1/3},
+}
+const LAYER_W: Record<string, number> = { L0:18,L1:16,L2:14,L3:12,L4:12,L5:10,L6:10,L7:8 }
+
+// Local-progress scale buttons (−2/0/+1/+2 — mirrors LS in template; hook supports all 5)
+const LS: Array<{ val: LocalScore; num: string; lbl: string; sel: { bg: string; bd: string; fg: string } }> = [
+  { val: -2, num: '-2', lbl: 'Tệ hơn rõ', sel: { bg: 'var(--red-bg)',  bd: 'var(--red)',  fg: 'var(--red)' } },
+  { val: -1, num: '-1', lbl: 'Tệ hơn',    sel: { bg: '#FBEDE8',         bd: '#C07010',     fg: '#C07010' } },
+  { val:  0, num: '0',  lbl: 'Như cũ',    sel: { bg: 'var(--rule-2)',   bd: 'var(--ink-3)',fg: 'var(--ink-2)' } },
+  { val:  1, num: '+1', lbl: 'Tốt hơn',   sel: { bg: 'var(--green-bg)', bd: '#70B090',     fg: 'var(--green)' } },
+  { val:  2, num: '+2', lbl: 'Tốt hơn rõ',sel: { bg: '#D8F0E4',         bd: '#1A6A3A',     fg: '#0F5C30' } },
 ]
+
+// 0..6 evaluation scale — s0..s4 exist in globals.css; s5/s6 inline-matched to template
+const EVAL_SCALE: Array<{ v: number; label: string; color: string }> = [
+  { v: 0, label: 'Tệ hơn\nrất nhiều', color: 'var(--s0)' },
+  { v: 1, label: 'Tệ hơn',            color: 'var(--s1)' },
+  { v: 2, label: 'Không\ntiến bộ',    color: 'var(--s2)' },
+  { v: 3, label: 'Cải thiện\nnhẹ',    color: 'var(--s3)' },
+  { v: 4, label: 'Tiến bộ\nvừa',      color: 'var(--s4)' },
+  { v: 5, label: 'Tiến bộ\nnhiều',    color: '#0F5C30' },  // --s5 (inline; not in globals.css)
+  { v: 6, label: 'Rất tiến\nbộ',      color: '#0A4A28' },  // --s6 (inline; not in globals.css)
+]
+
+const LOCAL_TO_DELTA: Record<number, number> = { '-2': -0.50, '-1': -0.20, '0': 0.00, '1': 0.20, '2': 0.40 }
+
+// ── Score helpers (mirror getBlockScore / layerScore / totalFromBaseline) ──
+function getScore(v: unknown): number {
+  if (typeof v === 'number') return v
+  if (v && typeof v === 'object' && 'score' in v) return Number((v as { score: number }).score)
+  return 0
+}
+function layerScore(blocks: Record<string, unknown>, lid: string): number {
+  const bw = BW[lid]; if (!bw) return 0
+  return Object.entries(bw).reduce((s, [k, w]) => s + getScore(blocks[k] ?? 0) * w, 0)
+}
+// total = baseline.total_score + weighted delta of changed blocks
+function totalFromBaseline(cur: Record<string, number>, baselineBlocks: Record<string, unknown>, baselineTotal: number): number {
+  let delta = 0
+  for (const [key, curVal] of Object.entries(cur)) {
+    if (!(key in baselineBlocks)) continue
+    const baseVal = getScore(baselineBlocks[key])
+    const lid = B2L[key]
+    const blockWeight = BW[lid]?.[key] ?? 0
+    const layerWeight = LAYER_W[lid] ?? 0
+    delta += ((curVal - baseVal) * blockWeight / 4) * layerWeight
+  }
+  return baselineTotal + delta
+}
 
 export default function SessionPage() {
   const router   = useRouter()
@@ -51,13 +120,19 @@ export default function SessionPage() {
   const {
     cycle, activities, sessionInfo, sessionDate, therapistNote, loadError, submitted,
     currentScores, sessionIndex, plannedSessions,
-    setLocalScore, setActivityNote, setSessionDate, setTherapistNote,
-    setSessionInfo,
+    observedActivities, cooperationStars, layerEval, regressionFlag, regressionReason, planNote,
+    setLocalScore, setActivityNote, setExercise, setPurpose,
+    addObserved, removeObserved, setObservedNote,
+    setCooperationStars, setLayerEval,
+    toggleRegression, setRegressionReason, setPlanNote,
+    setSessionDate, setTherapistNote, setSessionInfo,
     buildSessionOutput, commitSession,
   } = useSession()
 
-  const [saving, setSaving]   = useState(false)
-  const [error, setError]     = useState<string | null>(null)
+  const [saving, setSaving] = useState(false)
+  const [error, setError]   = useState<string | null>(null)
+  const [obsPickerOpen, setObsPickerOpen] = useState(false)
+  const [obsSearch, setObsSearch] = useState('')
 
   const enteredCount = Object.values(activities).filter(a => a.localScore !== null).length
   const totalBlocks  = Object.keys(activities).length
@@ -70,18 +145,22 @@ export default function SessionPage() {
       const output = buildSessionOutput()
       if (!output) throw new Error('Không có data')
 
-      // Supabase insert
       const cycleId = (cycle?.supabase_cycle_id as string) || (cycle?.cycle_id as string)
       if (cycleId && cycleId.includes('-')) {
         const { error: sbErr } = await supabase.from('daily_sessions').insert({
           cycle_id:            cycleId,
-          child_id:            (cycle?.child as {id:string})?.id,
+          child_id:            (cycle?.child as { id: string })?.id,
           date:                output.date,
           session_index:       output.session_index,
           is_first_session:    output.is_first_session,
           activities:          output.activities,
           observed_activities: output.observed_activities,
           notes:               output.notes,
+          cooperation_stars:   output.cooperation_stars,
+          regression_flag:     output.regression_flag,
+          regression_reason:   output.regression_reason,
+          plan_note:           output.plan_note,
+          layer_eval:          output.layer_eval,
           parent_confirmed:    false,
         })
         if (sbErr) console.warn('Supabase save failed:', sbErr.message)
@@ -112,7 +191,7 @@ export default function SessionPage() {
 
   if (!cycle) return <div className="p-8 text-sm text-[var(--ink-3)]">Đang tải...</div>
 
-  const child = cycle.child as {name:string; dob?:string}
+  const child = cycle.child as { name: string; dob?: string; id?: string; parent_email?: string }
 
   if (submitted) {
     return (
@@ -144,10 +223,106 @@ export default function SessionPage() {
     )
   }
 
-  return (
-    <div className="flex h-screen bg-[var(--bg)] overflow-hidden">
+  // ── Derived cycle data ──
+  const baseline       = cycle.baseline as { blocks: Record<string, unknown>; total_score: number; stage: string; date?: string }
+  const baselineBlocks = baseline?.blocks ?? {}
+  const baselineTotal  = baseline?.total_score ?? 0
+  const targetBlocks   = (cycle.target as { blocks: Record<string, unknown> })?.blocks ?? {}
+  const dailySessions  = (cycle.daily_sessions as Array<{ session_index: number; date: string }>) ?? []
+  const observedBlocksRef = (cycle.observed_blocks as Array<{ block: string; upstream_block?: string }>) ?? []
 
-      {/* LEFT: Block list */}
+  // Age from dob
+  let ageLabel = '—'
+  if (child.dob) {
+    const ms = Date.now() - new Date(child.dob).getTime()
+    const y = Math.floor(ms / 31557600000)
+    const m = Math.floor((ms / 2628000000) % 12)
+    ageLabel = `${y}y${m}m`
+  }
+
+  // Summary panel (current = baseline + delta of all scored blocks)
+  const totalCurrent = totalFromBaseline(currentScores as Record<string, number>, baselineBlocks, baselineTotal)
+  const targetCur: Record<string, number> = { ...(currentScores as Record<string, number>) }
+  for (const [k, v] of Object.entries(targetBlocks)) targetCur[k] = getScore(v)
+  const totalTarget = totalFromBaseline(targetCur, baselineBlocks, baselineTotal)
+  const deltaFromBase = totalCurrent - baselineTotal
+  const donutPct = Math.max(0, Math.min(100, Math.round(totalCurrent)))
+  const donutCirc = 150.8
+
+  // Duration (minutes) from session times — display only
+  let durationMin: number | null = null
+  if (sessionInfo.timeStart && sessionInfo.timeEnd) {
+    const [sh, sm] = sessionInfo.timeStart.split(':').map(Number)
+    const [eh, em] = sessionInfo.timeEnd.split(':').map(Number)
+    if (!Number.isNaN(sh) && !Number.isNaN(eh)) {
+      durationMin = (eh * 60 + em) - (sh * 60 + sm)
+      if (durationMin < 0) durationMin += 24 * 60
+    }
+  }
+
+  const targetKeys = Object.keys(targetBlocks)
+  const filledTarget = Object.values(activities).filter(a => a.localScore !== null).length
+
+  // Observed picker: blocks not already target / observed
+  const observedKeys = new Set(observedActivities.map(o => o.block))
+  const refObservedKeys = new Set(observedBlocksRef.map(o => o.block))
+  const pickerOptions = Object.keys(BN).filter(k =>
+    !(k in targetBlocks) && !observedKeys.has(k) && !refObservedKeys.has(k) &&
+    (obsSearch.trim() === '' || BN[k].toLowerCase().includes(obsSearch.toLowerCase()))
+  )
+
+  // Layer table rows (only layers with a target block)
+  const layerRows = LAYER_IDS.map(lid => {
+    const targetsInLayer = Object.keys(targetBlocks).filter(k => B2L[k] === lid)
+    if (!targetsInLayer.length) return null
+    const cur  = layerScore(currentScores as Record<string, number>, lid)
+    const base = layerScore(baselineBlocks, lid)
+    let tgt = base
+    for (const k of targetsInLayer) {
+      const tmp: Record<string, unknown> = { ...baselineBlocks }
+      tmp[k] = targetBlocks[k]
+      tgt = layerScore(tmp, lid)
+    }
+    const needed   = tgt - base
+    const achieved = cur - base
+    const pct = needed > 0 ? Math.max(0, Math.min(100, Math.round(achieved / needed * 100))) : 100
+    const pc  = pct >= 60 ? '#1A6A3A' : pct >= 30 ? '#C07010' : '#B52020'
+    return { lid, cur, tgt, pct, pc }
+  }).filter(Boolean) as Array<{ lid: string; cur: number; tgt: number; pct: number; pc: string }>
+
+  // Eval table rows (one per layer that has a target block)
+  const evalRows = LAYER_IDS.map(lid => {
+    const targetsInLayer = Object.keys(targetBlocks).filter(k => B2L[k] === lid)
+    if (!targetsInLayer.length) return null
+    return { lid, desc: targetsInLayer.map(k => BN[k] ?? k).join(', ') }
+  }).filter(Boolean) as Array<{ lid: string; desc: string }>
+
+  // ── Reusable inline style fragments ──
+  const cardStyle: React.CSSProperties = { border: '1px solid var(--rule)', borderRadius: 5, overflow: 'hidden' }
+  const cardHeadStyle: React.CSSProperties = {
+    background: 'var(--navy)', padding: '5px 11px', fontFamily: FONT_BODY, fontSize: 10, fontWeight: 700,
+    letterSpacing: '.1em', textTransform: 'uppercase', color: '#fff',
+  }
+  const infoLabelStyle: React.CSSProperties = { color: 'var(--ink-3)', fontSize: 10.5, whiteSpace: 'nowrap', flexShrink: 0 }
+  const infoValStyle: React.CSSProperties = { fontWeight: 600, color: 'var(--ink)', fontSize: 11.5 }
+  const infoRowStyle: React.CSSProperties = {
+    display: 'flex', alignItems: 'baseline', gap: 5, padding: '2px 0',
+    borderBottom: '1px solid var(--rule-2)', fontSize: 11.5,
+  }
+  const inlineInput: React.CSSProperties = {
+    border: 'none', borderBottom: '1px solid var(--rule)', background: 'transparent',
+    fontFamily: FONT_BODY, fontSize: 11, color: 'var(--ink-2)', outline: 'none', width: '100%', padding: '1px 2px',
+  }
+  const thStyle: React.CSSProperties = {
+    fontSize: 9.5, fontWeight: 700, letterSpacing: '.07em', textTransform: 'uppercase',
+    color: 'var(--ink-3)', borderBottom: '2px solid var(--rule)', padding: '5px 8px 6px',
+    textAlign: 'left', background: 'var(--rule-2)',
+  }
+
+  return (
+    <div className="flex h-screen bg-[var(--bg)] overflow-hidden" style={{ fontFamily: FONT_BODY }}>
+
+      {/* LEFT: Block list (interactive editing pane — unchanged) */}
       <div className="w-[400px] flex-shrink-0 border-r border-[var(--rule)] overflow-y-auto bg-white">
 
         {/* Header */}
@@ -191,11 +366,16 @@ export default function SessionPage() {
         {/* Activity rows */}
         <div className="divide-y divide-[var(--rule-2)]">
           {Object.entries(activities).map(([block, activity]) => {
-            const current  = currentScores[block] ?? 0
-            const target   = cycle.target as {blocks: Record<string, {score:number}>}
-            const tScore   = target?.blocks?.[block]?.score ?? 0
+            const current  = (currentScores as Record<string, number>)[block] ?? 0
+            const tScore   = getScore(targetBlocks[block])
             const progress = tScore > 0 ? Math.min(1, current / tScore) : 0
-
+            const LOCAL_LABELS: Record<number, { label: string; color: string }> = {
+              '-2': { label: '−2', color: 'bg-red-100 text-red-800 border-red-300' },
+              '-1': { label: '−1', color: 'bg-orange-100 text-orange-800 border-orange-300' },
+               '0': { label: '0',  color: 'bg-gray-100 text-gray-600 border-gray-300' },
+               '1': { label: '+1', color: 'bg-green-100 text-green-800 border-green-300' },
+               '2': { label: '+2', color: 'bg-emerald-100 text-emerald-800 border-emerald-300' },
+            }
             return (
               <div key={block} className="px-3 py-2.5">
                 <div className="flex items-center justify-between mb-1.5">
@@ -215,7 +395,6 @@ export default function SessionPage() {
                   </div>
                 </div>
 
-                {/* Local score buttons */}
                 <div className="flex gap-1">
                   {([-2,-1,0,1,2] as LocalScore[]).map(score => {
                     const cfg = LOCAL_LABELS[score]
@@ -266,7 +445,7 @@ export default function SessionPage() {
         </div>
       </div>
 
-      {/* RIGHT: Progress summary (A4 document) */}
+      {/* RIGHT: A4 document (rebuilt to match ui_daily_session.html) */}
       <div className="flex-1 overflow-y-auto bg-[var(--bg)] py-6">
         <A4PageWrapper>
           <DocumentHeader
@@ -275,118 +454,523 @@ export default function SessionPage() {
             right={
               <div className="date-field">
                 <span>Ngày:</span>
-                <input
-                  type="date"
-                  value={sessionDate}
-                  onChange={e => setSessionDate(e.target.value)}
-                />
+                <input type="date" value={sessionDate} onChange={e => setSessionDate(e.target.value)} style={{ width: 140 }} />
               </div>
             }
           />
-          <div className="doc-body space-y-4">
 
-        {/* Info card */}
-        <div className="bg-white border border-[var(--rule)] rounded-xl p-4">
-          <div className="text-xs font-semibold text-[var(--ink-3)] uppercase tracking-wider mb-3">Thông tin chung</div>
-          <div className="space-y-2 text-xs">
-            {[
-              { label: 'Họ và tên trẻ', value: child.name },
-              { label: 'Chu kỳ',        value: (cycle.cycle_name as string) || '—' },
-              { label: 'Buổi số',       value: `${sessionIndex} / ${plannedSessions}` },
-            ].map(row => (
-              <div key={row.label} className="flex items-center justify-between">
-                <span className="text-[var(--ink-3)]">{row.label}</span>
-                <span className="font-semibold text-[var(--ink)]">{row.value}</span>
+          <div className="doc-body" style={{ fontFamily: FONT_BODY, color: 'var(--ink)' }}>
+
+            {/* ── ROW 1: Thông tin chung + Tóm tắt ── */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 10 }}>
+
+              {/* Thông tin chung */}
+              <div style={cardStyle}>
+                <div style={cardHeadStyle}>Thông tin chung</div>
+                <div style={{ padding: '10px 11px' }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '4px 14px' }}>
+                    <div style={infoRowStyle}><span style={infoLabelStyle}>Họ và tên trẻ :</span><span style={infoValStyle}>{child.name}</span></div>
+                    <div style={infoRowStyle}><span style={infoLabelStyle}>ID trẻ :</span><span style={infoValStyle}>{child.id ?? '—'}</span></div>
+                    <div style={infoRowStyle}><span style={infoLabelStyle}>Tuổi :</span><span style={infoValStyle}>{ageLabel}</span></div>
+                    <div style={infoRowStyle}><span style={infoLabelStyle}>Chu kỳ :</span><span style={infoValStyle}>{(cycle.cycle_id as string) ?? '—'}</span></div>
+                    <div style={infoRowStyle}><span style={infoLabelStyle}>Buổi số :</span><span style={infoValStyle}>{sessionIndex} / {plannedSessions}</span></div>
+                    <div style={infoRowStyle}>
+                      <span style={infoLabelStyle}>Therapist :</span>
+                      <input
+                        value={sessionInfo.therapistName}
+                        onChange={e => setSessionInfo({ ...sessionInfo, therapistName: e.target.value })}
+                        placeholder="Tên therapist"
+                        style={{ ...infoValStyle, border: 'none', borderBottom: '1px solid var(--rule)', background: 'transparent', outline: 'none', width: 110 }}
+                      />
+                    </div>
+                    <div style={infoRowStyle}>
+                      <span style={infoLabelStyle}>Thời gian :</span>
+                      <div style={{ display: 'flex', gap: 4, alignItems: 'center' }}>
+                        <input type="time" value={sessionInfo.timeStart}
+                          onChange={e => setSessionInfo({ ...sessionInfo, timeStart: e.target.value })}
+                          style={{ ...infoValStyle, fontSize: 11, border: 'none', background: 'transparent', outline: 'none', width: 72, cursor: 'pointer' }} />
+                        <span style={{ color: 'var(--ink-3)', fontSize: 11 }}>–</span>
+                        <input type="time" value={sessionInfo.timeEnd}
+                          onChange={e => setSessionInfo({ ...sessionInfo, timeEnd: e.target.value })}
+                          style={{ ...infoValStyle, fontSize: 11, border: 'none', background: 'transparent', outline: 'none', width: 72, cursor: 'pointer' }} />
+                      </div>
+                    </div>
+                    <div style={{ ...infoRowStyle, borderBottom: 'none' }}>
+                      <span style={infoLabelStyle}>Địa điểm :</span>
+                      <select
+                        value={sessionInfo.location}
+                        onChange={e => setSessionInfo({ ...sessionInfo, location: e.target.value as SessionInfo['location'] })}
+                        style={{ ...infoValStyle, border: 'none', background: 'transparent', outline: 'none', cursor: 'pointer' }}
+                      >
+                        <option value="clinic">Tại clinic</option>
+                        <option value="home">Tại nhà</option>
+                        <option value="school">Tại trường</option>
+                        <option value="online">Online</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
               </div>
-            ))}
-            <div className="flex items-center justify-between">
-              <span className="text-[var(--ink-3)]">Therapist</span>
-              <input
-                value={sessionInfo.therapistName}
-                onChange={e => setSessionInfo({ ...sessionInfo, therapistName: e.target.value })}
-                placeholder="Tên therapist"
-                className="text-right text-xs font-semibold text-[var(--ink)] border-0 border-b border-[var(--rule)] outline-none w-36"
-              />
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-[var(--ink-3)]">Thời gian</span>
-              <div className="flex items-center gap-1">
-                <input type="time" value={sessionInfo.timeStart}
-                  onChange={e => setSessionInfo({ ...sessionInfo, timeStart: e.target.value })}
-                  className="text-xs font-semibold text-[var(--ink)] border-0 border-b border-[var(--rule)] outline-none w-20"
-                />
-                <span className="text-[var(--ink-3)]">–</span>
-                <input type="time" value={sessionInfo.timeEnd}
-                  onChange={e => setSessionInfo({ ...sessionInfo, timeEnd: e.target.value })}
-                  className="text-xs font-semibold text-[var(--ink)] border-0 border-b border-[var(--rule)] outline-none w-20"
-                />
-              </div>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-[var(--ink-3)]">Địa điểm</span>
-              <select
-                value={sessionInfo.location}
-                onChange={e => setSessionInfo({ ...sessionInfo, location: e.target.value as SessionInfo['location'] })}
-                className="text-xs font-semibold text-[var(--ink)] border-0 outline-none bg-transparent"
-              >
-                <option value="clinic">Tại clinic</option>
-                <option value="home">Tại nhà</option>
-                <option value="school">Tại trường</option>
-                <option value="online">Online</option>
-              </select>
-            </div>
-          </div>
-        </div>
-        <SessionSummary
-          currentBlocks={currentScores as Record<string, number>}
-          baselineBlocks={(cycle.baseline as {blocks: Record<string, unknown>})?.blocks ?? {}}
-          targetBlocks={(cycle.target as {blocks: Record<string, unknown>})?.blocks ?? {}}
-        />
-        <LayerTable
-          currentBlocks={currentScores as Record<string, number>}
-          baselineBlocks={(cycle.baseline as {blocks: Record<string, unknown>})?.blocks ?? {}}
-          targetBlocks={(cycle.target as {blocks: Record<string, unknown>})?.blocks ?? {}}
-        />
-        {/* Evaluation scale legend (−2 … +2) */}
-        <div>
-          <div className="text-xs font-semibold text-[var(--ink-3)] uppercase tracking-wider mb-1.5">
-            Thang đánh giá tiến bộ
-          </div>
-          <div className="eval-scale-header">
-            {SCALE_LEGEND.map(item => (
-              <div key={item.label} className="esh-item" style={{ color: item.color }}>
-                {item.label}
-                <span>
-                  {item.desc.split('\n').map((line, i) => (
-                    <span key={i} style={{ display: 'block' }}>{line}</span>
+
+              {/* Tóm tắt nhanh (summary panel) */}
+              <div style={{ background: 'var(--navy)', borderRadius: 5, padding: '10px 12px' }}>
+                <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start' }}>
+                  <div style={{ flex: 1, background: 'rgba(255,255,255,.1)', borderRadius: 4, padding: '8px 10px', textAlign: 'center' }}>
+                    <div style={{ fontSize: 9, fontWeight: 600, letterSpacing: '.08em', textTransform: 'uppercase', color: 'rgba(255,255,255,.6)', marginBottom: 3 }}>Tổng điểm hiện tại</div>
+                    <div style={{ fontFamily: FONT_HEAD, fontSize: 22, fontWeight: 700, color: '#fff', lineHeight: 1 }}>{totalCurrent.toFixed(1)}</div>
+                    <div style={{ fontSize: 10, color: 'rgba(255,255,255,.5)', marginTop: 2 }}>/ 100</div>
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flex: '0 0 70px' }}>
+                    <svg viewBox="0 0 60 60" style={{ width: 60, height: 60 }}>
+                      <circle cx="30" cy="30" r="24" fill="none" stroke="rgba(255,255,255,.15)" strokeWidth="7" />
+                      <circle cx="30" cy="30" r="24" fill="none" stroke="#6EE7A0" strokeWidth="7"
+                        strokeDasharray={donutCirc} strokeDashoffset={donutCirc - (donutPct / 100 * donutCirc)}
+                        strokeLinecap="round" transform="rotate(-90 30 30)" />
+                      <text x="30" y="34" textAnchor="middle" fontFamily={FONT_MONO} fontSize="11" fontWeight="700" fill="white">{donutPct}%</text>
+                    </svg>
+                    <div style={{ fontFamily: FONT_MONO, fontSize: 11, fontWeight: 700, color: '#fff', marginTop: 3, textAlign: 'center' }}>% phát triển</div>
+                  </div>
+                </div>
+                <div style={{ display: 'flex', gap: 6, marginTop: 8 }}>
+                  {[
+                    { label: 'Baseline', val: baselineTotal.toFixed(1), delta: false },
+                    { label: 'Target cuối chu kỳ', val: totalTarget.toFixed(1), delta: false },
+                    { label: 'Delta từ baseline', val: (deltaFromBase >= 0 ? '+' : '') + deltaFromBase.toFixed(1), delta: true },
+                  ].map(chip => (
+                    <div key={chip.label} style={{ flex: 1, background: 'rgba(255,255,255,.08)', border: '1px solid rgba(255,255,255,.15)', borderRadius: 4, padding: '6px 8px', textAlign: 'center' }}>
+                      <div style={{ fontSize: 9, color: 'rgba(255,255,255,.55)', letterSpacing: '.06em', textTransform: 'uppercase', marginBottom: 3 }}>{chip.label}</div>
+                      <div style={{ fontFamily: FONT_MONO, fontSize: 14, fontWeight: 700, color: chip.delta ? '#6EE7A0' : '#fff' }}>{chip.val}</div>
+                    </div>
                   ))}
-                </span>
+                </div>
               </div>
-            ))}
-          </div>
-        </div>
-        <TargetBlocksTable
-          activities={activities}
-          baselineBlocks={(cycle.baseline as {blocks: Record<string, unknown>})?.blocks ?? {}}
-          targetBlocks={(cycle.target as {blocks: Record<string, unknown>})?.blocks ?? {}}
-          currentScores={currentScores as Record<string, number>}
-          onLocalScore={setLocalScore}
-          onNote={setActivityNote}
-        />
+            </div>
 
-        {/* Therapist notes */}
-        <div className="bg-white border border-[var(--rule)] rounded-xl p-4">
-          <div className="text-xs font-semibold text-[var(--ink-3)] uppercase tracking-wider mb-2">
-            Ghi chú buổi trị liệu
-          </div>
-          <textarea
-            value={therapistNote}
-            onChange={e => setTherapistNote(e.target.value)}
-            placeholder="Quan sát chung, mức độ hợp tác, kế hoạch cho buổi tiếp theo..."
-            rows={4}
-            className="w-full px-3 py-2 text-xs text-[var(--ink-2)] border border-[var(--rule)] rounded-lg outline-none focus:border-[var(--navy)] resize-y"
-          />
-        </div>
+            {/* ── ROW 2: Layer table + Reference ── */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 10 }}>
+
+              {/* Target Delta Score */}
+              <div style={cardStyle}>
+                <div style={cardHeadStyle}>Target Delta Score (Mục tiêu của chu kỳ)</div>
+                <div>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 11 }}>
+                    <thead>
+                      <tr>
+                        <th style={thStyle}>Layer</th>
+                        <th style={{ ...thStyle, textAlign: 'right' }}>Hiện tại</th>
+                        <th style={{ ...thStyle, textAlign: 'right' }}>Target</th>
+                        <th style={{ ...thStyle, textAlign: 'right' }}>Delta</th>
+                        <th style={thStyle}>% Hoàn thành</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {layerRows.map(({ lid, cur, tgt, pct, pc }) => (
+                        <tr key={lid}>
+                          <td style={{ padding: '5px 8px', borderBottom: '1px solid var(--rule-2)' }}>
+                            <span style={{ display: 'inline-block', width: 8, height: 8, borderRadius: '50%', marginRight: 5, verticalAlign: 'middle', background: LC[lid] }} />
+                            <span style={{ fontWeight: 600, color: 'var(--ink)' }}>{LAYER_NAMES[lid]}</span>
+                          </td>
+                          <td style={{ padding: '5px 8px', borderBottom: '1px solid var(--rule-2)', fontFamily: FONT_MONO, fontSize: 11, textAlign: 'right' }}>{cur.toFixed(2)}</td>
+                          <td style={{ padding: '5px 8px', borderBottom: '1px solid var(--rule-2)', fontFamily: FONT_MONO, fontSize: 11, textAlign: 'right' }}>{tgt.toFixed(2)}</td>
+                          <td style={{ padding: '5px 8px', borderBottom: '1px solid var(--rule-2)', fontFamily: FONT_MONO, fontSize: 11, textAlign: 'right' }}>
+                            <span style={{ color: 'var(--green)', fontWeight: 700 }}>+{(tgt - cur).toFixed(2)}</span>
+                          </td>
+                          <td style={{ padding: '5px 8px', borderBottom: '1px solid var(--rule-2)', minWidth: 80 }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+                              <div style={{ flex: 1, height: 7, background: 'var(--rule)', borderRadius: 4, overflow: 'hidden' }}>
+                                <div style={{ height: '100%', borderRadius: 4, width: `${pct}%`, background: pc }} />
+                              </div>
+                              <span style={{ fontFamily: FONT_MONO, fontSize: 10, fontWeight: 700, width: 30, textAlign: 'right', color: pc }}>{pct}%</span>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                  <div style={{ padding: '5px 8px', fontSize: 9, color: 'var(--ink-3)', borderTop: '1px solid var(--rule-2)', fontStyle: 'italic' }}>
+                    * % hoàn thành tính dựa trên delta đã đạt so với delta cần đạt trong chu kỳ.
+                  </div>
+                </div>
+              </div>
+
+              {/* Dữ liệu tham chiếu */}
+              <div style={cardStyle}>
+                <div style={cardHeadStyle}>Dữ liệu tham chiếu</div>
+                <div style={{ padding: '10px 11px' }}>
+                  <div style={{ marginBottom: 8 }}>
+                    <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--navy-2)', letterSpacing: '.04em', textTransform: 'uppercase', marginBottom: 5 }}>
+                      Baseline gần nhất ({baseline?.date || '—'})
+                    </div>
+                    <div style={{ display: 'flex', gap: 14 }}>
+                      <div><span style={{ fontSize: 10, color: 'var(--ink-3)' }}>Tổng điểm: </span><span style={{ fontFamily: FONT_MONO, fontSize: 12, fontWeight: 700, color: 'var(--navy)' }}>{baselineTotal.toFixed(1)}</span></div>
+                      <div><span style={{ fontSize: 10, color: 'var(--ink-3)' }}>Giai đoạn: </span><span style={{ fontFamily: FONT_MONO, fontSize: 12, fontWeight: 700, color: 'var(--navy)' }}>{baseline?.stage ?? '—'}</span></div>
+                    </div>
+                  </div>
+                  <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--navy-2)', letterSpacing: '.04em', textTransform: 'uppercase', marginBottom: 5 }}>Timeline tóm tắt</div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 4, marginTop: 6 }}>
+                    {dailySessions.map(s => (
+                      <div key={s.session_index} style={{ display: 'flex', alignItems: 'center', gap: 7, fontSize: 11, padding: '3px 0', borderBottom: '1px solid var(--rule-2)' }}>
+                        <span style={{ fontFamily: FONT_MONO, fontSize: 10, color: 'var(--ink-3)', whiteSpace: 'nowrap', width: 80 }}>{s.date}</span>
+                        <span style={{ flex: 1, color: 'var(--ink-2)' }}>Session {s.session_index}</span>
+                        <span style={{ fontFamily: FONT_MONO, fontSize: 11, fontWeight: 700, color: 'var(--navy)' }}>—</span>
+                      </div>
+                    ))}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 7, fontSize: 11, padding: '3px 0', fontWeight: 600, color: 'var(--navy)' }}>
+                      <span style={{ fontFamily: FONT_MONO, fontSize: 10, color: 'var(--ink-3)', whiteSpace: 'nowrap', width: 80 }}>{sessionDate}</span>
+                      <span style={{ flex: 1 }}>Session {sessionIndex} (Hiện tại)</span>
+                      <span style={{ fontFamily: FONT_MONO, fontSize: 11, fontWeight: 700, color: 'var(--navy)' }}>{totalCurrent.toFixed(1)}</span>
+                    </div>
+                  </div>
+
+                  {/* Observed-progress badges (read-only ref + this-session) */}
+                  {(observedBlocksRef.length > 0 || observedActivities.length > 0) && (
+                    <div style={{ marginTop: 8 }}>
+                      <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--teal)', letterSpacing: '.04em', textTransform: 'uppercase', marginBottom: 4, marginTop: 8 }}>Tiến bộ quan sát được (buổi này)</div>
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5, marginTop: 4 }}>
+                        {observedBlocksRef.map(o => (
+                          <div key={`ref-${o.block}`} style={{ display: 'flex', alignItems: 'center', gap: 4, background: 'var(--teal-bg)', border: '1px solid var(--teal-bd)', borderRadius: 3, padding: '2px 8px', fontSize: 10, fontWeight: 600, color: 'var(--teal)' }}>
+                            {o.upstream_block ? <>{BN[o.upstream_block] ?? o.upstream_block} <span style={{ fontSize: 9, color: 'var(--ink-3)' }}>→</span> </> : null}{BN[o.block] ?? o.block}
+                          </div>
+                        ))}
+                        {observedActivities.map(o => (
+                          <div key={`new-${o.block}`} style={{ display: 'flex', alignItems: 'center', gap: 4, background: 'var(--teal-bg)', border: '1px solid var(--teal-bd)', borderRadius: 3, padding: '2px 8px', fontSize: 10, fontWeight: 600, color: 'var(--teal)' }}>
+                            {BN[o.block] ?? o.block}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* ── ROW 3: Hoạt động hôm nay ── */}
+            <div style={{ ...cardStyle, marginBottom: 10 }}>
+              <div style={{ ...cardHeadStyle, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span>Hoạt động hôm nay</span>
+                <span style={{ fontFamily: FONT_MONO, fontSize: 10, fontWeight: 600, color: 'rgba(255,255,255,.6)' }}>{filledTarget} / {targetKeys.length}</span>
+              </div>
+              <div>
+                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 11 }}>
+                  <thead>
+                    <tr>
+                      <th style={{ ...thStyle, width: 24 }}>STT</th>
+                      <th style={thStyle}>Hoạt động / Bài tập</th>
+                      <th style={thStyle}>Mục đích (Liên quan đến)</th>
+                      <th style={{ ...thStyle, textAlign: 'center' }}>Target Delta<br />(chu kỳ)</th>
+                      <th style={{ ...thStyle, minWidth: 200 }}>Điểm tập trung hôm nay</th>
+                      <th style={thStyle}>Ghi chú</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {targetKeys.map((key, i) => {
+                      const lid      = B2L[key] ?? 'L0'
+                      const color    = LC[lid]
+                      const baseScore = getScore(baselineBlocks[key])
+                      const tScore    = getScore(targetBlocks[key])
+                      const current   = (currentScores as Record<string, number>)[key] ?? baseScore
+                      const targetDelta = tScore - baseScore
+                      const a  = activities[key]
+                      const ls = a?.localScore ?? null
+                      const newScore = ls !== null ? Math.min(tScore, current + targetDelta * (LOCAL_TO_DELTA[ls] ?? 0)) : null
+                      const deltaPreview = ls !== null ? targetDelta * (LOCAL_TO_DELTA[ls] ?? 0) : 0
+                      return (
+                        <tr key={key} style={ls !== null ? { background: '#F3FAF5' } : undefined}>
+                          <td style={{ padding: '6px 8px', borderBottom: '1px solid var(--rule-2)', verticalAlign: 'top', fontFamily: FONT_MONO, fontSize: 11, color: 'var(--ink-3)', textAlign: 'center', width: 24 }}>{i + 1}</td>
+                          {/* Hoạt động / Bài tập → exercise */}
+                          <td style={{ padding: '6px 8px', borderBottom: '1px solid var(--rule-2)', verticalAlign: 'top' }}>
+                            <div style={{ fontWeight: 600, color: 'var(--ink)', fontSize: 11.5 }}>{BN[key] ?? key}</div>
+                            <input
+                              value={a?.exercise ?? ''}
+                              onChange={e => setExercise(key, e.target.value)}
+                              placeholder="Hoạt động / bài tập hôm nay..."
+                              style={{ ...inlineInput, fontSize: 10, color: 'var(--ink-3)', marginTop: 2 }}
+                            />
+                          </td>
+                          {/* Mục đích → purpose */}
+                          <td style={{ padding: '6px 8px', borderBottom: '1px solid var(--rule-2)', verticalAlign: 'top' }}>
+                            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, borderRadius: 3, padding: '2px 6px', fontSize: 10, fontWeight: 600, whiteSpace: 'nowrap', background: LAYER_BG[lid], color, border: `1px solid ${color}40` }}>{LAYER_NAMES[lid]}</span>
+                            <input
+                              value={a?.purpose ?? ''}
+                              onChange={e => setPurpose(key, e.target.value)}
+                              placeholder="Điểm tập trung hôm nay..."
+                              style={{ ...inlineInput, fontSize: 10, color: 'var(--ink-3)', marginTop: 4 }}
+                            />
+                          </td>
+                          {/* Target delta */}
+                          <td style={{ padding: '6px 8px', borderBottom: '1px solid var(--rule-2)', verticalAlign: 'top', fontFamily: FONT_MONO, fontSize: 12, fontWeight: 700, color: 'var(--green)', textAlign: 'center' }}>+{targetDelta.toFixed(1)}</td>
+                          {/* Local score buttons → setLocalScore */}
+                          <td style={{ padding: '6px 8px', borderBottom: '1px solid var(--rule-2)', verticalAlign: 'top' }}>
+                            <div style={{ display: 'flex', gap: 0 }}>
+                              {LS.map((o, idx) => {
+                                const selected = ls === o.val
+                                return (
+                                  <button
+                                    key={o.val}
+                                    onClick={() => setLocalScore(key, selected ? null : o.val)}
+                                    style={{
+                                      flex: 1, height: 32, border: `1px solid ${selected ? o.sel.bd : 'var(--rule)'}`, marginRight: -1,
+                                      background: selected ? o.sel.bg : 'var(--paper)', cursor: 'pointer',
+                                      display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 1,
+                                      fontFamily: FONT_BODY, zIndex: selected ? 1 : 0,
+                                      borderRadius: idx === 0 ? '4px 0 0 4px' : idx === LS.length - 1 ? '0 4px 4px 0' : 0,
+                                    }}
+                                  >
+                                    <span style={{ fontFamily: FONT_MONO, fontSize: 12, fontWeight: 700, color: selected ? o.sel.fg : 'var(--ink-3)', lineHeight: 1 }}>{o.num}</span>
+                                    <span style={{ fontSize: 8, color: selected ? o.sel.fg : 'var(--ink-3)', textAlign: 'center' }}>{o.lbl}</span>
+                                  </button>
+                                )
+                              })}
+                            </div>
+                            {newScore !== null && (
+                              <div style={{ fontSize: 10, color: 'var(--ink-3)', marginTop: 4, padding: '2px 5px', background: 'var(--rule-2)', borderRadius: 3 }}>
+                                <span style={{ fontFamily: FONT_MONO, fontSize: 11, color: 'var(--ink-2)' }}>{current.toFixed(1)}</span>
+                                <span style={{ margin: '0 4px' }}>→</span>
+                                <span style={{ fontFamily: FONT_MONO, fontSize: 12, fontWeight: 700, color: deltaPreview > 0 ? 'var(--green)' : deltaPreview < 0 ? 'var(--red)' : 'var(--ink-3)' }}>
+                                  {newScore.toFixed(1)} ({deltaPreview >= 0 ? '+' : ''}{deltaPreview.toFixed(2)})
+                                </span>
+                              </div>
+                            )}
+                          </td>
+                          {/* Ghi chú → setActivityNote */}
+                          <td style={{ padding: '6px 8px', borderBottom: '1px solid var(--rule-2)', verticalAlign: 'top' }}>
+                            <input
+                              value={a?.note ?? ''}
+                              onChange={e => setActivityNote(key, e.target.value)}
+                              placeholder="Phản ứng trẻ, điều chỉnh..."
+                              style={{ ...inlineInput, fontSize: 10.5, fontStyle: 'italic' }}
+                            />
+                          </td>
+                        </tr>
+                      )
+                    })}
+
+                    {/* Observed rows (added blocks) */}
+                    {observedActivities.map((o, idx) => {
+                      const lid = B2L[o.block] ?? 'L0'
+                      const color = LC[lid]
+                      return (
+                        <tr key={`obs-${o.block}`} style={{ background: 'var(--teal-bg)' }}>
+                          <td style={{ padding: '6px 8px', borderBottom: '1px solid var(--rule-2)', verticalAlign: 'top', fontFamily: FONT_MONO, fontSize: 11, color: 'var(--teal)', textAlign: 'center' }}>{targetKeys.length + idx + 1}</td>
+                          <td style={{ padding: '6px 8px', borderBottom: '1px solid var(--rule-2)', verticalAlign: 'top' }}>
+                            <div style={{ fontWeight: 600, color: 'var(--teal)', fontSize: 11.5 }}>{BN[o.block] ?? o.block}</div>
+                            <span style={{ display: 'inline-block', marginTop: 2, fontSize: 9, fontWeight: 600, color: 'var(--teal)', background: 'var(--teal-bg)', border: '1px solid var(--teal-bd)', padding: '1px 5px', borderRadius: 2 }}>Quan sát</span>
+                          </td>
+                          <td style={{ padding: '6px 8px', borderBottom: '1px solid var(--rule-2)', verticalAlign: 'top' }}>
+                            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, borderRadius: 3, padding: '2px 6px', fontSize: 10, fontWeight: 600, whiteSpace: 'nowrap', background: LAYER_BG[lid], color, border: `1px solid ${color}40` }}>{LAYER_NAMES[lid]}</span>
+                          </td>
+                          <td style={{ padding: '6px 8px', borderBottom: '1px solid var(--rule-2)', verticalAlign: 'top', fontFamily: FONT_MONO, fontSize: 12, fontWeight: 700, color: 'var(--teal)', textAlign: 'center' }}>obs</td>
+                          <td style={{ padding: '6px 8px', borderBottom: '1px solid var(--rule-2)', verticalAlign: 'top' }}>
+                            <button
+                              onClick={() => removeObserved(idx)}
+                              style={{ fontSize: 10, fontWeight: 600, color: 'var(--red)', border: '1px solid var(--red-bd)', background: 'var(--red-bg)', borderRadius: 3, padding: '2px 8px', cursor: 'pointer' }}
+                            >
+                              Xóa
+                            </button>
+                          </td>
+                          <td style={{ padding: '6px 8px', borderBottom: '1px solid var(--rule-2)', verticalAlign: 'top' }}>
+                            <input
+                              value={o.note}
+                              onChange={e => setObservedNote(idx, e.target.value)}
+                              placeholder="Nguồn thông tin / phản ứng..."
+                              style={{ ...inlineInput, fontSize: 10.5 }}
+                            />
+                          </td>
+                        </tr>
+                      )
+                    })}
+                  </tbody>
+                  <tfoot>
+                    {/* Observed-block picker */}
+                    <tr>
+                      <td colSpan={6} style={{ padding: '6px 8px', background: 'var(--teal-bg)', borderTop: '1.5px dashed var(--teal-bd)' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                          <button
+                            onClick={() => setObsPickerOpen(v => !v)}
+                            style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '4px 10px', border: '1.5px dashed var(--teal-bd)', borderRadius: 4, background: 'transparent', fontSize: 10, fontWeight: 600, color: 'var(--teal)', cursor: 'pointer' }}
+                          >
+                            ＋ Tiến bộ ngoài dự kiến
+                          </button>
+                          <span style={{ fontSize: 10, color: 'var(--teal)', opacity: .7 }}>Thêm nếu có block cải thiện ngoài mục tiêu đã đặt</span>
+                        </div>
+                        {obsPickerOpen && (
+                          <div style={{ marginTop: 8, background: 'var(--paper)', border: '1px solid var(--teal-bd)', borderRadius: 4, padding: 10 }}>
+                            <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--teal)', letterSpacing: '.06em', textTransform: 'uppercase', marginBottom: 8 }}>Block nào cải thiện thụ động?</div>
+                            <input
+                              type="text"
+                              value={obsSearch}
+                              onChange={e => setObsSearch(e.target.value)}
+                              placeholder="Tìm block..."
+                              style={{ width: '100%', height: 26, border: '1px solid var(--rule)', borderRadius: 3, fontSize: 11, padding: '0 7px', background: 'var(--bg)', outline: 'none', marginBottom: 6 }}
+                            />
+                            <div style={{ maxHeight: 120, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 1 }}>
+                              {pickerOptions.map(k => (
+                                <button
+                                  key={k}
+                                  onClick={() => { addObserved(k); setObsSearch(''); setObsPickerOpen(false) }}
+                                  style={{ padding: '4px 7px', borderRadius: 3, fontSize: 11, display: 'flex', justifyContent: 'space-between', cursor: 'pointer', color: 'var(--ink-2)', background: 'transparent', border: 'none', textAlign: 'left' }}
+                                >
+                                  <span>{BN[k]}</span>
+                                  <span style={{ fontSize: 9, color: 'var(--ink-3)' }}>{B2L[k]}</span>
+                                </button>
+                              ))}
+                              {pickerOptions.length === 0 && (
+                                <div style={{ padding: '4px 7px', fontSize: 10, color: 'var(--ink-3)', fontStyle: 'italic' }}>Không còn block khả dụng.</div>
+                              )}
+                            </div>
+                          </div>
+                        )}
+                      </td>
+                    </tr>
+                    {/* Total row: duration (computed) + cooperation stars */}
+                    <tr>
+                      <td colSpan={2} style={{ background: 'var(--rule-2)', fontWeight: 700, borderTop: '2px solid var(--rule)', padding: '6px 8px', fontSize: 11, color: 'var(--ink-2)' }}>
+                        Tổng thời gian:{' '}
+                        <span style={{ fontFamily: FONT_MONO, fontSize: 12, color: 'var(--navy)', fontWeight: 700 }}>
+                          {durationMin !== null ? durationMin : '—'}
+                        </span>{' '}phút
+                      </td>
+                      <td colSpan={3} style={{ background: 'var(--rule-2)', fontWeight: 700, borderTop: '2px solid var(--rule)', textAlign: 'right', padding: '6px 8px', fontSize: 11, color: 'var(--ink-2)' }}>Mức độ hợp tác chung:</td>
+                      <td style={{ background: 'var(--rule-2)', fontWeight: 700, borderTop: '2px solid var(--rule)', padding: '6px 8px' }}>
+                        <div style={{ display: 'flex', gap: 2 }}>
+                          {[1, 2, 3, 4, 5].map(n => {
+                            const on = (cooperationStars ?? 0) >= n
+                            return (
+                              <span
+                                key={n}
+                                onClick={() => setCooperationStars(cooperationStars === n ? null : n)}
+                                style={{ fontSize: 14, cursor: 'pointer', color: on ? '#F59E0B' : 'var(--rule)' }}
+                              >
+                                {on ? '★' : '☆'}
+                              </span>
+                            )
+                          })}
+                        </div>
+                      </td>
+                    </tr>
+                  </tfoot>
+                </table>
+              </div>
+            </div>
+
+            {/* ── ROW 4: Đánh giá tiến bộ ── */}
+            <div style={{ ...cardStyle, marginBottom: 10 }}>
+              <div style={cardHeadStyle}>Nhận xét cuối ngày & Đánh giá tiến bộ</div>
+              <div style={{ padding: '10px 11px' }}>
+                <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--ink-2)', marginBottom: 6 }}>
+                  1. Đánh giá tiến bộ theo mục tiêu{' '}
+                  <span style={{ fontWeight: 400, color: 'var(--ink-3)', fontSize: 10 }}>(Hệ thống sẽ tự động quy đổi điểm và cập nhật % hoàn thành mục tiêu)</span>
+                </div>
+
+                {/* Scale header (0–6 legend) */}
+                <div className="eval-scale-header">
+                  {EVAL_SCALE.map(s => (
+                    <div key={s.v} className="esh-item" style={{ color: s.color }}>
+                      {s.v}
+                      <span>{s.label.split('\n').map((line, i) => <span key={i} style={{ display: 'block' }}>{line}</span>)}</span>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Eval table — per layer 0–6 → setLayerEval */}
+                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 11 }}>
+                  <thead>
+                    <tr>
+                      <th style={{ ...thStyle, width: 90 }}>Layer / Mục tiêu</th>
+                      <th style={thStyle}>Mô tả mục tiêu</th>
+                      <th style={thStyle}>Mức đánh giá (0–6)</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {evalRows.map(({ lid, desc }) => (
+                      <tr key={lid}>
+                        <td style={{ padding: '5px 8px', borderBottom: '1px solid var(--rule-2)', verticalAlign: 'middle', fontWeight: 600, color: 'var(--navy-2)', fontSize: 11 }}>{LAYER_NAMES[lid]}</td>
+                        <td style={{ padding: '5px 8px', borderBottom: '1px solid var(--rule-2)', verticalAlign: 'middle', fontSize: 10.5, color: 'var(--ink-2)' }}>Cải thiện: {desc}</td>
+                        <td style={{ padding: '5px 8px', borderBottom: '1px solid var(--rule-2)', verticalAlign: 'middle' }}>
+                          <div style={{ display: 'flex', gap: 0 }}>
+                            {[0, 1, 2, 3, 4, 5, 6].map(v => {
+                              const selected = layerEval[lid] === v
+                              return (
+                                <div
+                                  key={v}
+                                  onClick={() => setLayerEval(lid, selected ? null : v)}
+                                  style={{
+                                    flex: 1, height: 24, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                    border: `1px solid ${selected ? 'var(--navy)' : 'var(--rule)'}`, marginRight: -1, cursor: 'pointer',
+                                    fontFamily: FONT_MONO, fontSize: 10, fontWeight: 600,
+                                    color: selected ? '#fff' : 'var(--ink-3)', background: selected ? 'var(--navy)' : 'transparent',
+                                    zIndex: selected ? 1 : 0, borderRadius: selected ? 3 : 0,
+                                  }}
+                                >
+                                  {v}
+                                </div>
+                              )
+                            })}
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+
+                {/* Regression warning box + toggle → regressionFlag / regressionReason */}
+                <div style={{ marginTop: 8, padding: '9px 12px', background: 'var(--gold-bg)', border: '1px solid var(--gold-bd)', borderRadius: 4, fontSize: 11, color: '#885500' }}>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontWeight: 600, marginBottom: regressionFlag ? 6 : 0, cursor: 'pointer' }}>
+                    <input type="checkbox" checked={regressionFlag} onChange={toggleRegression} />
+                    ⚠ Có mục tiêu đang tệ hơn / cần theo dõi thoái lui
+                  </label>
+                  {regressionFlag && (
+                    <input
+                      type="text"
+                      value={regressionReason}
+                      onChange={e => setRegressionReason(e.target.value)}
+                      placeholder="Lý do lâm sàng (candida die-off, ngủ kém tối qua, sensory overload...)"
+                      style={{ width: '100%', height: 26, border: '1px solid var(--gold-bd)', borderRadius: 3, padding: '0 8px', fontSize: 10, color: '#555', background: 'transparent', outline: 'none' }}
+                    />
+                  )}
+                </div>
+
+                {/* Notes + plan */}
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginTop: 10 }}>
+                  <div>
+                    <div style={{ fontSize: 9.5, fontWeight: 700, letterSpacing: '.08em', textTransform: 'uppercase', color: 'var(--navy-2)', marginBottom: 5 }}>2. Nhận xét tổng quan</div>
+                    <textarea
+                      value={therapistNote}
+                      onChange={e => setTherapistNote(e.target.value)}
+                      placeholder="Nhập nhận xét..."
+                      style={{ width: '100%', minHeight: 70, border: '1px solid var(--rule)', borderRadius: 4, padding: '8px 10px', fontSize: 11, color: 'var(--ink-2)', lineHeight: 1.6, fontFamily: FONT_BODY, outline: 'none', resize: 'vertical' }}
+                    />
+                  </div>
+                  <div>
+                    <div style={{ fontSize: 9.5, fontWeight: 700, letterSpacing: '.08em', textTransform: 'uppercase', color: 'var(--navy-2)', marginBottom: 5 }}>3. Kế hoạch điều chỉnh cho buổi tới</div>
+                    <textarea
+                      value={planNote}
+                      onChange={e => setPlanNote(e.target.value)}
+                      placeholder="Nhập kế hoạch..."
+                      style={{ width: '100%', minHeight: 70, border: '1px solid var(--rule)', borderRadius: 4, padding: '8px 10px', fontSize: 11, color: 'var(--ink-2)', lineHeight: 1.6, fontFamily: FONT_BODY, outline: 'none', resize: 'vertical' }}
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* ── Signatures ── */}
+            <div style={{ display: 'flex', gap: 20, marginTop: 12, paddingTop: 12, borderTop: '1.5px solid var(--rule)' }}>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontSize: 10, color: 'var(--ink-3)', marginBottom: 20 }}>Therapist ký tên:</div>
+                <div style={{ borderBottom: '1px solid var(--ink)' }} />
+                <div style={{ fontSize: 10, color: 'var(--ink-3)', marginTop: 3 }}>{sessionInfo.therapistName || '—'}</div>
+              </div>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontSize: 10, color: 'var(--ink-3)', marginBottom: 20 }}>Phụ huynh xác nhận:</div>
+                <div style={{ borderBottom: '1px solid var(--ink)' }} />
+                <div style={{ fontSize: 10, color: 'var(--ink-3)', marginTop: 3 }}>Họ tên + chữ ký</div>
+              </div>
+              <div style={{ flex: .6 }}>
+                <div style={{ fontSize: 10, color: 'var(--ink-3)', marginBottom: 20 }}>Ngày / Giờ kết thúc:</div>
+                <div style={{ borderBottom: '1px solid var(--ink)' }} />
+              </div>
+            </div>
 
           </div>
         </A4PageWrapper>
