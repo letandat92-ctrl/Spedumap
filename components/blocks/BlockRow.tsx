@@ -96,6 +96,9 @@ export function BlockRow({
           value={inputVal}
           onFocus={() => {
             setIsFocused(true)
+            // Resync from the committed score so a later blur can never commit a
+            // stale empty value (which would wipe a real score → onScore(null)).
+            setInputVal(score !== null ? String(score) : '')
             setTimeout(() => inputRef.current?.select(), 0)
           }}
           onBlur={() => { setIsFocused(false); commitValue(inputVal) }}
