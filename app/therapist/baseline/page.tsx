@@ -357,25 +357,6 @@ export default function BaselinePage() {
             </div>
           </div>
 
-          {/* File attachment L0 */}
-          <div className="mt-2 px-3 py-2 bg-[#F7F5F1] rounded-lg border border-[var(--border)]">
-            <div className="text-[9px] font-semibold tracking-[0.1em] uppercase text-[var(--sub)] mb-1.5" style={{ fontFamily: "'Oswald', sans-serif" }}>Tài liệu đính kèm (xét nghiệm, MRI, đo khúc xạ...)</div>
-            <div className="flex flex-wrap gap-1.5 mb-1.5">
-              {attachments.map((f, i) => (
-                <div key={i} className="flex items-center gap-1 text-[10px] bg-white border border-[var(--border)] rounded px-2 py-0.5">
-                  <span>{f.type.includes('pdf') ? '📄' : f.type.includes('image') ? '🖼' : '📎'}</span>
-                  <span className="text-[var(--ink-2)] max-w-24 truncate">{f.name}</span>
-                  <button onClick={() => setAttachments(prev => prev.filter((_, j) => j !== i))}
-                    className="text-[var(--ink-3)] hover:text-[var(--red)] ml-0.5">×</button>
-                </div>
-              ))}
-            </div>
-            <label className="inline-flex items-center gap-1 text-[10px] font-semibold text-[var(--red)] cursor-pointer hover:underline">
-              <span>＋ Đính kèm</span>
-              <input type="file" multiple accept=".pdf,.jpg,.jpeg,.png,.dcm,.doc,.docx"
-                onChange={handleFileAttach} className="hidden" />
-            </label>
-          </div>
         </div>
 
         {/* Block sections */}
@@ -397,6 +378,9 @@ export default function BaselinePage() {
               onNote={setNote}
               isClinic={meta.isClinic}
               onFocusRow={handleFocusRow}
+              attachments={lid === 'L0' ? attachments : undefined}
+              onAttach={handleFileAttach}
+              onRemoveAttach={i => setAttachments(prev => prev.filter((_, j) => j !== i))}
             />
           ))}
         </div>

@@ -17,7 +17,7 @@ export interface GoalEntry {
 
 export interface CycleSettings {
   duration:         number   // e.g. 8
-  unit:             'weeks' | 'sessions'
+  unit:             'weeks' | 'sessions' | 'months'
   start_date:       string   // ISO date
   planned_sessions: number
   notes:            string
@@ -165,6 +165,14 @@ export function useGoal() {
     })
   }, [])
 
+  // Set regression clinical note
+  const setRegressionNote = useCallback((blockKey: string, note: string) => {
+    setGoals(prev => {
+      if (!(blockKey in prev)) return prev
+      return { ...prev, [blockKey]: { ...prev[blockKey], regressionNote: note } }
+    })
+  }, [])
+
   // Build output for localStorage + Supabase
   const buildOutput = useCallback((): GoalOutput | null => {
     if (!bd) return null
@@ -198,7 +206,7 @@ export function useGoal() {
 
   return {
     bd, goals, settings, loadError,
-    toggleGoal, setGoalDelta, toggleRegression,
+    toggleGoal, setGoalDelta, toggleRegression, setRegressionNote,
     setSettingsField, buildOutput,
     getBlockScore,
   }

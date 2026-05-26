@@ -90,7 +90,7 @@ export function GoalKPI({ baselineBlocks, targetBlocks, goals, baselineStage, si
   const kpis = [
     { label: 'Baseline',     value: baseTotal.toFixed(1),     color: 'var(--warn)', delta: false, small: false },
     { label: 'Target',       value: targetTotal.toFixed(1),   color: 'var(--good)', delta: false, small: false },
-    { label: 'Tổng delta',   value: `+${delta.toFixed(1)}`,   color: 'var(--good)', delta: true,  small: false },
+    { label: 'Tổng delta kỳ vọng', value: `+${delta.toFixed(1)}`, color: 'var(--good)', delta: true,  small: false },
     { label: 'Stage',        value: baselineStage,            color: 'var(--warn)', delta: false, small: false },
     { label: 'Goals',        value: String(goalCount),        color: goalCount > 0 ? 'var(--good)' : 'var(--sub)', delta: false, small: false },
     { label: 'Signal chính', value: topSignal,                color: 'var(--red)',  delta: false, small: true  },
@@ -103,7 +103,7 @@ export function GoalKPI({ baselineBlocks, targetBlocks, goals, baselineStage, si
           key={kpi.label}
           className="flex flex-col items-center"
           style={{
-            minWidth: kpi.delta ? 90 : 70,
+            minWidth: kpi.delta ? 90 : kpi.small ? 80 : 70,
             padding: '6px 12px',
             borderRadius: 7,
             background: kpi.delta ? 'var(--good-bg)' : 'var(--warm-bg)',

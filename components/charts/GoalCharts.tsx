@@ -76,17 +76,18 @@ export function GoalCharts({ baselineBlocks, targetBlocks }: GoalChartsProps) {
   })
 
   return (
-    <div className="grid grid-cols-2 gap-2.5" style={{ fontFamily: "'Inter', sans-serif" }}>
+    <div className="grid grid-cols-2 gap-2.5 h-full min-h-0" style={{ fontFamily: "'Inter', sans-serif" }}>
       {/* Radar */}
-      <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 10, padding: '10px 12px' }}>
-        <div className="flex items-center justify-between mb-2">
+      <div className="flex flex-col overflow-hidden min-h-0" style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 10, padding: '10px 12px' }}>
+        <div className="flex items-center justify-between mb-2 flex-shrink-0">
           <div style={{ fontFamily: "'Oswald', sans-serif", fontSize: 10, fontWeight: 600, letterSpacing: '.07em', textTransform: 'uppercase', color: 'var(--sub)' }}>Radar — Baseline vs Target</div>
           <div className="flex items-center gap-2.5" style={{ fontSize: 9, color: 'var(--sub)' }}>
             <span className="flex items-center gap-1"><span className="inline-block" style={{ width: 12, height: 2, background: 'var(--red)' }}/>&nbsp;Baseline</span>
             <span className="flex items-center gap-1"><span className="inline-block" style={{ width: 12, height: 0, borderTop: '2px dashed var(--good)' }}/>&nbsp;Target</span>
           </div>
         </div>
-        <ResponsiveContainer width="100%" height={180}>
+        <div className="flex-1 min-h-0">
+        <ResponsiveContainer width="100%" height="100%" minHeight={160}>
           <RadarChart data={radarData} margin={{ top: 10, right: 20, bottom: 10, left: 20 }}>
             <PolarGrid stroke="#E5E7EB" />
             <PolarAngleAxis dataKey="layer" tick={{ fontSize: 9, fill: '#6B7280' }} />
@@ -94,18 +95,20 @@ export function GoalCharts({ baselineBlocks, targetBlocks }: GoalChartsProps) {
             <Radar name="Target"   dataKey="target"   stroke="rgba(26,122,74,0.8)"  fill="rgba(26,122,74,0.12)"  fillOpacity={1} dot={{ r: 2, fill: 'rgba(26,122,74,0.8)' }} strokeDasharray="4 3" />
           </RadarChart>
         </ResponsiveContainer>
+        </div>
       </div>
 
       {/* Pyramid bar */}
-      <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 10, padding: '10px 12px' }}>
-        <div className="flex items-center justify-between mb-2">
+      <div className="flex flex-col overflow-hidden min-h-0" style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 10, padding: '10px 12px' }}>
+        <div className="flex items-center justify-between mb-2 flex-shrink-0">
           <div style={{ fontFamily: "'Oswald', sans-serif", fontSize: 10, fontWeight: 600, letterSpacing: '.07em', textTransform: 'uppercase', color: 'var(--sub)' }}>Pyramid — Layer Delta</div>
           <div className="flex items-center gap-2.5" style={{ fontSize: 9, color: 'var(--sub)' }}>
             <span className="flex items-center gap-1"><span className="inline-block rounded-sm" style={{ width: 10, height: 10, background: 'rgba(0,0,0,.15)' }}/>&nbsp;Baseline</span>
             <span className="flex items-center gap-1"><span className="inline-block rounded-sm" style={{ width: 10, height: 10, background: 'rgba(26,122,74,.6)' }}/>&nbsp;Target gain</span>
           </div>
         </div>
-        <ResponsiveContainer width="100%" height={180}>
+        <div className="flex-1 min-h-0">
+        <ResponsiveContainer width="100%" height="100%" minHeight={160}>
           <BarChart data={barData} layout="vertical" margin={{ top: 4, right: 16, bottom: 4, left: 32 }} barSize={14}>
             <XAxis type="number" domain={[0, 4]} tick={{ fontSize: 9, fill: '#9CA3AF' }} />
             <YAxis type="category" dataKey="label" tick={{ fontSize: 9, fill: '#6B7280' }} width={28} />
@@ -121,6 +124,7 @@ export function GoalCharts({ baselineBlocks, targetBlocks }: GoalChartsProps) {
             <Bar dataKey="gain" stackId="a" fill="rgba(26,122,74,0.7)" radius={[0,2,2,0]} />
           </BarChart>
         </ResponsiveContainer>
+        </div>
       </div>
     </div>
   )

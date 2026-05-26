@@ -41,12 +41,20 @@ function scoreColor(score: number): string {
   return 'var(--s0)'
 }
 
+// Age in years from DOB — mirrors template `${age} tuổi`
+function ageFromDob(dob?: string): number | null {
+  if (!dob) return null
+  const ms = Date.now() - new Date(dob).getTime()
+  if (Number.isNaN(ms)) return null
+  return Math.floor(ms / 31557600000)
+}
+
 export default function GoalPage() {
   const router = useRouter()
   const supabase = createClient()
   const {
     bd, goals, settings, loadError,
-    toggleGoal, setGoalDelta, toggleRegression,
+    toggleGoal, setGoalDelta, toggleRegression, setRegressionNote,
     setSettingsField, buildOutput, getBlockScore,
   } = useGoal()
 
@@ -106,6 +114,8 @@ export default function GoalPage() {
   if (!bd) return <div className="p-8 text-sm text-[var(--sub)]" style={{ fontFamily: INTER }}>Đang tải...</div>
 
   const childInitials = bd.child.name.split(' ').filter(Boolean).map(w => w[0].toUpperCase()).slice(-2).join('')
+  const childAge = ageFromDob(bd.child.dob)
+  const childMeta = [childAge != null ? `${childAge} tuổi` : null, bd.eval_date].filter(Boolean).join(' · ') || '—'
 
   return (
     <div
@@ -128,7 +138,7 @@ export default function GoalPage() {
           SPEDUMAP <span style={{ color: 'var(--red)' }}>Goal Setting</span>
         </div>
 
-        {/* Wizard: Baseline ✓ → Goals (active) → Cycle → Daily */}
+        {/* Wizard: Baseline (done) → Goals (active) → Cycle — matches template (3 steps) */}
         <div className="flex items-center gap-2">
           <div className="w-[7px] h-[7px] rounded-full" style={{ background: 'var(--good)' }} />
           <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: '.08em', textTransform: 'uppercase', color: 'var(--sub)' }}>Baseline</div>
@@ -137,10 +147,7 @@ export default function GoalPage() {
           <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: '.08em', textTransform: 'uppercase', color: 'var(--red)' }}>Goals</div>
           <div className="w-5 h-px" style={{ background: 'var(--border)' }} />
           <div className="w-[7px] h-[7px] rounded-full" style={{ background: 'var(--border)' }} />
-          <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: '.08em', textTransform: 'uppercase', color: 'var(--sub)' }}>Open Cycle</div>
-          <div className="w-5 h-px" style={{ background: 'var(--border)' }} />
-          <div className="w-[7px] h-[7px] rounded-full" style={{ background: 'var(--border)' }} />
-          <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: '.08em', textTransform: 'uppercase', color: 'var(--sub)' }}>Daily</div>
+          <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: '.08em', textTransform: 'uppercase', color: 'var(--sub)' }}>Cycle</div>
         </div>
 
         <div className="flex items-center gap-2.5">
@@ -186,7 +193,7 @@ export default function GoalPage() {
           </div>
           <div>
             <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--ink)' }}>{bd.child.name}</div>
-            <div style={{ fontSize: 10, color: 'var(--sub)' }}>{bd.eval_date ?? '—'}</div>
+            <div style={{ fontSize: 10, color: 'var(--sub)' }}>{childMeta}</div>
           </div>
           <div
             className="ml-auto whitespace-nowrap"
@@ -199,7 +206,7 @@ export default function GoalPage() {
         {/* Section head */}
         <div className="flex items-center gap-2 px-4 pt-2.5 pb-1.5 flex-shrink-0">
           <span style={{ fontFamily: OSWALD, fontSize: 9, fontWeight: 600, letterSpacing: '.12em', textTransform: 'uppercase', color: 'var(--sub)', background: 'var(--border)', padding: '2px 6px', borderRadius: 2 }}>
-            Chọn block
+            Đề xuất
           </span>
           <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--ink)' }}>Chọn goal cho cycle này</span>
           <span className="ml-auto" style={{ fontFamily: OSWALD, fontSize: 10, fontWeight: 700, color: 'var(--red)' }}>{goalCount} đã chọn</span>
@@ -239,7 +246,6 @@ export default function GoalPage() {
                     const goal      = goals[key]
                     const baselinePct = (baseScore / 4) * 100
                     const sc = scoreColor(baseScore)
-                    const targetScore = goal ? Math.min(4, baseScore + goal.delta) : baseScore
 
                     return (
                       <div
@@ -305,15 +311,9 @@ export default function GoalPage() {
                               <div className="text-right flex-shrink-0" style={{ fontFamily: OSWALD, fontSize: 12, fontWeight: 700, width: 28, color: sc }}>{baseScore.toFixed(1)}</div>
                             </div>
 
-                            {/* Target readout */}
-                            <div className="flex items-center justify-between mb-1.5">
-                              <div style={{ fontSize: 9, fontWeight: 600, letterSpacing: '.08em', textTransform: 'uppercase', color: 'var(--sub)' }}>
-                                Kỳ vọng cải thiện
-                              </div>
-                              <div style={{ fontFamily: OSWALD, fontSize: 10, color: 'var(--sub)' }}>
-                                {baseScore.toFixed(1)} → <span style={{ fontWeight: 700, color: goal.delta >= 2.0 ? 'var(--warn)' : 'var(--good)' }}>{targetScore.toFixed(1)}</span>{' '}
-                                <span style={{ fontWeight: 700, color: goal.delta >= 2.0 ? 'var(--warn)' : 'var(--good)' }}>(+{goal.delta.toFixed(1)})</span>
-                              </div>
+                            {/* GAS scale label — matches template `.gas-scale-label` */}
+                            <div style={{ fontSize: 9, fontWeight: 600, letterSpacing: '.08em', textTransform: 'uppercase', color: 'var(--sub)', marginBottom: 6 }}>
+                              Kỳ vọng cải thiện trong cycle này
                             </div>
 
                             {/* Segmented GAS scale */}
@@ -331,7 +331,7 @@ export default function GoalPage() {
                                     title={opt.locked ? 'Không khả dụng với baseline hiện tại' : undefined}
                                     className="flex-1 flex flex-col items-center justify-center transition-colors"
                                     style={{
-                                      padding: '6px 2px',
+                                      padding: '6px 4px',
                                       gap: 3,
                                       borderRight: i < arr.length - 1 ? '1px solid var(--border)' : 'none',
                                       background: active ? 'var(--red-bg)' : 'transparent',
@@ -342,7 +342,7 @@ export default function GoalPage() {
                                     <div
                                       className="rounded-full flex-shrink-0"
                                       style={{
-                                        width: 14, height: 14,
+                                        width: 16, height: 16,
                                         border: `2px solid ${active ? 'var(--red)' : 'var(--border-2)'}`,
                                         background: active ? 'var(--red)' : '#fff',
                                       }}
@@ -373,7 +373,7 @@ export default function GoalPage() {
                                 }}
                               >
                                 {goal.delta >= 2.5
-                                  ? '⚠ Goal rất lớn. Cân nhắc chia 2 cycles hoặc cần can thiệp y tế trực tiếp.'
+                                  ? '⚠ Goal rất lớn. Có thể đạt được nếu có can thiệp y tế trực tiếp (ví dụ: đeo kính, điều trị ký sinh trùng). Cân nhắc chia 2 cycles.'
                                   : 'Goal ambitious. Đảm bảo có kế hoạch can thiệp cụ thể cho cycle này.'}
                               </div>
                             )}
@@ -392,6 +392,20 @@ export default function GoalPage() {
                                 />
                               </div>
                             </div>
+
+                            {/* Regression clinical-reason note — shown when toggle on */}
+                            {goal.regression && (
+                              <div className="mt-1.5">
+                                <input
+                                  type="text"
+                                  value={goal.regressionNote ?? ''}
+                                  onChange={e => setRegressionNote(key, e.target.value)}
+                                  placeholder="Lý do lâm sàng (ví dụ: candida die-off, sensory overload...)"
+                                  className="w-full focus:outline-none"
+                                  style={{ height: 26, border: '1px solid var(--warn-bd)', borderRadius: 4, padding: '0 8px', fontSize: 10, background: 'var(--warn-bg)', color: 'var(--ink)' }}
+                                />
+                              </div>
+                            )}
                           </div>
                         )}
                       </div>
@@ -407,7 +421,7 @@ export default function GoalPage() {
       {/* ── RIGHT PANEL: KPI + Charts + Goal chips + Cycle settings ── */}
       <div
         className="overflow-hidden grid"
-        style={{ background: 'var(--warm-bg)', gridTemplateRows: 'auto auto 1fr auto auto' }}
+        style={{ background: 'var(--warm-bg)', gridTemplateRows: 'auto 1fr auto auto auto' }}
       >
         {/* KPI strip */}
         <div
@@ -426,7 +440,7 @@ export default function GoalPage() {
         </div>
 
         {/* Charts */}
-        <div className="px-3.5 py-2.5 overflow-hidden">
+        <div className="px-3.5 py-2.5 overflow-hidden min-h-0">
           <GoalCharts
             baselineBlocks={bd.baseline_blocks}
             targetBlocks={Object.fromEntries(
@@ -460,12 +474,13 @@ export default function GoalPage() {
           />
           <select
             value={settings.unit}
-            onChange={e => setSettingsField('unit', e.target.value as 'weeks' | 'sessions')}
+            onChange={e => setSettingsField('unit', e.target.value as 'weeks' | 'sessions' | 'months')}
             className="h-7 px-1.5 rounded focus:outline-none"
             style={{ width: 90, border: '1.5px solid var(--border)', background: 'var(--warm-bg)', fontFamily: INTER, fontSize: 11, color: 'var(--ink)' }}
           >
             <option value="weeks">Tuần</option>
             <option value="sessions">Sessions</option>
+            <option value="months">Tháng</option>
           </select>
           <span className="ml-1" style={{ fontSize: 9, fontWeight: 600, letterSpacing: '.1em', textTransform: 'uppercase', color: 'var(--sub)' }}>Bắt đầu</span>
           <input
@@ -473,11 +488,8 @@ export default function GoalPage() {
             value={settings.start_date}
             onChange={e => setSettingsField('start_date', e.target.value)}
             className="h-7 px-1.5 rounded focus:outline-none"
-            style={{ width: 130, border: '1.5px solid var(--border)', background: 'var(--warm-bg)', fontFamily: INTER, fontSize: 11, color: 'var(--ink)' }}
+            style={{ width: 120, border: '1.5px solid var(--border)', background: 'var(--warm-bg)', fontFamily: INTER, fontSize: 11, color: 'var(--ink)' }}
           />
-          <span className="ml-1 flex items-center px-2 h-7 rounded" style={{ border: '1.5px solid var(--border)', background: 'var(--warm-bg)', fontFamily: OSWALD, fontSize: 11, fontWeight: 700, color: 'var(--good)' }}>
-            {settings.planned_sessions} sessions
-          </span>
           <input
             value={settings.notes}
             onChange={e => setSettingsField('notes', e.target.value)}
