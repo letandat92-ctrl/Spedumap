@@ -135,15 +135,22 @@ export default function ReportPage() {
 
   if (!cycle) return <div className="p-8 text-sm text-[var(--ink-3)]">Đang tải...</div>
 
-  const cur = computeCurrent(cycle)
-  const currentTotal = computeTotal(cur)
   const baseline = (cycle.baseline as {blocks:Record<string,unknown>;total_score:number})
   const baselineTotal = baseline?.total_score ?? 0
+  const baselineBlocks = baseline?.blocks || {}
+  const target = (cycle.target as {blocks:Record<string,{score:number}>})?.blocks || {}
+  const cur = computeCurrent(cycle)
+  // Anchor current/target totals to the locked baseline snapshot (baseline.total_score),
+  // same scale as the Session page — avoids mixing computeTotal() with the engine snapshot.
+  const toNum = (blocks: Record<string, unknown>): Record<string, number> =>
+    Object.fromEntries(Object.entries(blocks).map(([k, v]) => [k, getScore(v)]))
+  const baseSum = computeTotal(toNum(baselineBlocks))
+  const currentTotal = baselineTotal + (computeTotal(cur) - baseSum)
+  const targetForKPI = baselineTotal + (computeTotal(toNum({ ...baselineBlocks, ...target })) - baseSum)
   const delta = currentTotal - baselineTotal
   const sessions = (cycle.daily_sessions as unknown[])?.length ?? 0
   const planned = (cycle.planned_sessions as number) ?? 24
   const child = cycle.child as {name:string}
-  const target = (cycle.target as {blocks:Record<string,{score:number}>})?.blocks || {}
 
   const selectedReason = CLOSE_REASONS.find(r => r.value === closeReason)
   const noteRequired   = selectedReason?.needNote ?? false
@@ -262,7 +269,7 @@ export default function ReportPage() {
       <ReportKPI
         current={currentTotal}
         baseline={baselineTotal}
-        target={computeTotal(Object.fromEntries(Object.entries({ ...baseline.blocks, ...target }).map(([k, v]: [string, any]) => [k, typeof v === 'number' ? v : v?.score || 0])))}
+        target={targetForKPI}
         sessionsDone={sessions}
         planned={planned}
         startedAt={cycle.started_at as string}
