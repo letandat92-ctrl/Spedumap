@@ -151,6 +151,7 @@ export const LS_KEYS = {
   BASELINE:     'spedumap_baseline',
   CYCLE:        'spedumap_cycle',
   ACTIVE_CYCLE: 'spedumap_active_cycle',
+  RETEST_SEED:  'spedumap_retest_seed',   // close-summary → baseline pre-seed
 } as const
 
 // ── NEW SCHEMA TYPES (Session 5) ──────────────────────────

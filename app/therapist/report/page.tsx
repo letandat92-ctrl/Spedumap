@@ -42,8 +42,6 @@ function getScore(v: unknown): number {
   return 0
 }
 
-function makeBlock(score: number) { return { score: parseFloat(score.toFixed(3)) } }
-
 function computeCurrent(cycle: Record<string,unknown>): Record<string,number> {
   const cur: Record<string,number> = {}
   const baseline = (cycle.baseline as {blocks:Record<string,unknown>})?.blocks || {}
@@ -73,7 +71,7 @@ export default function ReportPage() {
   const [closeNote, setCloseNote]     = useState('')
   const [closeSummary, setCloseSummary] = useState('')
   const [closing, setClosing]   = useState(false)
-  const [closed, setClosed]     = useState(false)
+  const [closeError, setCloseError] = useState<string|null>(null)
 
   useEffect(() => {
     try {
@@ -109,7 +107,6 @@ export default function ReportPage() {
   const curEngine    = runEngine(cur)
   const currentTotal = curEngine.total
   const targetForKPI = runEngine({ ...toNum(baselineBlocks), ...toNum(target) }).total
-  const delta = currentTotal - baselineTotal
   const sessions = (cycle.daily_sessions as unknown[])?.length ?? 0
   const planned = (cycle.planned_sessions as number) ?? 24
   const child = cycle.child as {name:string}
@@ -120,93 +117,46 @@ export default function ReportPage() {
 
   async function handleClose() {
     if (!closeReason || !cycle) return
+    setCloseError(null)
+
+    // Phase 1 of the two-phase close: mark the cycle 'closing' + persist the
+    // therapist's reason/notes, then hand off to the blind retest. The end-of-
+    // cycle scores and the next baseline are produced by the retest, NOT here.
+    const cycleId = cycle.supabase_cycle_id as string | undefined
+    if (!cycleId || !cycleId.includes('-')) {
+      setCloseError('Thiếu mã chu kỳ Supabase — không thể tiến hành retest.')
+      return
+    }
+
     setClosing(true)
     try {
-      const finalBlocks: Record<string,{score:number}> = {}
-      for (const [k,v] of Object.entries(cur)) finalBlocks[k] = makeBlock(v)
-
-      const nextStage = curEngine.stage
       const today = new Date().toISOString().split('T')[0]
 
-      const closedCycle = {
-        ...cycle,
-        status: 'closed',
+      const { error } = await supabase.from('cycles').update({
+        status: 'closing',
         close_reason: closeReason,
         close_note: closeNote,
         close_summary: closeSummary,
-        closed_at: new Date().toISOString(),
-        final_blocks: finalBlocks,
-        final_total: currentTotal,
-        delta_from_baseline: delta,
-      }
-      localStorage.setItem(LS_KEYS.ACTIVE_CYCLE, JSON.stringify(closedCycle))
+        ended_at: today,
+      }).eq('id', cycleId)
+      if (error) throw new Error(error.message)
 
-      // Supabase close
-      const cycleId = cycle.supabase_cycle_id as string
-      if (cycleId?.includes('-')) {
-        const govMeta = cycle.governance_meta as {knowledge_domain?:string}
-        await supabase.from('cycles').update({
-          status: 'closed',
-          close_reason: closeReason,
-          ended_at: today,
-          cycle_outcome: {
-            computed_at: new Date().toISOString(),
-            session_count: sessions,
-            total_score_start: baselineTotal,
-            total_score_end: currentTotal,
-            total_score_delta: delta,
-            close_reason: closeReason,
-            knowledge_domain: govMeta?.knowledge_domain || 'senior_therapist',
-            protocol_version: 'engine_v3.2',
-          },
-        }).eq('id', cycleId)
-      }
+      // Reflect the closing state locally so a back-navigation stays consistent.
+      localStorage.setItem(LS_KEYS.ACTIVE_CYCLE, JSON.stringify({
+        ...cycle,
+        status: 'closing',
+        close_reason: closeReason,
+        close_note: closeNote,
+        close_summary: closeSummary,
+        ended_at: today,
+      }))
 
-      // Next baseline
-      const nextBaseline = {
-        child: cycle.child,
-        baseline_blocks: finalBlocks,
-        engine_snapshot: { total: currentTotal, stage: nextStage, layer_scores: curEngine.layerScores, signals: curEngine.signals },
-        baseline_source: cycle.baseline_source || 'behavioral',
-        eval_date: today,
-        knowledge_domain: (cycle.governance_meta as {knowledge_domain?:string})?.knowledge_domain || 'senior_therapist',
-        supabase_cycle_id: null,
-        prev_cycle_id: cycle.cycle_id,
-        baseline: { blocks: finalBlocks, total_score: currentTotal, stage: nextStage, date: today },
-        target: { blocks:{} },
-        target_blocks: {},
-        goal_detail: {},
-        daily_sessions: [],
-        observed_blocks: [],
-      }
-      localStorage.setItem(LS_KEYS.CYCLE, JSON.stringify(nextBaseline))
-      localStorage.setItem(LS_KEYS.BASELINE, JSON.stringify(nextBaseline))
-
-      setClosed(true)
-    } catch(err) {
-      console.error(err)
-    } finally {
+      router.push('/therapist/retest?cycle_id=' + cycleId)
+    } catch (err) {
+      setCloseError(err instanceof Error ? err.message : 'Lỗi đóng chu kỳ')
       setClosing(false)
     }
   }
-
-  if (closed) return (
-    <div className="min-h-screen flex items-center justify-center bg-[var(--bg)]">
-      <div className="max-w-sm text-center p-8">
-        <div className="text-4xl mb-3">✓</div>
-        <div className="font-semibold text-[var(--green)] text-lg mb-1">Chu kỳ đã đóng</div>
-        <p className="text-sm text-[var(--ink-3)] mb-6">
-          Baseline mới đã được tạo từ current state. Sẵn sàng cho chu kỳ tiếp theo.
-        </p>
-        <div className="flex gap-3 justify-center">
-          <button onClick={() => router.push('/therapist/goal')}
-            className="px-5 py-2.5 bg-[var(--navy)] text-white rounded-lg text-sm font-bold">
-            Goal Setting — Cycle mới →
-          </button>
-        </div>
-      </div>
-    </div>
-  )
 
   return (
     <div className="min-h-screen bg-[var(--bg)] p-6 max-w-5xl mx-auto">
@@ -298,10 +248,16 @@ export default function ReportPage() {
               className="w-full px-3 py-2 text-sm border border-[var(--rule)] rounded-lg focus:outline-none focus:border-[var(--navy)] resize-none"
               placeholder="Chu kỳ này con đã tiến bộ ở..." />
           </div>
+          {closeError && (
+            <div className="p-2 bg-[var(--red-bg)] border border-[var(--red-bd)] rounded-lg text-xs text-[var(--red)]">{closeError}</div>
+          )}
           <button onClick={handleClose} disabled={!canClose || closing}
             className="w-full h-10 bg-[var(--red)] text-white rounded-lg text-sm font-bold hover:bg-red-800 disabled:opacity-40">
-            {closing ? 'Đang đóng...' : 'Đóng Chu Kỳ & Tạo Baseline Mới →'}
+            {closing ? 'Đang chuyển sang Retest...' : 'Đóng Chu Kỳ & Tiến hành Retest →'}
           </button>
+          <p className="text-[11px] text-[var(--ink-3)] text-center">
+            Bước tiếp theo: đánh giá lại 39 block một cách độc lập (blind) để nghiệm thu chu kỳ.
+          </p>
         </div>
       </div>
     </div>

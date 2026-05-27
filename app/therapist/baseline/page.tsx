@@ -4,7 +4,8 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useBaseline } from '@/hooks/useBaseline'
 import { createClient } from '@/lib/supabase/client'
-import { LS_KEYS } from '@/types/spedumap'
+import { getScore } from '@/lib/engine'
+import { LS_KEYS, type Directionality } from '@/types/spedumap'
 import { LayerSection } from '@/components/blocks/LayerSection'
 import { BaselineKPI } from '@/components/blocks/BaselineKPI'
 import { BaselineCharts } from '@/components/charts/BaselineCharts'
@@ -57,7 +58,29 @@ export default function BaselinePage() {
       if (user?.id) setTherapistId(user.id)
     })
   }, [supabase])
-  
+
+  // Pre-seed from a closed cycle's retest ("Mở Cycle mới với Baseline này").
+  // Pulls child name/dob + the 39 retest block scores into the new baseline,
+  // then clears the seed so it only applies once.
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(LS_KEYS.RETEST_SEED)
+      if (!raw) return
+      const seed = JSON.parse(raw) as { child?: { name?: string; dob?: string }; blocks?: Record<string, unknown> }
+      if (seed?.child?.name) setMetaField('childName', seed.child.name)
+      if (seed?.child?.dob)  setMetaField('childDob', seed.child.dob)
+      if (seed?.blocks) {
+        for (const [k, v] of Object.entries(seed.blocks)) {
+          setScore(k, getScore(v))
+          const dir = (v as { directionality?: Directionality })?.directionality
+          if (dir) setDir(k, dir)
+        }
+      }
+      localStorage.removeItem(LS_KEYS.RETEST_SEED)
+    } catch { /* ignore malformed seed */ }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
   function handleFileAttach(e: React.ChangeEvent<HTMLInputElement>) {
     const files = Array.from(e.target.files || [])
     setAttachments(prev => [...prev, ...files.map(f => ({ name: f.name, size: f.size, type: f.type }))])

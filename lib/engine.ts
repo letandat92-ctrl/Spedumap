@@ -168,3 +168,95 @@ export function runEngineFromBlocks(blocks: Record<string, unknown>): EngineResu
   for (const k in blocks) nums[k] = getScore(blocks[k])
   return runEngine(nums)
 }
+
+// ── Close Cycle comparison helpers (pure) ─────────────────────────────────────
+
+export const LAYER_NAMES: Record<string, string> = {
+  L0: 'L0 Health & Nutrition', L1: 'L1 Regulation', L2: 'L2 Sensory', L3: 'L3 Motor',
+  L4: 'L4 Processing', L5: 'L5 Communication', L6: 'L6 Social', L7: 'L7 Academic',
+}
+export const LAYER_COLORS: Record<string, string> = {
+  L0: '#8B1A1A', L1: '#A02020', L2: '#B83030', L3: '#C55030',
+  L4: '#C87020', L5: '#4A8A60', L6: '#2A6A9A', L7: '#3A5AAA',
+}
+
+const round1 = (x: number) => Math.round(x * 10) / 10
+const round2 = (x: number) => Math.round(x * 100) / 100
+
+/** Rough (BW-weighted) layer score (0–4) for a single layer. */
+export function layerScore(blocks: Record<string, number>, lid: string): number {
+  return computeLayerScore(blocks, BLOCK_WEIGHTS_RAW[lid] ?? {})
+}
+
+export interface LayerComparison {
+  lid: string; name: string; color: string
+  baseline: number; target: number; retest: number
+  delta: number; pctComplete: number
+}
+
+/** Per-layer baseline / target / retest comparison for all 8 layers (rough layer scores). */
+export function computeLayerComparison(
+  baselineBlocks: Record<string, number>,
+  retestBlocks:   Record<string, number>,
+  targetBlocks:   Record<string, number>,
+): LayerComparison[] {
+  const targetMerged = { ...baselineBlocks, ...targetBlocks }
+  return LAYER_IDS.map(lid => {
+    const baseline    = layerScore(baselineBlocks, lid)
+    const retest      = layerScore(retestBlocks, lid)
+    const target      = layerScore(targetMerged, lid)
+    const delta       = retest - baseline
+    const targetDelta = target - baseline
+    const pctComplete = targetDelta > 0 ? Math.round((delta / targetDelta) * 100) : (delta >= 0 ? 100 : 0)
+    return {
+      lid, name: LAYER_NAMES[lid], color: LAYER_COLORS[lid],
+      baseline: round2(baseline), target: round2(target), retest: round2(retest),
+      delta: round2(delta), pctComplete,
+    }
+  })
+}
+
+export type VerdictType = 'improved' | 'neutral' | 'regressed'
+export interface VerdictBanner {
+  type:              VerdictType
+  pctTargetAchieved: number
+  deltaFromBaseline: number
+  deltaFromTarget:   number
+}
+
+/** Overall verdict for the close-summary banner, from the three totals. */
+export function computeVerdictBanner(baselineTotal: number, retestTotal: number, targetTotal: number): VerdictBanner {
+  const deltaFromBaseline = round1(retestTotal - baselineTotal)
+  const deltaFromTarget   = round1(retestTotal - targetTotal)
+  const targetGap         = targetTotal - baselineTotal
+  const pctTargetAchieved = targetGap > 0
+    ? Math.round(((retestTotal - baselineTotal) / targetGap) * 100)
+    : (retestTotal - baselineTotal >= 0 ? 100 : 0)
+  const type: VerdictType = deltaFromBaseline > 0.5 ? 'improved'
+    : deltaFromBaseline < -0.5 ? 'regressed' : 'neutral'
+  return { type, pctTargetAchieved, deltaFromBaseline, deltaFromTarget }
+}
+
+export type SignalDirection = 'improved' | 'worsened' | 'stable'
+export interface SignalShiftEntry { old: number; new: number; direction: SignalDirection }
+export interface SignalShift {
+  sensorimotor: SignalShiftEntry
+  regulation:   SignalShiftEntry
+  cognitive:    SignalShiftEntry
+}
+
+/** Deficit-signal shift baseline → retest (deficit ↓ = improved). */
+export function computeSignalShift(baselineBlocks: Record<string, number>, retestBlocks: Record<string, number>): SignalShift {
+  const oldSig = runEngine(baselineBlocks).signals
+  const newSig = runEngine(retestBlocks).signals
+  const mk = (o: number, n: number): SignalShiftEntry => {
+    const change = n - o   // deficit decreased → improved
+    const direction: SignalDirection = change < -0.05 ? 'improved' : change > 0.05 ? 'worsened' : 'stable'
+    return { old: round2(o), new: round2(n), direction }
+  }
+  return {
+    sensorimotor: mk(oldSig.sensorimotor, newSig.sensorimotor),
+    regulation:   mk(oldSig.regulation,   newSig.regulation),
+    cognitive:    mk(oldSig.cognitive,    newSig.cognitive),
+  }
+}
