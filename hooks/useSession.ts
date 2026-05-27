@@ -42,14 +42,6 @@ export type RegressionClass = 'transitional' | 'pathological' | 'noise'
 
 export const LAYER_IDS = ['L0', 'L1', 'L2', 'L3', 'L4', 'L5', 'L6', 'L7']
 
-// Suggested exercise/purpose per block — mirrors MOCK_ACT in ui_daily_session.html.
-const SUGGEST: Record<string, { exercise: string; purpose: string }> = {
-  microbiome: { exercise: 'Massage bụng + Probiotic feeding', purpose: 'Kích thích nhu động ruột, cân bằng vi sinh' },
-  arousal:    { exercise: 'Bài sờ chạm sâu (Deep Pressure)',  purpose: 'Giảm over-arousal, ổn định hệ thần kinh' },
-  attention:  { exercise: 'Bài phân loại đồ vật theo hình',   purpose: 'Tăng thời gian duy trì chú ý' },
-  sleep:      { exercise: 'Breathing routine + đèn mờ',        purpose: 'Thiết lập tín hiệu ngủ, giảm arousal tối' },
-}
-
 // delta map — mirrors spedumap_config.js
 const LOCAL_TO_DELTA: Record<number, number> = {
   '-2': -0.50, '-1': -0.20, '0': 0.00, '1': 0.20, '2': 0.40,
@@ -118,8 +110,8 @@ export function useSession() {
           block:      k,
           localScore: null,
           note:       '',
-          exercise:   SUGGEST[k]?.exercise ?? '',
-          purpose:    SUGGEST[k]?.purpose ?? '',
+          exercise:   '',
+          purpose:    '',
           solutionId: null,
         }
       }

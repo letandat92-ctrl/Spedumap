@@ -179,7 +179,6 @@ export default function SessionPage() {
   }, [])
 
   const enteredCount = Object.values(activities).filter(a => a.localScore !== null).length
-  const totalBlocks  = Object.keys(activities).length
   const readyToSubmit = enteredCount > 0
 
   async function handleSubmit() {
@@ -366,133 +365,8 @@ export default function SessionPage() {
   }
 
   return (
-    <div className="flex h-screen bg-[var(--bg)] overflow-hidden" style={{ fontFamily: FONT_BODY }}>
-
-      {/* LEFT: Block list (interactive editing pane — unchanged) */}
-      <div className="w-[400px] flex-shrink-0 border-r border-[var(--rule)] overflow-y-auto bg-white">
-
-        {/* Header */}
-        <div className="sticky top-0 z-10 bg-[var(--navy)] px-4 py-3">
-          <div className="flex items-center justify-between">
-            <div>
-              <span className="font-serif font-bold text-white text-sm">SPEDUMAP</span>
-              <span className="text-white/50 text-xs ml-2">/ Daily Session</span>
-            </div>
-            <div className="text-white/70 text-xs font-mono">
-              {sessionIndex} / {plannedSessions}
-            </div>
-          </div>
-          <div className="text-white/60 text-xs mt-0.5">{child.name}</div>
-        </div>
-
-        {/* Session meta */}
-        <div className="px-4 py-3 border-b border-[var(--rule-2)] space-y-2">
-          <div className="grid grid-cols-2 gap-2">
-            <div>
-              <label className="block text-xs text-[var(--ink-3)] mb-1">Ngày</label>
-              <input type="date" value={sessionDate}
-                onChange={e => setSessionDate(e.target.value)}
-                className="w-full h-8 px-2 text-sm border border-[var(--rule)] rounded focus:outline-none focus:border-[var(--navy)]"
-              />
-            </div>
-            <div>
-              <label className="block text-xs text-[var(--ink-3)] mb-1">Ghi chú session</label>
-              <input value={therapistNote}
-                onChange={e => setTherapistNote(e.target.value)}
-                placeholder="Trẻ hợp tác tốt..."
-                className="w-full h-8 px-2 text-xs border border-[var(--rule)] rounded focus:outline-none focus:border-[var(--navy)]"
-              />
-            </div>
-          </div>
-          <div className="text-xs text-[var(--ink-3)]">
-            Đã nhập: <span className="font-semibold text-[var(--navy)]">{enteredCount}</span>/{totalBlocks} blocks
-          </div>
-        </div>
-
-        {/* Activity rows */}
-        <div className="divide-y divide-[var(--rule-2)]">
-          {Object.entries(activities).map(([block, activity]) => {
-            const current  = (currentScores as Record<string, number>)[block] ?? 0
-            const tScore   = getScore(targetBlocks[block])
-            const progress = tScore > 0 ? Math.min(1, current / tScore) : 0
-            const LOCAL_LABELS: Record<number, { label: string; color: string }> = {
-              '-2': { label: '−2', color: 'bg-red-100 text-red-800 border-red-300' },
-              '-1': { label: '−1', color: 'bg-orange-100 text-orange-800 border-orange-300' },
-               '0': { label: '0',  color: 'bg-gray-100 text-gray-600 border-gray-300' },
-               '1': { label: '+1', color: 'bg-green-100 text-green-800 border-green-300' },
-               '2': { label: '+2', color: 'bg-emerald-100 text-emerald-800 border-emerald-300' },
-            }
-            return (
-              <div key={block} className="px-3 py-2.5">
-                <div className="flex items-center justify-between mb-1.5">
-                  <div>
-                    <span className="text-xs font-medium text-[var(--ink)]">{BN[block] ?? block}</span>
-                    <div className="flex items-center gap-1 mt-0.5">
-                      <div className="h-1 w-20 bg-gray-100 rounded-full overflow-hidden">
-                        <div
-                          className="h-full bg-[var(--navy)] rounded-full transition-all"
-                          style={{ width: `${progress * 100}%` }}
-                        />
-                      </div>
-                      <span className="text-[10px] font-mono text-[var(--ink-3)]">
-                        {current.toFixed(1)} → {tScore.toFixed(1)}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="flex gap-1">
-                  {([-2,-1,0,1,2] as LocalScore[]).map(score => {
-                    const cfg = LOCAL_LABELS[score]
-                    const selected = activity.localScore === score
-                    return (
-                      <button
-                        key={score}
-                        onClick={() => setLocalScore(block, selected ? null : score)}
-                        className={`flex-1 h-7 text-xs font-mono font-bold rounded border transition-all ${
-                          selected
-                            ? cfg.color + ' ring-1 ring-offset-0 ring-current'
-                            : 'border-[var(--rule)] text-[var(--ink-3)] hover:border-gray-400'
-                        }`}
-                      >
-                        {cfg.label}
-                      </button>
-                    )
-                  })}
-                </div>
-
-                {activity.localScore !== null && (
-                  <input
-                    value={activity.note}
-                    onChange={e => setActivityNote(block, e.target.value)}
-                    placeholder="Ghi chú..."
-                    className="mt-1.5 w-full h-6 px-2 text-[10px] border border-[var(--rule-2)] rounded focus:outline-none focus:border-[var(--navy)]"
-                  />
-                )}
-              </div>
-            )
-          })}
-        </div>
-
-        {/* Submit footer */}
-        <div className="sticky bottom-0 p-3 bg-white border-t border-[var(--rule)]">
-          {error && (
-            <div className="mb-2 p-2 bg-[var(--red-bg)] border border-[var(--red-bd)] rounded text-xs text-[var(--red)]">
-              {error}
-            </div>
-          )}
-          <button
-            onClick={handleSubmit}
-            disabled={!readyToSubmit || saving}
-            className="w-full h-10 bg-[var(--navy)] text-white rounded-lg text-sm font-bold hover:bg-[var(--navy-mid)] disabled:opacity-40"
-          >
-            {saving ? 'Đang nộp...' : `Nộp Session ${sessionIndex} (${enteredCount} blocks) ✓`}
-          </button>
-        </div>
-      </div>
-
-      {/* RIGHT: A4 document (rebuilt to match ui_daily_session.html) */}
-      <div className="flex-1 overflow-y-auto bg-[var(--bg)] py-6">
+    <div className="h-screen overflow-y-auto bg-[var(--bg)] py-6" style={{ fontFamily: FONT_BODY }}>
+      {/* Full-width A4 document (rebuilt to match ui_daily_session.html) */}
         <A4PageWrapper>
           <DocumentHeader
             title="SPEDUMAP — Daily Session Report"
@@ -1036,9 +910,29 @@ export default function SessionPage() {
               </div>
             </div>
 
+            {/* ── Submit (relocated from removed left pane) ── */}
+            <div style={{ marginTop: 16, paddingTop: 14, borderTop: '1.5px solid var(--rule)' }}>
+              {error && (
+                <div style={{ marginBottom: 10, padding: '8px 12px', background: 'var(--red-bg)', border: '1px solid var(--red-bd)', borderRadius: 5, fontSize: 11.5, color: 'var(--red)' }}>
+                  {error}
+                </div>
+              )}
+              <button
+                onClick={handleSubmit}
+                disabled={!readyToSubmit || saving}
+                style={{
+                  width: '100%', height: 42, background: 'var(--navy)', color: '#fff', borderRadius: 7,
+                  border: 'none', fontSize: 13, fontWeight: 700, fontFamily: FONT_BODY,
+                  cursor: readyToSubmit && !saving ? 'pointer' : 'not-allowed',
+                  opacity: readyToSubmit && !saving ? 1 : 0.4,
+                }}
+              >
+                {saving ? 'Đang nộp...' : `Nộp Session ${sessionIndex} (${enteredCount} blocks) ✓`}
+              </button>
+            </div>
+
           </div>
         </A4PageWrapper>
-      </div>
     </div>
   )
 }
