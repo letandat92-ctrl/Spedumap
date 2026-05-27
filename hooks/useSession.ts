@@ -26,8 +26,9 @@ export interface ActivityEntry {
   block:       string
   localScore:  LocalScore | null
   note:        string
-  exercise:    string   // "Bài tập" — intervention activity (template MOCK_ACT)
-  purpose:     string   // "Mục đích" — focus / downstream purpose
+  exercise:    string        // "Bài tập" — intervention activity (template MOCK_ACT)
+  purpose:     string        // "Mục đích" — focus / downstream purpose
+  solutionId:  string | null // solution_library.id when picked from autocomplete; null on free typing
 }
 
 // Observed progress on a non-target block (template obs-picker).
@@ -119,6 +120,7 @@ export function useSession() {
           note:       '',
           exercise:   SUGGEST[k]?.exercise ?? '',
           purpose:    SUGGEST[k]?.purpose ?? '',
+          solutionId: null,
         }
       }
       setActivities(init)
@@ -135,8 +137,14 @@ export function useSession() {
     setActivities(prev => ({ ...prev, [block]: { ...prev[block], note } }))
   }, [])
 
+  // Free typing in the activity input → exercise text; clears any picked solution link.
   const setExercise = useCallback((block: string, exercise: string) => {
-    setActivities(prev => ({ ...prev, [block]: { ...prev[block], exercise } }))
+    setActivities(prev => ({ ...prev, [block]: { ...prev[block], exercise, solutionId: null } }))
+  }, [])
+
+  // Picked from solution_library autocomplete → fill title + keep the library id.
+  const selectSolution = useCallback((block: string, solutionId: string, title: string) => {
+    setActivities(prev => ({ ...prev, [block]: { ...prev[block], exercise: title, solutionId } }))
   }, [])
 
   const setPurpose = useCallback((block: string, purpose: string) => {
@@ -185,6 +193,8 @@ export function useSession() {
           activity_note: a.note || null,
           exercise:      a.exercise || null,
           purpose:       a.purpose || null,
+          solution_id:   a.solutionId ?? null,
+          solution_title: a.exercise || null,
         }
       })
 
@@ -271,7 +281,7 @@ export function useSession() {
     cycle, activities, sessionInfo, sessionDate, therapistNote, loadError, submitted,
     currentScores, liveScores, sessionIndex, plannedSessions,
     observedActivities, cooperationStars, layerEval, regressionClass, regressionReason, planNote,
-    setLocalScore, setActivityNote, setExercise, setPurpose,
+    setLocalScore, setActivityNote, setExercise, setPurpose, selectSolution,
     addObserved, removeObserved, setObservedNote,
     setCooperationStars, setLayerEval,
     setRegressionClass, setRegressionReason, setPlanNote,

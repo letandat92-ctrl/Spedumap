@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useSession, type LocalScore, type SessionInfo } from '@/hooks/useSession'
 import { createClient } from '@/lib/supabase/client'
@@ -101,6 +101,51 @@ function layerScore(blocks: Record<string, unknown>, lid: string): number {
   return Object.entries(bw).reduce((s, [k, w]) => s + getScore(blocks[k] ?? 0) * w, 0)
 }
 
+// ── Solution library autocomplete ──
+interface SolutionItem { id: string; title: string; category: string | null }
+
+function SolutionAutocomplete({
+  value, solutions, onType, onSelect, style, placeholder,
+}: {
+  value: string
+  solutions: SolutionItem[]
+  onType: (v: string) => void
+  onSelect: (id: string, title: string) => void
+  style: React.CSSProperties
+  placeholder: string
+}) {
+  const [open, setOpen] = useState(false)
+  const q = value.trim().toLowerCase()
+  const matches = (q === '' ? solutions : solutions.filter(s => s.title.toLowerCase().includes(q))).slice(0, 8)
+  return (
+    <div style={{ position: 'relative' }}>
+      <input
+        value={value}
+        onChange={e => { onType(e.target.value); setOpen(true) }}
+        onFocus={() => setOpen(true)}
+        onBlur={() => setTimeout(() => setOpen(false), 120)}
+        placeholder={placeholder}
+        style={style}
+      />
+      {open && matches.length > 0 && (
+        <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 30, background: 'var(--paper)', border: '1px solid var(--rule)', borderRadius: 4, marginTop: 2, maxHeight: 180, overflowY: 'auto', boxShadow: '0 4px 12px rgba(0,0,0,.12)' }}>
+          {matches.map(s => (
+            <button
+              key={s.id}
+              type="button"
+              onMouseDown={e => { e.preventDefault(); onSelect(s.id, s.title); setOpen(false) }}
+              style={{ display: 'block', width: '100%', textAlign: 'left', padding: '5px 8px', border: 'none', borderBottom: '1px solid var(--rule-2)', background: 'transparent', cursor: 'pointer' }}
+            >
+              <span style={{ fontSize: 10.5, fontWeight: 600, color: 'var(--ink)' }}>{s.title}</span>
+              {s.category && <span style={{ marginLeft: 6, fontSize: 8.5, color: 'var(--ink-3)', textTransform: 'uppercase', letterSpacing: '.05em' }}>{s.category}</span>}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
 export default function SessionPage() {
   const router   = useRouter()
   const supabase = createClient()
@@ -108,7 +153,7 @@ export default function SessionPage() {
     cycle, activities, sessionInfo, sessionDate, therapistNote, loadError, submitted,
     currentScores, liveScores, sessionIndex, plannedSessions,
     observedActivities, cooperationStars, layerEval, regressionClass, regressionReason, planNote,
-    setLocalScore, setActivityNote, setExercise, setPurpose,
+    setLocalScore, setActivityNote, setExercise, setPurpose, selectSolution,
     addObserved, removeObserved, setObservedNote,
     setCooperationStars, setLayerEval,
     setRegressionClass, setRegressionReason, setPlanNote,
@@ -120,6 +165,18 @@ export default function SessionPage() {
   const [error, setError]   = useState<string | null>(null)
   const [obsPickerOpen, setObsPickerOpen] = useState(false)
   const [obsSearch, setObsSearch] = useState('')
+  const [solutions, setSolutions] = useState<SolutionItem[]>([])
+
+  useEffect(() => {
+    const sb = createClient()
+    let active = true
+    sb.from('solution_library')
+      .select('id, title, category')
+      .eq('is_active', true)
+      .order('title')
+      .then(({ data }) => { if (active && data) setSolutions(data as SolutionItem[]) })
+    return () => { active = false }
+  }, [])
 
   const enteredCount = Object.values(activities).filter(a => a.localScore !== null).length
   const totalBlocks  = Object.keys(activities).length
@@ -634,7 +691,8 @@ export default function SessionPage() {
             </div>
 
             {/* ── ROW 3: Hoạt động hôm nay ── */}
-            <div style={{ ...cardStyle, marginBottom: 10 }}>
+            {/* overflow:visible (override cardStyle) so the solution autocomplete dropdown is not clipped */}
+            <div style={{ ...cardStyle, overflow: 'visible', marginBottom: 10 }}>
               <div style={{ ...cardHeadStyle, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <span>Hoạt động hôm nay</span>
                 <span style={{ fontFamily: FONT_MONO, fontSize: 10, fontWeight: 600, color: 'rgba(255,255,255,.6)' }}>{filledTarget} / {targetKeys.length}</span>
@@ -669,9 +727,11 @@ export default function SessionPage() {
                           {/* Hoạt động / Bài tập → exercise */}
                           <td style={{ padding: '6px 8px', borderBottom: '1px solid var(--rule-2)', verticalAlign: 'top' }}>
                             <div style={{ fontWeight: 600, color: 'var(--ink)', fontSize: 11.5 }}>{BN[key] ?? key}</div>
-                            <input
+                            <SolutionAutocomplete
                               value={a?.exercise ?? ''}
-                              onChange={e => setExercise(key, e.target.value)}
+                              solutions={solutions}
+                              onType={v => setExercise(key, v)}
+                              onSelect={(id, title) => selectSolution(key, id, title)}
                               placeholder="Hoạt động / bài tập hôm nay..."
                               style={{ ...inlineInput, fontSize: 10, color: 'var(--ink-3)', marginTop: 2 }}
                             />
