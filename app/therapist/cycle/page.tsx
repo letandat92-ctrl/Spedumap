@@ -16,6 +16,10 @@ const SERIF = "'Libre Baskerville', serif"
 const BODY  = "'Source Sans 3', sans-serif"
 const MONO  = "'DM Mono', monospace"
 
+// ── Hypothesis picker types ──
+interface HypItem { id: string; code: string; label: string; allow_custom_note: boolean }
+interface SelectedHyp { id: string; label: string; note: string | null }
+
 export default function CyclePage() {
   const router   = useRouter()
   const supabase = createClient()
@@ -28,6 +32,63 @@ export default function CyclePage() {
   const [layerProgressions, setLayerProgressions] = useState<unknown[]>([])
   const [currentLayer, setCurrentLayer] = useState<number>(2)
   const [targetLayer] = useState<number>(4)
+
+  // ── Hypothesis picker state ──
+  const [hypLibrary, setHypLibrary]   = useState<HypItem[]>([])
+  const [selectedHyp, setSelectedHyp] = useState<SelectedHyp[]>([])
+  const [savingHyp, setSavingHyp]     = useState(false)
+  const [hypSaved, setHypSaved]       = useState(false)
+  const [hypError, setHypError]       = useState<string | null>(null)
+
+  // Fetch hypothesis_library on mount (active only, ordered by code)
+  useEffect(() => {
+    const sb = createClient()
+    let active = true
+    sb.from('hypothesis_library')
+      .select('id, code, label, allow_custom_note')
+      .eq('is_active', true)
+      .order('code')
+      .then(({ data: rows }) => { if (active && rows) setHypLibrary(rows as HypItem[]) })
+    return () => { active = false }
+  }, [])
+
+  const toggleHyp = (item: HypItem) => {
+    setHypSaved(false)
+    setSelectedHyp(prev =>
+      prev.some(h => h.id === item.id)
+        ? prev.filter(h => h.id !== item.id)
+        : [...prev, { id: item.id, label: item.label, note: null }]
+    )
+  }
+  const setHypNote = (id: string, note: string) => {
+    setHypSaved(false)
+    setSelectedHyp(prev => prev.map(h => h.id === id ? { ...h, note: note || null } : h))
+  }
+
+  async function handleSaveHypotheses() {
+    setSavingHyp(true)
+    setHypError(null)
+    try {
+      const payload = selectedHyp.map(h => ({ id: h.id, label: h.label, note: h.note ?? null }))
+      const cycleId = data?.supabase_cycle_id
+      if (cycleId) {
+        const { error } = await supabase.from('cycles').update({ hypotheses: payload }).eq('id', cycleId)
+        if (error) throw error
+      }
+      // Mirror into the persisted activeCycle object
+      const raw = localStorage.getItem(LS_KEYS.ACTIVE_CYCLE)
+      if (raw) {
+        const ac = JSON.parse(raw)
+        ac.hypotheses = payload
+        localStorage.setItem(LS_KEYS.ACTIVE_CYCLE, JSON.stringify(ac))
+      }
+      setHypSaved(true)
+    } catch (err) {
+      setHypError(err instanceof Error ? err.message : 'Lỗi lưu giả thuyết')
+    } finally {
+      setSavingHyp(false)
+    }
+  }
 
   // Load layer progressions + assessment layer when cycle opens
   useEffect(() => {
@@ -240,12 +301,81 @@ export default function CyclePage() {
               </div>
             </div>
 
-            {/* Hypothesis library — placeholder (free-text hypothesis removed; not in
-                ui_cycle_open.html spec; library data not available yet) */}
+            {/* Hypothesis picker — multi-select chips from hypothesis_library */}
             <Card title="Giả thuyết can thiệp">
-              <div style={{ fontSize: 12, color: 'var(--ink-3)', fontStyle: 'italic', padding: '4px 0' }}>
-                Hypothesis library — sẽ được cập nhật sau
-              </div>
+              {hypLibrary.length === 0 ? (
+                <div style={{ fontSize: 12, color: 'var(--ink-3)', fontStyle: 'italic', padding: '4px 0' }}>
+                  Đang tải thư viện giả thuyết...
+                </div>
+              ) : (
+                <>
+                  <div style={{ fontSize: 11, color: 'var(--ink-3)', marginBottom: 10 }}>
+                    Chọn giả thuyết cần điều tra (không bắt buộc). Có thể chọn nhiều.
+                  </div>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                    {hypLibrary.map(h => {
+                      const selected = selectedHyp.some(s => s.id === h.id)
+                      return (
+                        <button
+                          key={h.id}
+                          onClick={() => toggleHyp(h)}
+                          style={{
+                            padding: '6px 13px', borderRadius: 999, fontFamily: BODY, fontSize: 12, fontWeight: 600,
+                            cursor: 'pointer', transition: 'all .12s',
+                            background: selected ? 'var(--navy)' : 'transparent',
+                            color:      selected ? '#fff' : 'var(--ink)',
+                            border: `1px solid ${selected ? 'var(--navy)' : 'var(--rule)'}`,
+                          }}
+                        >
+                          {h.label}
+                        </button>
+                      )
+                    })}
+                  </div>
+
+                  {/* Custom-note inputs for selected allow_custom_note hypotheses */}
+                  {hypLibrary
+                    .filter(h => h.allow_custom_note && selectedHyp.some(s => s.id === h.id))
+                    .map(h => (
+                      <div key={h.id} style={{ marginTop: 10 }}>
+                        <label style={{ display: 'block', fontSize: 9, fontWeight: 700, letterSpacing: '.1em', textTransform: 'uppercase', color: 'var(--ink-3)', marginBottom: 4 }}>
+                          {h.label} — ghi rõ tên hội chứng
+                        </label>
+                        <input
+                          value={selectedHyp.find(s => s.id === h.id)?.note ?? ''}
+                          onChange={e => setHypNote(h.id, e.target.value)}
+                          placeholder="Ví dụ: Down syndrome, Fragile X, Rett..."
+                          style={inputStyle}
+                        />
+                      </div>
+                    ))}
+
+                  {hypError && (
+                    <div style={{ marginTop: 10, padding: '8px 12px', background: 'var(--red-bg)', border: '1px solid var(--red-bd)', borderRadius: 5, fontSize: 11.5, color: 'var(--red)' }}>
+                      {hypError}
+                    </div>
+                  )}
+
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 14 }}>
+                    <button
+                      onClick={handleSaveHypotheses}
+                      disabled={savingHyp}
+                      style={{
+                        height: 34, padding: '0 18px', border: 'none', borderRadius: 5,
+                        background: 'var(--navy)', color: '#fff', fontFamily: BODY, fontSize: 12, fontWeight: 700,
+                        cursor: savingHyp ? 'not-allowed' : 'pointer', opacity: savingHyp ? 0.6 : 1,
+                      }}
+                    >
+                      {savingHyp ? 'Đang lưu...' : 'Lưu giả thuyết'}
+                    </button>
+                    {hypSaved && (
+                      <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--green)' }}>
+                        ✓ Đã lưu {selectedHyp.length} giả thuyết
+                      </span>
+                    )}
+                  </div>
+                </>
+              )}
             </Card>
 
             {/* Layer Progression Chart */}

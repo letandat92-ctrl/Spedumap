@@ -26,7 +26,7 @@ export interface ActivityEntry {
   block:       string
   localScore:  LocalScore | null
   note:        string
-  exercise:    string        // "Bài tập" — intervention activity (template MOCK_ACT)
+  exercise:    string        // "Bài tập" — intervention activity
   purpose:     string        // "Mục đích" — focus / downstream purpose
   solutionId:  string | null // solution_library.id when picked from autocomplete; null on free typing
 }
