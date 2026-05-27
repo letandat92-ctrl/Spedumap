@@ -6,8 +6,8 @@
 // Baseline → Target → Retest. "Mở Cycle mới" pre-seeds the retest blocks as
 // the next baseline and routes to /therapist/baseline.
 
-import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { useState, useEffect, Suspense } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import {
   runEngine, getScore,
@@ -68,14 +68,21 @@ interface CycleRow {
   ended_at: string | null
 }
 
+// useSearchParams() must be read inside a Suspense boundary (Next.js App Router).
 export default function CloseSummaryPage() {
+  return (
+    <Suspense fallback={<div className="p-8 text-sm text-[var(--ink-3)]">Đang tải...</div>}>
+      <CloseSummaryInner />
+    </Suspense>
+  )
+}
+
+function CloseSummaryInner() {
   const router = useRouter()
   const [supabase] = useState(() => createClient())
 
-  const [cycleId, setCycleId] = useState<string | null>(null)
-  useEffect(() => {
-    setCycleId(new URLSearchParams(window.location.search).get('cycle_id'))
-  }, [])
+  const searchParams = useSearchParams()
+  const cycleId = searchParams.get('cycle_id')   // string | null (resolved synchronously)
 
   const [cycle, setCycle] = useState<CycleRow | null>(null)
   const [child, setChild] = useState<{ name: string; dob: string | null } | null>(null)
@@ -84,8 +91,9 @@ export default function CloseSummaryPage() {
   const [loadError, setLoadError] = useState<string | null>(null)
 
   useEffect(() => {
-    if (cycleId === null) return
-    if (!cycleId) { setLoadError('Thiếu mã chu kỳ (cycle_id)'); setLoading(false); return }
+    // cycleId from useSearchParams() is resolved synchronously — null/empty means
+    // the param is genuinely absent, so fail fast (never infinite-load).
+    if (!cycleId) { setLoadError('Thiếu mã chu kỳ (cycle_id) trong URL'); setLoading(false); return }
     let cancelled = false
     setLoading(true)
     ;(async () => {

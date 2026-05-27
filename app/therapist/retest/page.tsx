@@ -6,8 +6,8 @@
 // (no KPI, no signals, no charts, no baseline/target/previous scores) — strict
 // blind assessment. Lock → useRetest.lock() → /therapist/close-summary.
 
-import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { useState, Suspense } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { useRetest } from '@/hooks/useRetest'
 import { LayerSection } from '@/components/blocks/LayerSection'
 
@@ -40,13 +40,19 @@ function ageString(dob: string): string {
   return `${Math.floor(months / 12)} tuổi ${months % 12} tháng`
 }
 
+// useSearchParams() must be read inside a Suspense boundary (Next.js App Router).
 export default function RetestPage() {
-  const router = useRouter()
+  return (
+    <Suspense fallback={<div className="p-8 text-sm text-[var(--ink-3)]">Đang tải...</div>}>
+      <RetestInner />
+    </Suspense>
+  )
+}
 
-  const [cycleId, setCycleId] = useState<string | null>(null)
-  useEffect(() => {
-    setCycleId(new URLSearchParams(window.location.search).get('cycle_id'))
-  }, [])
+function RetestInner() {
+  const router = useRouter()
+  const searchParams = useSearchParams()
+  const cycleId = searchParams.get('cycle_id')   // string | null (resolved synchronously)
 
   const {
     blocks, meta, loading, loadError, enteredCount, totalCount,
@@ -81,6 +87,7 @@ export default function RetestPage() {
   }
 
   const progressPct = totalCount > 0 ? Math.round((enteredCount / totalCount) * 100) : 0
+  const childAge    = ageString(meta?.childDob || '')
 
   if (loading) return <div className="p-8 text-sm text-[var(--ink-3)]">Đang tải thông tin trẻ...</div>
 
@@ -99,17 +106,27 @@ export default function RetestPage() {
   return (
     <div className="flex flex-col min-h-screen bg-[var(--warm-bg)]" style={{ fontFamily: "'Inter', sans-serif" }}>
 
-      {/* ── TOP APP-BAR ── */}
-      <header className="flex-shrink-0 h-[52px] flex items-center justify-between px-5 bg-[var(--card)] border-b border-[var(--border)] z-30 sticky top-0">
-        <div className="flex items-center gap-3">
-          <h1 className="text-[15px] font-bold tracking-[0.04em]" style={{ fontFamily: "'Oswald', sans-serif" }}>
+      {/* ── TOP APP-BAR (page header — carries child identity) ── */}
+      <header className="flex-shrink-0 min-h-[52px] flex items-center justify-between px-5 py-2 bg-[var(--card)] border-b border-[var(--border)] z-30 sticky top-0 gap-3">
+        <div className="flex items-center gap-3 min-w-0">
+          <h1 className="text-[15px] font-bold tracking-[0.04em] flex-shrink-0" style={{ fontFamily: "'Oswald', sans-serif" }}>
             SPEDUMAP <span className="text-[var(--red)]">Retest</span>
           </h1>
-          <span className="text-[9px] font-bold px-[7px] py-0.5 rounded-[3px] bg-[var(--gold-bg)] text-[var(--gold)] border border-[var(--gold-bd)]" style={{ fontFamily: "'Oswald', sans-serif" }}>
+          <span className="text-[9px] font-bold px-[7px] py-0.5 rounded-[3px] bg-[var(--gold-bg)] text-[var(--gold)] border border-[var(--gold-bd)] flex-shrink-0" style={{ fontFamily: "'Oswald', sans-serif" }}>
             BLIND ASSESSMENT
           </span>
+          {/* Child identity in the page header */}
+          <div className="hidden sm:flex items-baseline gap-2 min-w-0 border-l border-[var(--border)] pl-3">
+            <span className="text-[13px] font-semibold text-[var(--navy)] truncate" style={{ fontFamily: "'Oswald', sans-serif" }}>
+              {meta?.childName || '—'}
+            </span>
+            <span className="text-[10px] text-[var(--sub-2)] whitespace-nowrap">
+              {childAge}
+              {meta?.cycleId && <> · <span className="font-mono">{meta.cycleId.slice(0, 8)}</span></>}
+            </span>
+          </div>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 flex-shrink-0">
           <div className="flex items-center gap-2">
             <span className="text-[9px] font-semibold tracking-[0.1em] uppercase text-[var(--sub)]" style={{ fontFamily: "'Oswald', sans-serif" }}>Blocks</span>
             <div className="w-[100px] h-[3px] bg-[var(--border)] rounded-sm overflow-hidden">
@@ -135,13 +152,13 @@ export default function RetestPage() {
       {/* ── BODY: single centered column (no result panel — blind) ── */}
       <div className="flex-1 w-full max-w-[460px] mx-auto px-3 py-4">
 
-        {/* Child info strip — name + age + cycle id only */}
+        {/* Child info strip — name + age + cycle id (also in header for redundancy) */}
         <div className="mb-3 px-4 py-3 bg-[var(--card)] border border-[var(--border)] rounded-lg">
           <div className="text-[18px] font-semibold text-[var(--navy)]" style={{ fontFamily: "'Oswald', sans-serif" }}>
             {meta?.childName || '—'}
           </div>
           <div className="text-[11px] text-[var(--sub-2)] mt-0.5">
-            {ageString(meta?.childDob || '')}
+            {childAge}
             {meta?.cycleId && <> · Chu kỳ: <span className="font-mono">{meta.cycleId.slice(0, 8)}</span></>}
           </div>
           <div className="mt-2 text-[10px] leading-snug text-[var(--gold)] bg-[var(--gold-bg)] border border-[var(--gold-bd)] rounded px-2.5 py-1.5">

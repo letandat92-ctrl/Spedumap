@@ -75,8 +75,9 @@ export function useRetest(cycleId: string | null) {
 
   // ── Load child metadata ONLY (blind: never read baseline/target/scores) ──
   useEffect(() => {
-    if (cycleId === null) return            // wait until query param resolves
-    if (!cycleId) { setLoadError('Thiếu mã chu kỳ (cycle_id)'); setLoading(false); return }
+    // cycleId comes from useSearchParams(), resolved synchronously — a null/empty
+    // value means the param is genuinely absent, so fail fast (never infinite-load).
+    if (!cycleId) { setLoadError('Thiếu mã chu kỳ (cycle_id) trong URL'); setLoading(false); return }
 
     let cancelled = false
     setLoading(true)
@@ -164,6 +165,18 @@ export function useRetest(cycleId: string | null) {
           retest_locked_at: nowIso,
           status:           'closed',
           ended_at:         today,
+          // Required by the validate_cycle_outcome_on_close trigger: the cycle
+          // cannot move to 'closed' with a NULL cycle_outcome. The retest IS the
+          // official end-of-cycle measurement, so record it here (blind-safe —
+          // derived only from the freshly entered retest blocks).
+          cycle_outcome: {
+            computed_at:      nowIso,
+            source:           'retest',
+            total_score_end:  r.total,
+            stage_end:        r.stage,
+            signals_end:      r.signals,
+            protocol_version: 'engine_v3.2',
+          },
         })
         .eq('id', cycleId)
 
