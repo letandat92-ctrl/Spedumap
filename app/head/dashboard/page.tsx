@@ -218,9 +218,15 @@ export default function HeadDashboard() {
 
       {/* Header */}
       <div className="bg-[var(--navy)] px-8 py-4 flex items-center justify-between">
-        <div>
+        <div className="flex items-center gap-5">
           <span className="font-serif font-bold text-white text-lg">SPEDUMAP</span>
-          <span className="text-white/50 text-sm ml-2">/ Head Dashboard</span>
+          <nav className="flex items-center gap-1">
+            <button onClick={() => router.push('/head/children')}
+              className="text-xs font-semibold text-white/50 hover:text-white/80 px-2 py-1">
+              Trẻ &amp; Phụ huynh
+            </button>
+            <span className="text-xs font-semibold text-white border-b-2 border-white px-2 py-1">Dashboard</span>
+          </nav>
         </div>
         <div className="flex items-center gap-4">
           <input
