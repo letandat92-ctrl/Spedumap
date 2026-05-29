@@ -278,8 +278,9 @@ export function useSession() {
       })
   }, [cycle, activities, layerEval])
 
-  // After submit — push session to localStorage
-  const commitSession = useCallback((sessionData: ReturnType<typeof buildSessionOutput>) => {
+  // After submit — push session to localStorage. confirmLink (optional) is the
+  // parent-confirmation URL built from the persisted row's confirm_token.
+  const commitSession = useCallback((sessionData: ReturnType<typeof buildSessionOutput>, confirmLink?: string | null) => {
     if (!cycle || !sessionData) return
     const updated = {
       ...cycle,
@@ -296,6 +297,7 @@ export function useSession() {
         plan_note:           sessionData.plan_note,
         layer_eval:          sessionData.layer_eval,
         parent_confirmed:    false,
+        confirm_link:        confirmLink ?? null,
       }]
     }
     localStorage.setItem(LS_KEYS.ACTIVE_CYCLE, JSON.stringify(updated))

@@ -166,6 +166,8 @@ export default function SessionPage() {
   const [obsPickerOpen, setObsPickerOpen] = useState(false)
   const [obsSearch, setObsSearch] = useState('')
   const [solutions, setSolutions] = useState<SolutionItem[]>([])
+  const [confirmLink, setConfirmLink] = useState<string | null>(null)
+  const [linkCopied, setLinkCopied]   = useState(false)
 
   useEffect(() => {
     const sb = createClient()
@@ -188,6 +190,7 @@ export default function SessionPage() {
       const output = buildSessionOutput()
       if (!output) throw new Error('Không có data')
 
+      let link: string | null = null
       const cycleId = (cycle?.supabase_cycle_id as string) || (cycle?.cycle_id as string)
       if (cycleId && cycleId.includes('-')) {
         const { data: sessRow, error: sbErr } = await supabase.from('daily_sessions').insert({
@@ -206,7 +209,7 @@ export default function SessionPage() {
           plan_note:           output.plan_note,
           layer_eval:          output.layer_eval,
           parent_confirmed:    false,
-        }).select('id').single()
+        }).select('id, confirm_token').single()
         if (sbErr) console.warn('Supabase save failed:', sbErr.message)
 
         // Engine data pipeline: record each library-linked activity into
@@ -218,9 +221,15 @@ export default function SessionPage() {
             if (soErr) console.warn('solution_outcomes save failed:', soErr.message)
           }
         }
+
+        // Parent-confirmation link — capability URL keyed to the row's token.
+        if (sessRow?.confirm_token) {
+          link = `${window.location.origin}/confirm?token=${sessRow.confirm_token}`
+          setConfirmLink(link)
+        }
       }
 
-      commitSession(output)
+      commitSession(output, link)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Lỗi không xác định')
     } finally {
@@ -258,6 +267,32 @@ export default function SessionPage() {
           <p className="text-sm text-[var(--ink-3)] mb-6">
             {enteredCount} blocks · {sessionDate}
           </p>
+
+          {confirmLink && (
+            <div className="mb-6 text-left rounded-lg border border-[var(--rule)] bg-[var(--rule-2)] p-4">
+              <div className="text-xs font-semibold text-[var(--ink-2)] mb-1">Link xác nhận cho phụ huynh</div>
+              <p className="text-[11px] text-[var(--ink-3)] mb-2">Gửi link này để phụ huynh xác nhận buổi trị liệu.</p>
+              <div className="flex gap-2">
+                <input
+                  readOnly
+                  value={confirmLink}
+                  onFocus={e => e.currentTarget.select()}
+                  className="flex-1 h-9 px-2 text-xs font-mono border border-[var(--rule)] rounded bg-white text-[var(--ink-2)]"
+                />
+                <button
+                  onClick={() => {
+                    navigator.clipboard?.writeText(confirmLink).then(() => {
+                      setLinkCopied(true); setTimeout(() => setLinkCopied(false), 1800)
+                    })
+                  }}
+                  className="px-3 h-9 rounded bg-[var(--navy)] text-white text-xs font-semibold whitespace-nowrap"
+                >
+                  {linkCopied ? '✓ Đã copy' : 'Copy'}
+                </button>
+              </div>
+            </div>
+          )}
+
           <div className="flex gap-3 justify-center">
             <button
               onClick={() => router.push('/therapist/report')}

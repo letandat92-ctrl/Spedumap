@@ -10,7 +10,10 @@ const ROLE_ROUTES: Record<string, string[]> = {
 }
 
 // Public routes — no auth required
-const PUBLIC_ROUTES = ['/auth/login', '/auth/change-password', '/parent']
+// '/confirm' is the parent session-confirmation page: it talks only to the
+// confirm-session Edge Function via an unguessable capability token, never to
+// the DB directly, so it must bypass the auth gate.
+const PUBLIC_ROUTES = ['/auth/login', '/auth/change-password', '/parent', '/confirm']
 
 export async function middleware(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request })
