@@ -18,6 +18,8 @@ export default async function RootPage() {
     .single()
 
   const role = profile?.role
+  if (role === 'admin')          redirect('/admin')
   if (role === 'head_therapist') redirect('/head/dashboard')
-  redirect('/therapist/baseline')
+  if (role === 'parent')         redirect('/parent')
+  redirect('/therapist/baseline')  // senior_therapist, technician_therapist, junior_therapist
 }

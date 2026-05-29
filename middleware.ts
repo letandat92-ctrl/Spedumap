@@ -3,17 +3,23 @@ import { NextResponse, type NextRequest } from 'next/server'
 
 // Role → allowed path prefixes
 const ROLE_ROUTES: Record<string, string[]> = {
-  admin:            ['/admin', '/therapist', '/head'],
-  head_therapist:   ['/head', '/therapist'],
-  senior_therapist: ['/therapist'],
-  junior_therapist: ['/therapist'],
+  admin:                ['/admin', '/therapist', '/head', '/parent'],
+  head_therapist:       ['/head', '/therapist'],
+  senior_therapist:     ['/therapist'],
+  technician_therapist: ['/therapist'],
+  junior_therapist:     ['/therapist'],
+  parent:               ['/parent'],
 }
 
 // Public routes — no auth required
 // '/confirm' is the parent session-confirmation page: it talks only to the
 // confirm-session Edge Function via an unguessable capability token, never to
 // the DB directly, so it must bypass the auth gate.
-const PUBLIC_ROUTES = ['/auth/login', '/auth/change-password', '/parent', '/confirm']
+// Only '/parent/auth' (the parent login page) is public; the rest of '/parent'
+// is gated so first-time magic-link parents get auto-provisioned below.
+// '/auth/callback' must be public: the magic-link code exchange runs there
+// before any session cookie exists.
+const PUBLIC_ROUTES = ['/auth/login', '/auth/change-password', '/auth/callback', '/parent/auth', '/confirm']
 
 export async function middleware(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request })
@@ -45,9 +51,10 @@ export async function middleware(request: NextRequest) {
     return supabaseResponse
   }
 
-  // Not logged in → redirect to login
+  // Not logged in → redirect to login. Parent routes go to the parent login.
   if (!user) {
-    return NextResponse.redirect(new URL('/auth/login', request.url))
+    const loginUrl = path.startsWith('/parent') ? '/parent/auth' : '/auth/login'
+    return NextResponse.redirect(new URL(loginUrl, request.url))
   }
 
   // Get role from user_profiles
@@ -60,6 +67,19 @@ export async function middleware(request: NextRequest) {
   const role = profile?.role as string | undefined
 
   if (!role) {
+    // A logged-in user with no profile row who is heading into the parent
+    // portal is a first-time magic-link parent: auto-provision their profile
+    // as 'parent' and let them through. Insert is RLS-guarded by the
+    // parent_self_insert policy (auth.uid() = id AND role = 'parent').
+    if (path.startsWith('/parent')) {
+      const { error: insErr } = await supabase.from('user_profiles').insert({
+        id:    user.id,
+        email: user.email,
+        role:  'parent',
+      })
+      if (insErr) return NextResponse.redirect(new URL('/auth/login', request.url))
+      return supabaseResponse
+    }
     return NextResponse.redirect(new URL('/auth/login', request.url))
   }
 
@@ -70,9 +90,10 @@ export async function middleware(request: NextRequest) {
   if (!hasAccess) {
     // Redirect to their default route
     const defaultRoute =
-      role === 'admin'          ? '/therapist/baseline' :
-      role === 'head_therapist' ? '/head/dashboard'     :
-      '/therapist/baseline'
+      role === 'admin'          ? '/admin'          :
+      role === 'head_therapist' ? '/head/dashboard' :
+      role === 'parent'         ? '/parent'         :
+      '/therapist/baseline'   // senior_therapist, technician_therapist, junior_therapist
     return NextResponse.redirect(new URL(defaultRoute, request.url))
   }
 
