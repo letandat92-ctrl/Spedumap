@@ -6,8 +6,15 @@ import { createClient } from '@/lib/supabase/client'
 import { runEngine } from '@/lib/engine'
 import { LS_KEYS } from '@/types/spedumap'
 import { ReportKPI, ChildStrip, MetadataStrip, SessionTimeline } from '@/components/charts/ReportComponents'
+import { LineChart, Line, XAxis, YAxis, Tooltip, Legend, CartesianGrid, ResponsiveContainer } from 'recharts'
 
 export const dynamic = 'force-dynamic'
+
+const LAYER_IDS = ['L0','L1','L2','L3','L4','L5','L6','L7']
+const LAYER_COLORS: Record<string,string> = {
+  L0:'#8B1A1A', L1:'#A02020', L2:'#B83030', L3:'#C55030',
+  L4:'#C87020', L5:'#4A8A60', L6:'#2A6A9A', L7:'#3A5AAA',
+}
 
 
 const B2L: Record<string,string> = {
@@ -72,6 +79,9 @@ export default function ReportPage() {
   const [closeSummary, setCloseSummary] = useState('')
   const [closing, setClosing]   = useState(false)
   const [closeError, setCloseError] = useState<string|null>(null)
+  // Per-session layer evaluation — sourced from Supabase (not localStorage) so
+  // it stays consistent with solution_outcomes written server-side per session.
+  const [evalSessions, setEvalSessions] = useState<Array<{session_index:number; layer_eval?:Record<string,number|null>; date?:string}>>([])
 
   useEffect(() => {
     try {
@@ -80,6 +90,20 @@ export default function ReportPage() {
       setCycle(JSON.parse(raw))
     } catch { setLoadError('Không đọc được cycle data') }
   }, [])
+
+  // Fetch this cycle's sessions for the per-session layer-eval chart.
+  useEffect(() => {
+    const cycleId = cycle?.supabase_cycle_id as string | undefined
+    if (!cycleId || !cycleId.includes('-')) return
+    const sb = createClient()
+    let active = true
+    sb.from('daily_sessions')
+      .select('session_index, layer_eval, date')
+      .eq('cycle_id', cycleId)
+      .order('session_index', { ascending: true })
+      .then(({ data }) => { if (active && data) setEvalSessions(data as Array<{session_index:number; layer_eval?:Record<string,number|null>; date?:string}>) })
+    return () => { active = false }
+  }, [cycle])
 
   if (loadError) return (
     <div className="min-h-screen flex items-center justify-center">
@@ -110,6 +134,18 @@ export default function ReportPage() {
   const sessions = (cycle.daily_sessions as unknown[])?.length ?? 0
   const planned = (cycle.planned_sessions as number) ?? 24
   const child = cycle.child as {name:string}
+
+  // Per-session layer evaluation (therapist's 0–6 mark) → line chart data.
+  // evalSessions is fetched from Supabase (see effect above). One series per
+  // layer that has at least one recorded score this cycle.
+  const evalChartData = [...evalSessions]
+    .sort((a,b) => a.session_index - b.session_index)
+    .map(s => {
+      const row: Record<string, number|null> = { session: s.session_index }
+      for (const l of LAYER_IDS) row[l] = (s.layer_eval?.[l] ?? null)
+      return row
+    })
+  const layersWithEval = LAYER_IDS.filter(l => evalChartData.some(r => typeof r[l] === 'number'))
 
   const selectedReason = CLOSE_REASONS.find(r => r.value === closeReason)
   const noteRequired   = selectedReason?.needNote ?? false
@@ -189,6 +225,27 @@ export default function ReportPage() {
 
       {/* Session timeline */}
       <SessionTimeline sessions={(cycle.daily_sessions as Array<{session_index:number;date:string;activities?:Array<{delta:number}>;observed_activities?:Array<{delta:number}>;therapist?:string;notes?:string;regression_note?:string}>) || []} />
+
+      {/* Per-session layer evaluation chart */}
+      {layersWithEval.length > 0 && (
+        <div className="bg-white border border-[var(--rule)] rounded-xl p-5 mb-6">
+          <h3 className="text-sm font-semibold text-[var(--ink)] mb-1">Tiến bộ theo buổi</h3>
+          <p className="text-[11px] text-[var(--ink-3)] mb-4">Đánh giá layer (0–6) của therapist qua từng session</p>
+          <ResponsiveContainer width="100%" height={260}>
+            <LineChart data={evalChartData} margin={{ top: 8, right: 16, bottom: 4, left: -16 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="var(--rule)" />
+              <XAxis dataKey="session" tick={{ fontSize: 11 }} label={{ value: 'Session', position: 'insideBottom', offset: -2, fontSize: 11 }} />
+              <YAxis domain={[0, 6]} ticks={[0,1,2,3,4,5,6]} tick={{ fontSize: 11 }} />
+              <Tooltip contentStyle={{ fontSize: 12 }} labelFormatter={v => `Session ${v}`} />
+              <Legend wrapperStyle={{ fontSize: 11 }} />
+              {layersWithEval.map(l => (
+                <Line key={l} type="monotone" dataKey={l} name={l} stroke={LAYER_COLORS[l]}
+                  strokeWidth={2} dot={{ r: 3 }} connectNulls />
+              ))}
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
+      )}
 
       {/* Block progress table */}
       <div className="bg-white border border-[var(--rule)] rounded-xl p-5 mb-6">

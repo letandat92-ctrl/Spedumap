@@ -151,6 +151,35 @@ export function useRetest(cycleId: string | null) {
       const nowIso = new Date().toISOString()
       const today  = nowIso.split('T')[0]
 
+      // ── Engine validation: aggregate this cycle's solution_outcomes ──────
+      // layer_eval_avg = AVG(layer_eval_score) per layer (therapist's 0–6 mark).
+      // engine_validation = predicted (Σ block_delta) vs actual (layer_eval_avg)
+      // per layer, with drift = actual − predicted. Both are best-effort: a
+      // cycle with no library-linked activities simply yields empty maps.
+      const layerEvalAvg: Record<string, number> = {}
+      const engineValidation: Record<string, { predicted: number; actual: number; drift: number }> = {}
+      const { data: outcomes } = await supabase
+        .from('solution_outcomes')
+        .select('layer, block_delta, layer_eval_score')
+        .eq('cycle_id', cycleId)
+
+      if (outcomes && outcomes.length) {
+        const agg: Record<string, { evalSum: number; evalN: number; deltaSum: number }> = {}
+        for (const o of outcomes as Array<{ layer: string | null; block_delta: number | null; layer_eval_score: number | null }>) {
+          if (!o.layer) continue
+          const a = agg[o.layer] ?? (agg[o.layer] = { evalSum: 0, evalN: 0, deltaSum: 0 })
+          if (typeof o.layer_eval_score === 'number') { a.evalSum += o.layer_eval_score; a.evalN += 1 }
+          if (typeof o.block_delta === 'number') a.deltaSum += o.block_delta
+        }
+        const round2 = (n: number) => Math.round(n * 100) / 100
+        for (const [layer, a] of Object.entries(agg)) {
+          const actual    = a.evalN ? round2(a.evalSum / a.evalN) : 0
+          const predicted = round2(a.deltaSum)
+          if (a.evalN) layerEvalAvg[layer] = actual
+          engineValidation[layer] = { predicted, actual, drift: round2(actual - predicted) }
+        }
+      }
+
       const { error: updErr } = await supabase
         .from('cycles')
         .update({
@@ -176,6 +205,8 @@ export function useRetest(cycleId: string | null) {
             stage_end:        r.stage,
             signals_end:      r.signals,
             protocol_version: 'engine_v3.2',
+            layer_eval_avg:    layerEvalAvg,
+            engine_validation: engineValidation,
           },
         })
         .eq('id', cycleId)

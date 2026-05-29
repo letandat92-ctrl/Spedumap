@@ -158,7 +158,7 @@ export default function SessionPage() {
     setCooperationStars, setLayerEval,
     setRegressionClass, setRegressionReason, setPlanNote,
     setSessionDate, setTherapistNote, setSessionInfo,
-    buildSessionOutput, commitSession,
+    buildSessionOutput, buildSolutionOutcomes, commitSession,
   } = useSession()
 
   const [saving, setSaving] = useState(false)
@@ -190,7 +190,7 @@ export default function SessionPage() {
 
       const cycleId = (cycle?.supabase_cycle_id as string) || (cycle?.cycle_id as string)
       if (cycleId && cycleId.includes('-')) {
-        const { error: sbErr } = await supabase.from('daily_sessions').insert({
+        const { data: sessRow, error: sbErr } = await supabase.from('daily_sessions').insert({
           cycle_id:            cycleId,
           child_id:            (cycle?.child as { id: string })?.id,
           date:                output.date,
@@ -206,8 +206,18 @@ export default function SessionPage() {
           plan_note:           output.plan_note,
           layer_eval:          output.layer_eval,
           parent_confirmed:    false,
-        })
+        }).select('id').single()
         if (sbErr) console.warn('Supabase save failed:', sbErr.message)
+
+        // Engine data pipeline: record each library-linked activity into
+        // solution_outcomes, keyed to the persisted session id.
+        if (sessRow?.id) {
+          const outcomes = buildSolutionOutcomes(sessRow.id)
+          if (outcomes.length) {
+            const { error: soErr } = await supabase.from('solution_outcomes').insert(outcomes)
+            if (soErr) console.warn('solution_outcomes save failed:', soErr.message)
+          }
+        }
       }
 
       commitSession(output)

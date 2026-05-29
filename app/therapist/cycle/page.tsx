@@ -20,6 +20,9 @@ const MONO  = "'DM Mono', monospace"
 interface HypItem { id: string; code: string; label: string; allow_custom_note: boolean }
 interface SelectedHyp { id: string; label: string; note: string | null }
 
+// ── Top-solutions (engine data pipeline) ──
+interface TopSolution { solution_title: string; block: string; avg_impact: number; n: number }
+
 export default function CyclePage() {
   const router   = useRouter()
   const supabase = createClient()
@@ -32,6 +35,7 @@ export default function CyclePage() {
   const [layerProgressions, setLayerProgressions] = useState<unknown[]>([])
   const [currentLayer, setCurrentLayer] = useState<number>(2)
   const [targetLayer] = useState<number>(4)
+  const [topSolutions, setTopSolutions] = useState<TopSolution[]>([])
 
   // ── Hypothesis picker state ──
   const [hypLibrary, setHypLibrary]   = useState<HypItem[]>([])
@@ -104,6 +108,36 @@ export default function CyclePage() {
         .catch(err => console.error('Failed to load assessment:', err))
     }
   }, [isOpened, data?.supabase_cycle_id, data?.child?.id, supabase])
+
+  // Top solutions this cycle — aggregate solution_outcomes by (solution_title,
+  // block): avg_impact = AVG(block_delta), n = COUNT, top 5 by avg_impact.
+  // Empty until daily sessions log library-linked activities.
+  useEffect(() => {
+    if (!isOpened || !data?.supabase_cycle_id) return
+    let active = true
+    supabase
+      .from('solution_outcomes')
+      .select('solution_title, block, block_delta')
+      .eq('cycle_id', data.supabase_cycle_id)
+      .then(({ data: rows }) => {
+        if (!active || !rows) return
+        const agg: Record<string, { solution_title: string; block: string; sum: number; n: number }> = {}
+        for (const r of rows as Array<{ solution_title: string|null; block: string|null; block_delta: number|null }>) {
+          const title = r.solution_title || '(không tên)'
+          const block = r.block || '—'
+          const key = title + '||' + block
+          const a = agg[key] ?? (agg[key] = { solution_title: title, block, sum: 0, n: 0 })
+          if (typeof r.block_delta === 'number') { a.sum += r.block_delta; a.n += 1 }
+        }
+        const ranked = Object.values(agg)
+          .filter(a => a.n > 0)
+          .map(a => ({ solution_title: a.solution_title, block: a.block, avg_impact: a.sum / a.n, n: a.n }))
+          .sort((x, y) => y.avg_impact - x.avg_impact)
+          .slice(0, 5)
+        setTopSolutions(ranked)
+      })
+    return () => { active = false }
+  }, [isOpened, data?.supabase_cycle_id, supabase])
 
   async function handleOpen() {
     if (!data) return
@@ -385,6 +419,34 @@ export default function CyclePage() {
                 currentLayer={currentLayer}
                 targetLayer={targetLayer}
               />
+            </Card>
+
+            {/* Top solutions this cycle — ranked by avg block_delta impact */}
+            <Card title="Top Solutions chu kỳ này">
+              {topSolutions.length === 0 ? (
+                <div style={{ fontSize: 12, color: 'var(--ink-3)', fontStyle: 'italic', padding: '4px 0' }}>
+                  Chưa có dữ liệu — sẽ tổng hợp sau khi các buổi daily ghi nhận solution.
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {topSolutions.map((s, i) => (
+                    <div key={s.solution_title + s.block} className="flex items-center gap-3"
+                      style={{ padding: '8px 10px', background: 'var(--bg)', border: '1px solid var(--rule)', borderRadius: 6 }}>
+                      <div className="flex items-center justify-center flex-shrink-0"
+                        style={{ width: 22, height: 22, borderRadius: '50%', background: 'var(--navy)', color: '#fff', fontFamily: MONO, fontSize: 11, fontWeight: 700 }}>
+                        {i + 1}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--ink)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{s.solution_title}</div>
+                        <div style={{ fontSize: 10, color: 'var(--ink-3)', textTransform: 'uppercase', letterSpacing: '.05em' }}>{s.block} · n={s.n}</div>
+                      </div>
+                      <div className="flex-shrink-0" style={{ fontFamily: MONO, fontSize: 14, fontWeight: 700, color: s.avg_impact >= 0 ? 'var(--green)' : 'var(--red)' }}>
+                        {s.avg_impact >= 0 ? '+' : ''}{s.avg_impact.toFixed(2)}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </Card>
           </div>
         ) : (
