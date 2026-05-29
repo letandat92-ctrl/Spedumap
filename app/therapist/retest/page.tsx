@@ -6,9 +6,11 @@
 // (no KPI, no signals, no charts, no baseline/target/previous scores) — strict
 // blind assessment. Lock → useRetest.lock() → /therapist/close-summary.
 
-import { useState, Suspense } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useRetest } from '@/hooks/useRetest'
+import { useRole } from '@/hooks/useRole'
+import { can } from '@/lib/permissions'
 import { LayerSection } from '@/components/blocks/LayerSection'
 
 export const dynamic = 'force-dynamic'
@@ -61,6 +63,12 @@ function RetestInner() {
   } = useRetest(cycleId)
 
   const [showModal, setShowModal] = useState(false)
+
+  // Permission gate: retest closes a cycle → close_cycle (Head Therapist+).
+  const { role, roleLoading } = useRole()
+  useEffect(() => {
+    if (!roleLoading && !can(role, 'close_cycle')) router.replace('/therapist/baseline')
+  }, [roleLoading, role, router])
 
   // Validation — identical rules to baseline (blind, but same quality gate)
   const allScored  = Object.values(blocks).every(b => b.score !== null)

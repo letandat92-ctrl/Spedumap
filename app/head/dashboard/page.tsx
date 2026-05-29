@@ -29,11 +29,6 @@ const BW: Record<string,Record<string,number>> = {
   L7:{math:1/3,writing:1/3,reading:1/3},
 }
 const LAYER_W: Record<string,number> = {L0:18,L1:16,L2:14,L3:12,L4:12,L5:10,L6:10,L7:8}
-const BN: Record<string,string> = {
-  sleep:'Sleep',microbiome:'Microbiome',nutrition:'Nutrition',immune:'Immune',metabolic:'Metabolic',
-  arousal:'Arousal',vestibular:'Vestibular',attention:'Attention',oral_language:'Oral Language',
-  auditory_processing:'Auditory Processing',ns_stability:'NS Stability',
-}
 
 function getScore(v: unknown): number {
   if (typeof v === 'number') return v
@@ -44,7 +39,8 @@ function getScore(v: unknown): number {
 // ── Compute functions (mirrors HTML) ──────────────────────────
 
 type Blocks = Record<string, unknown>
-type Session = { date: string; activities: Array<{block:string; delta:number}> }
+type Session = { date: string; session_index?: number; regression_flag?: boolean; activities?: Array<{block:string; delta:number}> }
+type Therapist = { full_name?: string | null; role?: string | null } | null
 type CycleRaw = {
   id: string
   cycle_name?: string
@@ -57,7 +53,14 @@ type CycleRaw = {
   baseline: { blocks: Blocks; total_score: number; stage: string }
   target: { blocks: Blocks }
   daily_sessions: Session[]
-  teacher_id?: string
+  teacher_id?: string | null
+  therapist?: Therapist
+}
+
+// Short role labels for the therapist chip
+const ROLE_LABEL: Record<string, string> = {
+  admin: 'Admin', head_therapist: 'Head', senior_therapist: 'Senior',
+  technician_therapist: 'Technician', junior_therapist: 'Junior', parent: 'Parent',
 }
 
 function computeCur(c: CycleRaw): Record<string,number> {
@@ -95,9 +98,9 @@ function computeFlags(c: CycleRaw, curDelta: number) {
   const sessions = c.daily_sessions || []
   const lastDate = sessions.length ? new Date(sessions[sessions.length-1].date) : new Date(c.started_at)
   const daysSince = Math.round((today.getTime() - lastDate.getTime()) / 86400000)
-  if (daysSince > 7) flags.push({ type:'inactive', label:`Không có session ${daysSince} ngày`, cls:'gold' })
-  const regressions = [...new Set(sessions.flatMap(s => (s.activities||[]).filter(a => a.delta < -0.3).map(a => a.block)))]
-  if (regressions.length) flags.push({ type:'regression', label:`Regression: ${regressions.map(b=>BN[b]||b).join(', ')}`, cls:'red' })
+  if (sessions.length && daysSince > 7) flags.push({ type:'inactive', label:`Không có session ${daysSince} ngày`, cls:'gold' })
+  const regCount = sessions.filter(s => s.regression_flag).length
+  if (regCount) flags.push({ type:'regression', label:`Regression: ${regCount} buổi`, cls:'red' })
   const daysIn = Math.round((today.getTime() - new Date(c.started_at).getTime()) / 86400000)
   const timeProgress = daysIn / (c.planned_sessions * 3.5)
   if (timeProgress > 0.4 && curDelta < 0.8 && !c.governance_meta?.is_sandbox)
@@ -151,11 +154,26 @@ export default function HeadDashboard() {
     setLoading(true)
     const { data, error } = await supabase
       .from('cycles')
-      .select('*, children:child_id(name, dob, id)')
+      .select('*, children:child_id(name, dob, id), teacher:teacher_id(full_name, role)')
       .eq('status', 'active')
       .order('started_at', { ascending: false })
 
     if (error) { console.warn('Supabase error:', error.message); setLoading(false); return }
+
+    // Fetch real sessions for these cycles → sessDone + regression flags.
+    const cycleIds = (data || []).map(c => c.id as string)
+    const sessionsByCycle: Record<string, Session[]> = {}
+    if (cycleIds.length) {
+      const { data: sessions } = await supabase
+        .from('daily_sessions')
+        .select('cycle_id, session_index, regression_flag, date')
+        .in('cycle_id', cycleIds)
+      for (const s of (sessions || []) as Array<{cycle_id:string; session_index:number; regression_flag:boolean; date:string}>) {
+        (sessionsByCycle[s.cycle_id] ||= []).push({
+          date: s.date, session_index: s.session_index, regression_flag: s.regression_flag,
+        })
+      }
+    }
 
     // Map Supabase format to CycleRaw
     const raw: CycleRaw[] = (data || []).map((c: Record<string,unknown>) => ({
@@ -169,7 +187,9 @@ export default function HeadDashboard() {
       child:            c.children as CycleRaw['child'] || { name:'Unknown', id:'' },
       baseline:         c.baseline as CycleRaw['baseline'],
       target:           c.target as CycleRaw['target'],
-      daily_sessions:   [],  // loaded separately if needed
+      daily_sessions:   sessionsByCycle[c.id as string] || [],
+      teacher_id:       (c.teacher_id as string) ?? null,
+      therapist:        (c.teacher as Therapist) ?? null,
     }))
 
     setCycles(processRaw(raw))
@@ -275,7 +295,7 @@ export default function HeadDashboard() {
               <table className="w-full text-sm">
                 <thead className="bg-[var(--rule-2)] border-b border-[var(--rule)]">
                   <tr>
-                    {['Trẻ / Cycle','Stage','Deficit','Tiến độ','Sessions','Flags',''].map(h => (
+                    {['Trẻ / Cycle','Therapist','Stage','Deficit','Tiến độ','Sessions','Flags',''].map(h => (
                       <th key={h} className="px-4 py-2.5 text-xs font-semibold text-[var(--ink-3)] text-left uppercase tracking-wider">{h}</th>
                     ))}
                   </tr>
@@ -291,6 +311,18 @@ export default function HeadDashboard() {
                           <div className="text-xs text-[var(--ink-3)]">{c.cycle_name || 'Unnamed cycle'}</div>
                           {c.isSandbox && c.governance_meta?.sandbox_hypothesis && (
                             <div className="text-xs text-yellow-700 mt-0.5 italic">{c.governance_meta.sandbox_hypothesis}</div>
+                          )}
+                        </td>
+                        <td className="px-4 py-3">
+                          {c.therapist?.full_name ? (
+                            <div className="flex items-center gap-1.5">
+                              <span className="text-xs text-[var(--ink)]">{c.therapist.full_name}</span>
+                              <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-blue-100 text-blue-800">
+                                {ROLE_LABEL[c.therapist.role || ''] || c.therapist.role}
+                              </span>
+                            </div>
+                          ) : (
+                            <span className="text-xs text-[var(--ink-3)] italic">Chưa assign</span>
                           )}
                         </td>
                         <td className="px-4 py-3">

@@ -15,19 +15,21 @@ interface UserProfile {
 }
 
 const ROLE_LABELS: Record<string, string> = {
-  admin:            'Admin',
-  head_therapist:   'Head Therapist',
-  senior_therapist: 'Senior Therapist',
-  junior_therapist: 'Junior Therapist',
-  parent:           'Phụ huynh',
+  admin:                'Admin',
+  head_therapist:       'Head Therapist',
+  senior_therapist:     'Senior Therapist',
+  technician_therapist: 'Technician',
+  junior_therapist:     'Junior Therapist',
+  parent:               'Phụ huynh',
 }
 
 const ROLE_COLORS: Record<string, string> = {
-  admin:            'bg-red-100 text-red-800',
-  head_therapist:   'bg-purple-100 text-purple-800',
-  senior_therapist: 'bg-blue-100 text-blue-800',
-  junior_therapist: 'bg-sky-100 text-sky-800',
-  parent:           'bg-green-100 text-green-800',
+  admin:                'bg-red-100 text-red-800',
+  head_therapist:       'bg-purple-100 text-purple-800',
+  senior_therapist:     'bg-blue-100 text-blue-800',
+  technician_therapist: 'bg-blue-100 text-blue-800',
+  junior_therapist:     'bg-sky-100 text-sky-800',
+  parent:               'bg-green-100 text-green-800',
 }
 
 export default function AdminPage() {
@@ -145,6 +147,7 @@ export default function AdminPage() {
                 >
                   <option value="senior_therapist">Senior Therapist</option>
                   <option value="junior_therapist">Junior Therapist</option>
+                  <option value="technician_therapist">Technician Therapist</option>
                   <option value="head_therapist">Head Therapist</option>
                   <option value="parent">Phụ huynh</option>
                   <option value="admin">Admin</option>

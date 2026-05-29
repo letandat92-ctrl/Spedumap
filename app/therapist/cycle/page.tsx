@@ -3,6 +3,8 @@
 import { useRouter } from 'next/navigation'
 import { useState, useEffect } from 'react'
 import { useCycle } from '@/hooks/useCycle'
+import { useRole } from '@/hooks/useRole'
+import { can } from '@/lib/permissions'
 import { createClient } from '@/lib/supabase/client'
 import { LS_KEYS } from '@/types/spedumap'
 import { SignalStrip, BaselineReadonly, TargetReadonly } from '@/components/charts/CycleComponents'
@@ -31,6 +33,10 @@ export default function CyclePage() {
     setFormField, buildActiveCycle,
     setSaving, setSaveError, setIsOpened,
   } = useCycle()
+
+  // Permission gate: only Senior Therapist+ may open a cycle.
+  const { role, roleLoading } = useRole()
+  const canCycleOpen = !roleLoading && can(role, 'cycle_open')
 
   const [layerProgressions, setLayerProgressions] = useState<unknown[]>([])
   const [currentLayer, setCurrentLayer] = useState<number>(2)
@@ -566,21 +572,34 @@ export default function CyclePage() {
                 >
                   🖨 In / PDF
                 </button>
-                <button
-                  onClick={handleOpen}
-                  disabled={!ready || saving}
-                  style={{
-                    height: 40, padding: '0 24px', border: 'none', borderRadius: 5,
-                    background: '#fff', color: 'var(--navy)',
-                    fontFamily: BODY, fontSize: 13, fontWeight: 700, whiteSpace: 'nowrap', flexShrink: 0,
-                    transition: 'all .15s',
-                    opacity: ready && !saving ? 1 : 0.4,
-                    cursor: ready && !saving ? 'pointer' : 'not-allowed',
-                    pointerEvents: ready && !saving ? 'auto' : 'none',
-                  }}
-                >
-                  {saving ? 'Đang mở chu kỳ...' : 'Bắt đầu Cycle →'}
-                </button>
+                {canCycleOpen ? (
+                  <button
+                    onClick={handleOpen}
+                    disabled={!ready || saving}
+                    style={{
+                      height: 40, padding: '0 24px', border: 'none', borderRadius: 5,
+                      background: '#fff', color: 'var(--navy)',
+                      fontFamily: BODY, fontSize: 13, fontWeight: 700, whiteSpace: 'nowrap', flexShrink: 0,
+                      transition: 'all .15s',
+                      opacity: ready && !saving ? 1 : 0.4,
+                      cursor: ready && !saving ? 'pointer' : 'not-allowed',
+                      pointerEvents: ready && !saving ? 'auto' : 'none',
+                    }}
+                  >
+                    {saving ? 'Đang mở chu kỳ...' : 'Bắt đầu Cycle →'}
+                  </button>
+                ) : !roleLoading ? (
+                  <span
+                    style={{
+                      height: 40, display: 'inline-flex', alignItems: 'center', padding: '0 16px',
+                      borderRadius: 5, background: 'rgba(255,255,255,.12)', color: '#fff',
+                      border: '1px solid rgba(255,255,255,.3)', fontFamily: BODY, fontSize: 12,
+                      fontWeight: 700, whiteSpace: 'nowrap', flexShrink: 0,
+                    }}
+                  >
+                    Chỉ Senior Therapist trở lên
+                  </span>
+                ) : null}
               </div>
             </div>
           </>

@@ -3,6 +3,8 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useBaseline } from '@/hooks/useBaseline'
+import { useRole } from '@/hooks/useRole'
+import { can } from '@/lib/permissions'
 import { createClient } from '@/lib/supabase/client'
 import { getScore } from '@/lib/engine'
 import { LS_KEYS, type Directionality } from '@/types/spedumap'
@@ -41,6 +43,11 @@ export default function BaselinePage() {
     buildOutput, setIsLocked, setIsSaving, setSaveError,
     LAYER_IDS, B2L, BW, L2_BLOCKS,
   } = useBaseline()
+
+  // Permission gate: only Senior Therapist+ may run assessment (lock baseline).
+  // While the role is loading we keep the form locked (safe default).
+  const { role, roleLoading } = useRole()
+  const canAssess = !roleLoading && can(role, 'assessment')
 
   const [showLockModal, setShowLockModal] = useState(false)
   const [lockPassword, setLockPassword]   = useState('')
@@ -235,11 +242,12 @@ export default function BaselinePage() {
           {/* Lock trigger */}
           <button
             onClick={() => setShowLockModal(true)}
-            disabled={!canLock || isLocked}
+            disabled={!canLock || isLocked || !canAssess}
+            title={!canAssess && !roleLoading ? 'Yêu cầu Senior Therapist trở lên' : undefined}
             className={`text-[11px] font-semibold tracking-[0.06em] uppercase rounded-[3px] px-3.5 py-[7px] text-white transition-all ${
               isLocked
                 ? 'bg-[var(--good)] cursor-default'
-                : canLock
+                : canLock && canAssess
                   ? 'bg-[var(--red)] hover:bg-[var(--red-dk)] cursor-pointer'
                   : 'bg-[var(--red)] opacity-35 cursor-not-allowed'
             }`}
@@ -255,6 +263,15 @@ export default function BaselinePage() {
 
       {/* ── LEFT: Input Panel ── */}
       <div className="w-[340px] flex-shrink-0 border-r border-[var(--border)] overflow-y-auto bg-[var(--card)]">
+      {/* Permission gate: non-assessors (below Senior Therapist) get a fully
+          read-only form — fieldset[disabled] disables every nested control. */}
+      <fieldset disabled={!canAssess} className="contents">
+
+        {!canAssess && !roleLoading && (
+          <div className="m-3 px-3 py-2 rounded-md bg-[var(--gold-bg)] border border-[var(--gold-bd)] text-[11px] font-semibold text-[var(--gold)]" style={{ fontFamily: "'Oswald', sans-serif" }}>
+            Chỉ xem — Yêu cầu Senior Therapist trở lên để chấm & khóa baseline
+          </div>
+        )}
 
         <div className="p-4 border-b border-[var(--border)] space-y-3 bg-[#FAFAF8]">
           <h3 className="text-[9px] font-semibold text-[var(--sub)] uppercase tracking-[0.12em]" style={{ fontFamily: "'Oswald', sans-serif" }}>Thông tin chung</h3>
@@ -383,8 +400,8 @@ export default function BaselinePage() {
               {meta.isClinic ? 'Clinical' : 'Behavioral'}
             </span>
             <div
-              onClick={() => setMetaField('isClinic', !meta.isClinic)}
-              className={`w-[38px] h-5 rounded-full transition-colors flex-shrink-0 cursor-pointer ${meta.isClinic ? 'bg-[var(--green)]' : 'bg-[#CCC]'}`}
+              onClick={() => { if (canAssess) setMetaField('isClinic', !meta.isClinic) }}
+              className={`w-[38px] h-5 rounded-full transition-colors flex-shrink-0 ${canAssess ? 'cursor-pointer' : 'cursor-not-allowed opacity-60'} ${meta.isClinic ? 'bg-[var(--green)]' : 'bg-[#CCC]'}`}
             >
               <div className={`w-3.5 h-3.5 bg-white rounded-full shadow transition-transform mt-[3px] ${meta.isClinic ? 'translate-x-[21px]' : 'translate-x-[3px]'}`} />
             </div>
@@ -449,6 +466,7 @@ export default function BaselinePage() {
             {isLocked ? '✓ Đã khóa Baseline' : 'Khóa Baseline →'}
           </button>
         </div>
+      </fieldset>
       </div>
 
       {/* ── RIGHT: Result Panel ── */}

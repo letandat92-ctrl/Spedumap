@@ -9,6 +9,8 @@
 import { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import { useRole } from '@/hooks/useRole'
+import { can } from '@/lib/permissions'
 import {
   runEngine, getScore,
   computeLayerComparison, computeVerdictBanner, computeSignalShift,
@@ -89,6 +91,12 @@ function CloseSummaryInner() {
   const [sessionCount, setSessionCount] = useState<number>(0)
   const [loading, setLoading] = useState(true)
   const [loadError, setLoadError] = useState<string | null>(null)
+
+  // Permission gate: close-summary belongs to the cycle-close flow (Head+).
+  const { role, roleLoading } = useRole()
+  useEffect(() => {
+    if (!roleLoading && !can(role, 'close_cycle')) router.replace('/therapist/baseline')
+  }, [roleLoading, role, router])
 
   useEffect(() => {
     // cycleId from useSearchParams() is resolved synchronously — null/empty means

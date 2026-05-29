@@ -35,7 +35,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'email và role là bắt buộc' }, { status: 400 })
     }
 
-    const validRoles = ['admin', 'head_therapist', 'senior_therapist', 'junior_therapist', 'parent']
+    const validRoles = ['admin', 'head_therapist', 'senior_therapist', 'technician_therapist', 'junior_therapist', 'parent']
     if (!validRoles.includes(role)) {
       return NextResponse.json({ error: 'Role không hợp lệ' }, { status: 400 })
     }

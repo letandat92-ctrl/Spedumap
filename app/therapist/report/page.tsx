@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { runEngine } from '@/lib/engine'
+import { useRole } from '@/hooks/useRole'
+import { can } from '@/lib/permissions'
 import { LS_KEYS } from '@/types/spedumap'
 import { ReportKPI, ChildStrip, MetadataStrip, SessionTimeline } from '@/components/charts/ReportComponents'
 import { LineChart, Line, XAxis, YAxis, Tooltip, Legend, CartesianGrid, ResponsiveContainer } from 'recharts'
@@ -79,6 +81,16 @@ export default function ReportPage() {
   const [closeSummary, setCloseSummary] = useState('')
   const [closing, setClosing]   = useState(false)
   const [closeError, setCloseError] = useState<string|null>(null)
+
+  // Permission gate: view_progress required to see this page; close_cycle to close.
+  const { role, roleLoading } = useRole()
+  const canViewProgress = can(role, 'view_progress')
+  const canCloseCycle   = !roleLoading && can(role, 'close_cycle')
+
+  // Redirect users who lack view_progress (only after the role resolves).
+  useEffect(() => {
+    if (!roleLoading && !canViewProgress) router.replace('/therapist/baseline')
+  }, [roleLoading, canViewProgress, router])
   // Per-session layer evaluation — sourced from Supabase (not localStorage) so
   // it stays consistent with solution_outcomes written server-side per session.
   const [evalSessions, setEvalSessions] = useState<Array<{session_index:number; layer_eval?:Record<string,number|null>; date?:string}>>([])
@@ -308,10 +320,14 @@ export default function ReportPage() {
           {closeError && (
             <div className="p-2 bg-[var(--red-bg)] border border-[var(--red-bd)] rounded-lg text-xs text-[var(--red)]">{closeError}</div>
           )}
-          <button onClick={handleClose} disabled={!canClose || closing}
-            className="w-full h-10 bg-[var(--red)] text-white rounded-lg text-sm font-bold hover:bg-red-800 disabled:opacity-40">
+          <button onClick={handleClose} disabled={!canClose || closing || !canCloseCycle}
+            title={!canCloseCycle && !roleLoading ? 'Yêu cầu Head Therapist trở lên' : undefined}
+            className="w-full h-10 bg-[var(--red)] text-white rounded-lg text-sm font-bold hover:bg-red-800 disabled:opacity-40 disabled:cursor-not-allowed">
             {closing ? 'Đang chuyển sang Retest...' : 'Đóng Chu Kỳ & Tiến hành Retest →'}
           </button>
+          {!canCloseCycle && !roleLoading && (
+            <p className="text-[11px] text-[var(--ink-3)] text-center">Chỉ Head Therapist trở lên mới có thể đóng chu kỳ.</p>
+          )}
           <p className="text-[11px] text-[var(--ink-3)] text-center">
             Bước tiếp theo: đánh giá lại 39 block một cách độc lập (blind) để nghiệm thu chu kỳ.
           </p>
