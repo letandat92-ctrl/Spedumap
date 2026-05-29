@@ -135,6 +135,7 @@ function CloseSummaryInner() {
   function openNewCycle() {
     if (!cycle?.retest_baseline?.blocks || !child) return
     const seed = {
+      child_id: cycle.child_id,        // carry the existing child → next cycle reuses it
       child:  { name: child.name, dob: child.dob ?? '' },
       blocks: cycle.retest_baseline.blocks,
     }

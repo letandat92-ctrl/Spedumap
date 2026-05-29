@@ -30,6 +30,7 @@ export interface MetaState {
   evalTimeEnd:   string
   knowledgeDomain:'senior_therapist' | 'junior_therapist' | 'parent'
   isClinic:      boolean
+  selectedChildId: string | null   // set when a child is picked from the directory (else free-typed)
 }
 
 export interface EngineResult {
@@ -125,6 +126,7 @@ function initMetaState(): MetaState {
     evalTimeEnd:    '',
     knowledgeDomain:'senior_therapist',
     isClinic:       false,
+    selectedChildId: null,
   }
 }
 

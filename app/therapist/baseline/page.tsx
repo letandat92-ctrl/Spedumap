@@ -34,6 +34,18 @@ const LAYER_COLORS: Record<string, string> = {
   L4:'#C87020',L5:'#4A8A60',L6:'#2A6A9A',L7:'#3A5AAA',
 }
 
+// Child directory picker shapes
+interface PickerChild {
+  id: string; name: string; dob: string | null; parent_id: string | null
+  parent_email: string | null; parent_name: string | null; parent_phone: string | null
+  parent_full_name: string | null
+}
+interface RawPickerChild {
+  id: string; name: string; dob: string | null; parent_id: string | null
+  parent_email: string | null; parent_name: string | null; parent_phone: string | null
+  parent: { full_name: string | null } | null
+}
+
 export default function BaselinePage() {
   const router = useRouter()
   const {
@@ -57,6 +69,11 @@ export default function BaselinePage() {
   const [childId, setChildId] = useState<string | null>(null)
   const [therapistId, setTherapistId] = useState<string | null>(null)
 
+  // ── Child directory picker ──
+  const [childDirectory, setChildDirectory] = useState<PickerChild[]>([])
+  const [childDropdownOpen, setChildDropdownOpen] = useState(false)
+  const [childLocked, setChildLocked] = useState(false)  // true when pre-selected via retest seed
+
   const supabase = createClient()
 
   // Get therapist ID from auth
@@ -66,6 +83,40 @@ export default function BaselinePage() {
     })
   }, [supabase])
 
+  // Load child directory for the picker (existing children + their parent info)
+  useEffect(() => {
+    supabase
+      .from('children')
+      .select('id, name, dob, parent_id, parent_email, parent_name, parent_phone, parent:parent_id(full_name)')
+      .order('name')
+      .then(({ data }) => {
+        if (!data) return
+        setChildDirectory((data as unknown as RawPickerChild[]).map(c => ({
+          id: c.id, name: c.name, dob: c.dob,
+          parent_id: c.parent_id,
+          parent_email: c.parent_email,
+          parent_name: c.parent_name,
+          parent_phone: c.parent_phone,
+          parent_full_name: c.parent?.full_name ?? null,
+        })))
+      })
+  }, [supabase])
+
+  // Pick a child from the directory → auto-fill identity + parent fields
+  function selectChild(c: PickerChild) {
+    setMetaField('childName', c.name)
+    setMetaField('childDob', c.dob ?? '')
+    setMetaField('parentEmail', c.parent_email ?? '')
+    setMetaField('parentName', c.parent_name ?? c.parent_full_name ?? '')
+    setMetaField('parentPhone', c.parent_phone ?? '')
+    setMetaField('selectedChildId', c.id)
+    setChildDropdownOpen(false)
+  }
+
+  const childMatches = (!childLocked && meta.childName.trim())
+    ? childDirectory.filter(c => c.name.toLowerCase().includes(meta.childName.trim().toLowerCase())).slice(0, 8)
+    : []
+
   // Pre-seed from a closed cycle's retest ("Mở Cycle mới với Baseline này").
   // Pulls child name/dob + the 39 retest block scores into the new baseline,
   // then clears the seed so it only applies once.
@@ -73,9 +124,14 @@ export default function BaselinePage() {
     try {
       const raw = localStorage.getItem(LS_KEYS.RETEST_SEED)
       if (!raw) return
-      const seed = JSON.parse(raw) as { child?: { name?: string; dob?: string }; blocks?: Record<string, unknown> }
+      const seed = JSON.parse(raw) as { child_id?: string; child?: { name?: string; dob?: string }; blocks?: Record<string, unknown> }
       if (seed?.child?.name) setMetaField('childName', seed.child.name)
       if (seed?.child?.dob)  setMetaField('childDob', seed.child.dob)
+      // Carry the existing child id → reuse the same child record, lock the picker.
+      if (seed?.child_id) {
+        setMetaField('selectedChildId', seed.child_id)
+        setChildLocked(true)
+      }
       if (seed?.blocks) {
         for (const [k, v] of Object.entries(seed.blocks)) {
           setScore(k, getScore(v))
@@ -150,26 +206,42 @@ export default function BaselinePage() {
       const output = buildOutput()
       if (output) output.attachments = attachments
 
-      // 1. Upsert child
-      const childId = undefined // TODO: load from existing if re-lock
-      const { data: child, error: childErr } = await supabase
-        .from('children')
-        .upsert({
-          id:           childId,
-          name:         output.child.name,
-          dob:          output.child.dob,
-          parent_email: output.child.parent_email,
-        }, { onConflict: 'id' })
-        .select('id')
-        .single()
-
-      if (childErr) throw new Error('Lỗi lưu thông tin trẻ: ' + childErr.message)
+      // 1. Resolve child — reuse the picked directory child, else create new
+      let resolvedChildId: string
+      if (meta.selectedChildId) {
+        // Existing child: don't create a duplicate; refresh parent contact.
+        resolvedChildId = meta.selectedChildId
+        const { error: updErr } = await supabase
+          .from('children')
+          .update({
+            parent_phone: output.child.parent_phone || null,
+            parent_name:  output.child.parent_name || null,
+          })
+          .eq('id', resolvedChildId)
+        if (updErr) throw new Error('Lỗi cập nhật thông tin trẻ: ' + updErr.message)
+      } else {
+        const { data: child, error: childErr } = await supabase
+          .from('children')
+          .upsert({
+            id:           undefined,
+            name:         output.child.name,
+            dob:          output.child.dob,
+            parent_email: output.child.parent_email,
+            parent_name:  output.child.parent_name,
+            parent_phone: output.child.parent_phone,
+          }, { onConflict: 'id' })
+          .select('id')
+          .single()
+        if (childErr) throw new Error('Lỗi lưu thông tin trẻ: ' + childErr.message)
+        resolvedChildId = child.id
+      }
 
       // 2. Insert cycle
       const { data: cycle, error: cycleErr } = await supabase
         .from('cycles')
         .insert({
-          child_id:   child.id,
+          child_id:   resolvedChildId,
+          teacher_id: user.id ?? null,
           status:     'pending',
           baseline:   {
             blocks:      output.baseline_blocks,
@@ -192,13 +264,13 @@ export default function BaselinePage() {
       // 3. Save to localStorage
       const finalOutput = {
         ...output,
-        child_id:           child.id,
+        child_id:           resolvedChildId,
         supabase_cycle_id:  cycle.id,
       }
       localStorage.setItem(LS_KEYS.BASELINE, JSON.stringify(finalOutput))
 
       setIsLocked(true)
-      setChildId(child.id)
+      setChildId(resolvedChildId)
       setShowLockModal(false)
       setShowAssessmentForm(true)
       // Don't redirect immediately — let user fill assessment first
@@ -277,14 +349,45 @@ export default function BaselinePage() {
           <h3 className="text-[9px] font-semibold text-[var(--sub)] uppercase tracking-[0.12em]" style={{ fontFamily: "'Oswald', sans-serif" }}>Thông tin chung</h3>
 
           <div className="grid grid-cols-2 gap-2">
-            <div>
-              <label className="block text-xs text-[var(--ink-3)] mb-1">Họ tên trẻ *</label>
+            <div className="relative">
+              <label className="block text-xs text-[var(--ink-3)] mb-1">
+                Họ tên trẻ *
+                {meta.selectedChildId && (
+                  <span className="ml-1 text-[10px] text-[var(--green)]">· hồ sơ có sẵn</span>
+                )}
+              </label>
               <input
                 value={meta.childName}
-                onChange={e => setMetaField('childName', e.target.value)}
+                readOnly={childLocked}
+                onChange={e => {
+                  // Free typing clears any picked child (backward compatible)
+                  setMetaField('childName', e.target.value)
+                  setMetaField('selectedChildId', null)
+                  setChildDropdownOpen(true)
+                }}
+                onFocus={() => setChildDropdownOpen(true)}
+                onBlur={() => setTimeout(() => setChildDropdownOpen(false), 150)}
                 className="w-full h-8 px-2 text-sm border border-[var(--rule)] rounded focus:outline-none focus:border-[var(--navy)]"
-                placeholder="Nguyễn Văn A"
+                placeholder="Gõ tên trẻ để tìm hồ sơ, hoặc nhập mới"
+                autoComplete="off"
               />
+              {childDropdownOpen && childMatches.length > 0 && (
+                <div className="absolute z-20 left-0 right-0 mt-1 bg-white border border-[var(--rule)] rounded-md shadow-lg max-h-56 overflow-y-auto">
+                  {childMatches.map(c => (
+                    <button
+                      key={c.id}
+                      type="button"
+                      onMouseDown={e => { e.preventDefault(); selectChild(c) }}
+                      className="w-full text-left px-2.5 py-1.5 hover:bg-[var(--rule-2)] border-b border-[var(--rule-2)] last:border-0"
+                    >
+                      <div className="text-xs font-medium text-[var(--ink)]">{c.name}</div>
+                      <div className="text-[10px] text-[var(--ink-3)]">
+                        {[c.dob, c.parent_name ?? c.parent_full_name, c.parent_email].filter(Boolean).join(' · ') || '—'}
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
             <div>
               <label className="block text-xs text-[var(--ink-3)] mb-1">Ngày sinh *</label>
