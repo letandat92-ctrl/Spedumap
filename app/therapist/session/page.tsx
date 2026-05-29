@@ -456,12 +456,20 @@ export default function SessionPage() {
                     { label: 'Baseline', val: baselineTotal.toFixed(1), delta: false },
                     { label: 'Target cuối chu kỳ', val: totalTarget.toFixed(1), delta: false },
                     { label: 'Delta từ baseline', val: (deltaFromBase >= 0 ? '+' : '') + deltaFromBase.toFixed(1), delta: true },
-                  ].map(chip => (
-                    <div key={chip.label} style={{ flex: 1, background: 'rgba(255,255,255,.08)', border: '1px solid rgba(255,255,255,.15)', borderRadius: 4, padding: '6px 8px', textAlign: 'center' }}>
-                      <div style={{ fontSize: 9, color: 'rgba(255,255,255,.55)', letterSpacing: '.06em', textTransform: 'uppercase', marginBottom: 3 }}>{chip.label}</div>
-                      <div style={{ fontFamily: FONT_MONO, fontSize: 14, fontWeight: 700, color: chip.delta ? '#6EE7A0' : '#fff' }}>{chip.val}</div>
-                    </div>
-                  ))}
+                  ].map(chip => {
+                    const negative = chip.delta && deltaFromBase < 0
+                    return (
+                      <div key={chip.label} style={{
+                        flex: 1,
+                        background: negative ? 'var(--red-bg)' : 'rgba(255,255,255,.08)',
+                        border: `1px solid ${negative ? 'var(--red-bd)' : 'rgba(255,255,255,.15)'}`,
+                        borderRadius: 4, padding: '6px 8px', textAlign: 'center',
+                      }}>
+                        <div style={{ fontSize: 9, color: negative ? 'var(--red)' : 'rgba(255,255,255,.55)', letterSpacing: '.06em', textTransform: 'uppercase', marginBottom: 3 }}>{chip.label}</div>
+                        <div style={{ fontFamily: FONT_MONO, fontSize: 14, fontWeight: 700, color: negative ? 'var(--red)' : (chip.delta ? '#6EE7A0' : '#fff') }}>{chip.val}</div>
+                      </div>
+                    )
+                  })}
                 </div>
               </div>
             </div>
@@ -646,7 +654,7 @@ export default function SessionPage() {
                               })}
                             </div>
                             {newScore !== null && (
-                              <div style={{ fontSize: 10, color: 'var(--ink-3)', marginTop: 4, padding: '2px 5px', background: 'var(--rule-2)', borderRadius: 3 }}>
+                              <div style={{ fontSize: 10, color: 'var(--ink-3)', marginTop: 4, padding: '2px 5px', background: deltaPreview < 0 ? 'var(--red-bg)' : 'var(--rule-2)', borderRadius: 3 }}>
                                 <span style={{ fontFamily: FONT_MONO, fontSize: 11, color: 'var(--ink-2)' }}>{current.toFixed(1)}</span>
                                 <span style={{ margin: '0 4px' }}>→</span>
                                 <span style={{ fontFamily: FONT_MONO, fontSize: 12, fontWeight: 700, color: deltaPreview > 0 ? 'var(--green)' : deltaPreview < 0 ? 'var(--red)' : 'var(--ink-3)' }}>

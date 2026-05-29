@@ -90,7 +90,8 @@ export default function BaselinePage() {
   // Meta gate: required fields filled?
   const metaComplete = !!(
     meta.childName && meta.childDob && meta.evaluatorName &&
-    meta.evalDate && meta.evalTimeStart && meta.evalTimeEnd
+    meta.evalDate && meta.evalTimeStart && meta.evalTimeEnd &&
+    meta.parentEmail.trim()
   )
 
   // All 39 blocks must have a score
@@ -343,14 +344,23 @@ export default function BaselinePage() {
           </div>
 
           <div>
-            <label className="block text-xs text-[var(--ink-3)] mb-1">Email phụ huynh</label>
+            <label className="block text-xs text-[var(--ink-3)] mb-1">
+              Email phụ huynh <span className="text-[var(--red)]">*</span>
+            </label>
             <input
               type="email"
               value={meta.parentEmail}
               onChange={e => setMetaField('parentEmail', e.target.value)}
-              className="w-full h-8 px-2 text-sm border border-[var(--rule)] rounded focus:outline-none focus:border-[var(--navy)]"
+              className={`w-full h-8 px-2 text-sm border rounded focus:outline-none ${
+                meta.parentEmail.trim()
+                  ? 'border-[var(--rule)] focus:border-[var(--navy)]'
+                  : 'border-[var(--red)] focus:border-[var(--red)]'
+              }`}
               placeholder="parent@email.com"
             />
+            {!meta.parentEmail.trim() && (
+              <div className="mt-1 text-[11px] text-[var(--red)]">Email phụ huynh là bắt buộc</div>
+            )}
           </div>
 
           {/* Clinical / Behavioral source toggle + badge */}

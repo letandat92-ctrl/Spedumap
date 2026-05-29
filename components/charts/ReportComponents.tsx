@@ -54,12 +54,14 @@ export function ReportKPI({ current, baseline, target, sessionsDone, planned, st
         {/* KPIs */}
         <div className="flex gap-4 flex-1">
           {[
-            { label: 'Baseline', value: baseline.toFixed(1), color: 'text-[var(--gold)]' },
-            { label: 'Target',   value: target.toFixed(1),   color: 'text-[var(--green)]' },
-            { label: 'Δ từ Baseline', value: (delta >= 0 ? '+' : '') + delta.toFixed(1), color: delta >= 0 ? 'text-[var(--green)]' : 'text-[var(--red)]' },
+            { label: 'Baseline', value: baseline.toFixed(1), color: 'text-[var(--gold)]',  negative: false },
+            { label: 'Target',   value: target.toFixed(1),   color: 'text-[var(--green)]', negative: false },
+            { label: 'Δ từ Baseline', value: (delta >= 0 ? '+' : '') + delta.toFixed(1),
+              color: delta >= 0 ? 'text-[var(--green)]' : 'text-[var(--red)]',
+              negative: delta < 0 },
           ].map(kpi => (
-            <div key={kpi.label} className="text-center">
-              <div className="text-[10px] text-white/50 uppercase tracking-wider mb-1">{kpi.label}</div>
+            <div key={kpi.label} className={`text-center ${kpi.negative ? 'bg-[var(--red-bg)] border border-[var(--red-bd)] rounded px-2 py-1' : ''}`}>
+              <div className={`text-[10px] uppercase tracking-wider mb-1 ${kpi.negative ? 'text-[var(--red)]' : 'text-white/50'}`}>{kpi.label}</div>
               <div className={`text-xl font-mono font-bold ${kpi.color}`}>{kpi.value}</div>
             </div>
           ))}
@@ -167,7 +169,9 @@ export function SessionTimeline({ sessions }: SessionTimelineProps) {
           {s.notes && <div className="text-[10px] text-[var(--ink-3)] mt-0.5 truncate">{s.notes}</div>}
         </div>
         <span className="text-[var(--ink-3)] text-[10px] hidden sm:block">{s.therapist || '—'}</span>
-        <span className={`font-mono font-bold w-14 text-right ${dc}`}>
+        <span className={`font-mono font-bold w-14 text-right ${dc} ${
+          totalDelta < 0 ? 'bg-[var(--red-bg)] px-1.5 py-0.5 rounded' : ''
+        }`}>
           {totalDelta >= 0 ? '+' : ''}{totalDelta.toFixed(2)}
         </span>
       </div>
