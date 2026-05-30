@@ -41,6 +41,7 @@ function getScore(v: unknown): number {
 type Blocks = Record<string, unknown>
 type Session = { date: string; session_index?: number; regression_flag?: boolean; activities?: Array<{block:string; delta:number}> }
 type Therapist = { full_name?: string | null; role?: string | null } | null
+type TeamMember = { therapist_id: string; role_in_cycle: string; full_name?: string | null; role?: string | null }
 type CycleRaw = {
   id: string
   cycle_name?: string
@@ -55,6 +56,7 @@ type CycleRaw = {
   daily_sessions: Session[]
   teacher_id?: string | null
   therapist?: Therapist
+  team?: TeamMember[]
 }
 
 // Short role labels for the therapist chip
@@ -154,7 +156,7 @@ export default function HeadDashboard() {
     setLoading(true)
     const { data, error } = await supabase
       .from('cycles')
-      .select('*, children:child_id(name, dob, id), teacher:teacher_id(full_name, role)')
+      .select('*, children:child_id(name, dob, id), teacher:teacher_id(full_name, role), cycle_therapists(therapist_id, role_in_cycle, member:therapist_id(full_name, role))')
       .eq('status', 'active')
       .order('started_at', { ascending: false })
 
@@ -190,6 +192,12 @@ export default function HeadDashboard() {
       daily_sessions:   sessionsByCycle[c.id as string] || [],
       teacher_id:       (c.teacher_id as string) ?? null,
       therapist:        (c.teacher as Therapist) ?? null,
+      team:             ((c.cycle_therapists as Array<Record<string, unknown>>) || []).map(m => ({
+                          therapist_id: m.therapist_id as string,
+                          role_in_cycle: m.role_in_cycle as string,
+                          full_name: (m.member as Therapist)?.full_name ?? null,
+                          role: (m.member as Therapist)?.role ?? null,
+                        })),
     }))
 
     setCycles(processRaw(raw))
@@ -320,7 +328,21 @@ export default function HeadDashboard() {
                           )}
                         </td>
                         <td className="px-4 py-3">
-                          {c.therapist?.full_name ? (
+                          {(c.team && c.team.length > 0) ? (
+                            <div className="flex flex-wrap items-center gap-1">
+                              {[...c.team]
+                                .sort((a, b) => (a.role_in_cycle === 'lead' ? -1 : 0) - (b.role_in_cycle === 'lead' ? -1 : 0))
+                                .map(m => (
+                                  <span
+                                    key={m.therapist_id}
+                                    className={`text-[10px] px-1.5 py-0.5 rounded-full ${m.role_in_cycle === 'lead' ? 'bg-[var(--navy)] text-white' : 'bg-blue-100 text-blue-800'}`}
+                                    title={ROLE_LABEL[m.role || ''] || m.role || ''}
+                                  >
+                                    {m.role_in_cycle === 'lead' ? '★ ' : ''}{m.full_name || '(?)'}
+                                  </span>
+                                ))}
+                            </div>
+                          ) : c.therapist?.full_name ? (
                             <div className="flex items-center gap-1.5">
                               <span className="text-xs text-[var(--ink)]">{c.therapist.full_name}</span>
                               <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-blue-100 text-blue-800">

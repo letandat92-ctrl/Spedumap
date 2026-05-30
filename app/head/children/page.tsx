@@ -10,12 +10,23 @@
 import { useEffect, useState, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import { useRole } from '@/hooks/useRole'
+import { can } from '@/lib/permissions'
 
 export const dynamic = 'force-dynamic'
 
 interface Parent { id: string; email: string | null; full_name: string | null; phone: string | null; status: string | null }
-interface Cycle { id: string; status: string; teacher_id: string | null }
+interface TeamMember { therapist_id: string; role_in_cycle: string }
+interface Cycle { id: string; status: string; teacher_id: string | null; cycle_therapists?: TeamMember[] }
 interface Child { id: string; name: string; dob: string | null; parent_id: string | null; parent_email: string | null; cycles: Cycle[] }
+interface Therapist { id: string; full_name: string | null; role: string }
+
+// Roles eligible to be picked as cycle team members.
+const THERAPIST_ROLES = ['senior_therapist', 'technician_therapist', 'junior_therapist']
+const ROLE_LABEL: Record<string, string> = {
+  senior_therapist: 'Senior', technician_therapist: 'Technician',
+  junior_therapist: 'Junior', head_therapist: 'Head', admin: 'Admin',
+}
 
 function initials(name: string | null): string {
   if (!name) return '?'
@@ -45,13 +56,25 @@ function childCycle(c: Child): { kind: 'active' | 'pending' | 'none'; cycle: Cyc
 export default function HeadChildrenPage() {
   const router = useRouter()
   const [supabase] = useState(() => createClient())
+  const { role } = useRole()
+  const canAssign = can(role, 'assign_case')
 
   const [parents, setParents]   = useState<Parent[]>([])
   const [childrenByParent, setChildrenByParent] = useState<Record<string, Child[]>>({})
+  const [therapists, setTherapists] = useState<Therapist[]>([])
+  const [therapistMap, setTherapistMap] = useState<Record<string, Therapist>>({})
   const [loading, setLoading]   = useState(true)
   const [search, setSearch]     = useState('')
   const [openCards, setOpenCards] = useState<Set<string>>(new Set())
   const [currentUserId, setCurrentUserId] = useState<string | null>(null)
+
+  // Assign-therapist modal state
+  const [assignOpen, setAssignOpen]   = useState(false)
+  const [assignChild, setAssignChild] = useState<Child | null>(null)
+  const [assignCycle, setAssignCycle] = useState<Cycle | null>(null)
+  const [assignSel, setAssignSel]     = useState<Record<string, 'lead' | 'member'>>({}) // therapist_id → role
+  const [assignSaving, setAssignSaving] = useState(false)
+  const [assignError, setAssignError]   = useState<string | null>(null)
 
   // Modal state
   const [modalOpen, setModalOpen] = useState(false)
@@ -88,7 +111,7 @@ export default function HeadChildrenPage() {
     if (parentList.length) {
       const { data: cs } = await supabase
         .from('children')
-        .select('id, name, dob, parent_id, parent_email, cycles(id, status, teacher_id)')
+        .select('id, name, dob, parent_id, parent_email, cycles(id, status, teacher_id, cycle_therapists(therapist_id, role_in_cycle))')
         .in('parent_id', parentList.map(p => p.id))
         .order('name')
       for (const ch of (cs as Child[]) || []) {
@@ -98,6 +121,18 @@ export default function HeadChildrenPage() {
     }
     setChildrenByParent(grouped)
     setOpenCards(prev => (prev.size === 0 && parentList[0] ? new Set([parentList[0].id]) : prev))
+
+    // Therapist directory — for team chips (name resolution) + assign picker.
+    // Includes head/admin so a lead who locked baseline resolves to a name.
+    const { data: ts } = await supabase
+      .from('user_profiles')
+      .select('id, full_name, role')
+      .in('role', ['senior_therapist', 'technician_therapist', 'junior_therapist', 'head_therapist', 'admin'])
+      .order('full_name')
+    const tList = (ts as Therapist[]) || []
+    setTherapists(tList)
+    setTherapistMap(Object.fromEntries(tList.map(t => [t.id, t])))
+
     setLoading(false)
   }
 
@@ -210,6 +245,68 @@ export default function HeadChildrenPage() {
     }
   }
 
+  // ── Assign-therapist modal ──
+  // Picker = therapist-role profiles, plus anyone already on the team (e.g. a
+  // head/admin lead who locked baseline). lead defaults to the cycle.teacher_id.
+  function openAssign(child: Child, cycle: Cycle) {
+    if (!canAssign) return
+    if (cycle.status !== 'pending') { setAssignError('Chỉ phân công khi cycle ở trạng thái Chờ assign.'); return }
+    const sel: Record<string, 'lead' | 'member'> = {}
+    for (const m of cycle.cycle_therapists || []) sel[m.therapist_id] = m.role_in_cycle === 'lead' ? 'lead' : 'member'
+    const lead = cycle.teacher_id
+    if (lead && !sel[lead]) sel[lead] = 'lead'
+    if (!Object.values(sel).includes('lead') && lead) sel[lead] = 'lead'
+    setAssignChild(child); setAssignCycle(cycle); setAssignSel(sel)
+    setAssignError(null); setAssignOpen(true)
+  }
+  function closeAssign() { setAssignOpen(false) }
+
+  function toggleTp(id: string) {
+    setAssignSel(prev => {
+      if (prev[id]) {
+        if (prev[id] === 'lead') { setAssignError('Không thể bỏ lead trực tiếp — đổi lead trước.'); return prev }
+        const next = { ...prev }; delete next[id]; return next
+      }
+      return { ...prev, [id]: 'member' }
+    })
+  }
+  function setLead(id: string) {
+    setAssignSel(prev => {
+      const next: Record<string, 'lead' | 'member'> = {}
+      for (const k of Object.keys(prev)) next[k] = prev[k] === 'lead' ? 'member' : prev[k]
+      next[id] = 'lead'
+      return next
+    })
+  }
+
+  async function saveAssign() {
+    if (!assignCycle || !assignChild) return
+    const team = Object.entries(assignSel).map(([therapist_id, role_in_cycle]) => ({ therapist_id, role_in_cycle }))
+    const leads = team.filter(m => m.role_in_cycle === 'lead')
+    if (leads.length !== 1) { setAssignError('Cần đúng 1 lead.'); return }
+    setAssignSaving(true); setAssignError(null)
+    try {
+      // Client mutation is RLS-guarded server-side: ct_insert/ct_delete require
+      // is_staff() AND cycle.status='pending'; the one-lead is enforced by the
+      // cycle_therapists_one_lead unique index. We don't trust the client checks.
+      const { error: delErr } = await supabase.from('cycle_therapists').delete().eq('cycle_id', assignCycle.id)
+      if (delErr) throw new Error('Lỗi xoá phân công cũ: ' + delErr.message)
+      const { error: insErr } = await supabase.from('cycle_therapists').insert(
+        team.map(m => ({ cycle_id: assignCycle.id, therapist_id: m.therapist_id, role_in_cycle: m.role_in_cycle, assigned_by: currentUserId }))
+      )
+      if (insErr) {
+        if (insErr.code === '23505') throw new Error('Vi phạm ràng buộc: cycle chỉ được có 1 lead.')
+        throw new Error('Lỗi lưu phân công: ' + insErr.message)
+      }
+      setAssignOpen(false)
+      await load()
+    } catch (e) {
+      setAssignError(e instanceof Error ? e.message : 'Lỗi không xác định')
+    } finally {
+      setAssignSaving(false)
+    }
+  }
+
   return (
     <div className="hc-root">
       <style>{CSS}</style>
@@ -283,8 +380,11 @@ export default function HeadChildrenPage() {
                 {open && (
                   <div className="hc-children-list">
                     {kids.map(ch => {
-                      const { kind } = childCycle(ch)
+                      const { kind, cycle } = childCycle(ch)
                       const dot = kind === 'active' ? '#1A6A3A' : kind === 'pending' ? '#8A6200' : '#6B7280'
+                      const team = [...(cycle?.cycle_therapists || [])].sort(
+                        (a, b) => (a.role_in_cycle === 'lead' ? -1 : 0) - (b.role_in_cycle === 'lead' ? -1 : 0)
+                      )
                       return (
                         <div className="hc-child-row" key={ch.id}>
                           <div className="hc-child-dot" style={{ background: dot }} />
@@ -293,6 +393,16 @@ export default function HeadChildrenPage() {
                             <div className="hc-child-meta">
                               {[ageYears(ch.dob), fmtDate(ch.dob)].filter(Boolean).join(' · ')}
                             </div>
+                            {cycle && (
+                              <div className="hc-team-chips">
+                                {team.length === 0 && <span className="hc-chip-empty">— chưa phân công —</span>}
+                                {team.map(m => (
+                                  <span key={m.therapist_id} className={`hc-chip${m.role_in_cycle === 'lead' ? ' lead' : ''}`}>
+                                    {m.role_in_cycle === 'lead' ? '★ ' : ''}{therapistMap[m.therapist_id]?.full_name || '(?)'}
+                                  </span>
+                                ))}
+                              </div>
+                            )}
                           </div>
                           <div className="hc-child-status">
                             {kind === 'active' && <span className="hc-status-chip hc-status-active">Active</span>}
@@ -305,7 +415,12 @@ export default function HeadChildrenPage() {
                               <button className="hc-btn-xs primary" disabled title="Tính năng đang phát triển">Vào cycle →</button>
                             )}
                             {kind === 'pending' && (
-                              <button className="hc-btn-xs primary" disabled title="Tính năng đang phát triển">Assign therapist →</button>
+                              <button
+                                className="hc-btn-xs primary"
+                                disabled={!canAssign}
+                                title={canAssign ? 'Phân công therapist cho cycle này' : 'Chỉ Head/Admin được phân công'}
+                                onClick={() => cycle && openAssign(ch, cycle)}
+                              >Assign therapist →</button>
                             )}
                           </div>
                         </div>
@@ -407,6 +522,60 @@ export default function HeadChildrenPage() {
               </button>
               <button className="hc-btn-next" disabled={submitting || (step === 1 ? !step1Valid : !step2Valid)} onClick={handleSubmit}>
                 {submitting ? 'Đang lưu...' : step === 1 ? 'Tiếp theo →' : 'Tạo hồ sơ ✓'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ASSIGN THERAPIST MODAL */}
+      {assignOpen && assignCycle && (
+        <div className="hc-modal-overlay open" onClick={e => { if (e.target === e.currentTarget) closeAssign() }}>
+          <div className="hc-modal">
+            <div className="hc-modal-head">
+              <div className="hc-modal-title">Phân công therapist</div>
+              <button className="hc-modal-close" onClick={closeAssign}>×</button>
+            </div>
+            <div className="hc-modal-body">
+              <div className="hc-assign-ctx">
+                <strong>{assignChild?.name}</strong> · <span className="hc-status-chip hc-status-pending">Chờ assign</span>
+                <div className="hc-assign-hint">★ Lead = therapist khoá baseline. Chọn thêm member cho team.</div>
+              </div>
+              {(() => {
+                const avail = therapists.filter(t => THERAPIST_ROLES.includes(t.role) || assignSel[t.id])
+                if (avail.length === 0) return <div className="hc-empty-sub" style={{ padding: '20px 0' }}>Không có therapist khả dụng. Tạo account qua /admin.</div>
+                return (
+                  <div className="hc-tp-list">
+                    {avail.map(t => {
+                      const sel = !!assignSel[t.id]
+                      const isLead = assignSel[t.id] === 'lead'
+                      const isCycleLead = assignCycle.teacher_id === t.id
+                      return (
+                        <div key={t.id} className={`hc-tp-row${sel ? ' sel' : ''}`} onClick={() => toggleTp(t.id)}>
+                          <div className="hc-tp-check">{sel ? '✓' : ''}</div>
+                          <div className="hc-tp-info">
+                            <div className="hc-tp-name">{t.full_name || '(?)'}{isCycleLead && <span className="hc-tp-tag"> (khoá baseline)</span>}</div>
+                            <div className="hc-tp-role">{ROLE_LABEL[t.role] || t.role}</div>
+                          </div>
+                          <label className={`hc-tp-lead${sel ? '' : ' hidden'}`} onClick={e => e.stopPropagation()}>
+                            <input type="radio" name="leadPick" checked={isLead} onChange={() => setLead(t.id)} /> Lead
+                          </label>
+                        </div>
+                      )
+                    })}
+                  </div>
+                )
+              })()}
+              {assignError && (
+                <div className="hc-lookup-result hc-lookup-new" style={{ display: 'block', marginTop: 12, background: 'var(--red-bg)', borderColor: 'var(--red-bd)', color: 'var(--red)' }}>
+                  {assignError}
+                </div>
+              )}
+            </div>
+            <div className="hc-modal-footer">
+              <div className="hc-assign-count">{Object.keys(assignSel).length} đã chọn</div>
+              <button className="hc-btn-next" disabled={assignSaving || Object.keys(assignSel).length === 0} onClick={saveAssign}>
+                {assignSaving ? 'Đang lưu...' : 'Lưu phân công'}
               </button>
             </div>
           </div>
@@ -520,4 +689,24 @@ const CSS = `
 .hc-empty-icon{font-size:40px;margin-bottom:12px}
 .hc-empty-title{font-size:15px;font-weight:600;color:#374151;margin-bottom:6px}
 .hc-empty-sub{font-size:12.5px;line-height:1.6}
+.hc-team-chips{display:flex;flex-wrap:wrap;gap:4px;align-items:center;margin-top:4px}
+.hc-chip{display:inline-flex;align-items:center;font-size:10px;font-weight:600;padding:2px 8px;border-radius:12px;background:#EEF8F8;color:#0A6060;border:1px solid #A0D0D0}
+.hc-chip.lead{background:#0D2240;color:#fff;border-color:#0D2240}
+.hc-chip-empty{font-size:10px;color:#6B7280;font-style:italic}
+.hc-assign-ctx{font-size:13px;color:#374151;margin-bottom:14px}
+.hc-assign-hint{font-size:10.5px;color:#6B7280;margin-top:4px}
+.hc-tp-list{display:flex;flex-direction:column;gap:6px;max-height:300px;overflow-y:auto}
+.hc-tp-row{display:flex;align-items:center;gap:10px;padding:9px 11px;border:1px solid #E5E7EB;border-radius:6px;cursor:pointer}
+.hc-tp-row:hover{border-color:#2A5A9A;background:#FAFBFD}
+.hc-tp-row.sel{border-color:#0D2240;background:#EEF8F2}
+.hc-tp-check{width:18px;height:18px;border:2px solid #E5E7EB;border-radius:4px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:12px;color:#fff}
+.hc-tp-row.sel .hc-tp-check{background:#1A6A3A;border-color:#1A6A3A}
+.hc-tp-info{flex:1;min-width:0}
+.hc-tp-name{font-size:12.5px;font-weight:600;color:#111827}
+.hc-tp-tag{font-size:9px;color:#6B7280;font-weight:400}
+.hc-tp-role{font-size:10px;color:#6B7280;text-transform:capitalize}
+.hc-tp-lead{display:flex;align-items:center;gap:4px;font-size:10.5px;color:#374151;cursor:pointer}
+.hc-tp-lead.hidden{visibility:hidden}
+.hc-tp-lead input{width:auto;height:auto}
+.hc-assign-count{font-size:10.5px;color:#6B7280;margin-right:auto}
 `
