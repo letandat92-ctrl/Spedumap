@@ -29,7 +29,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Parse request body
-    const { email, role, full_name } = await request.json()
+    const { email, role, full_name, phone } = await request.json()
 
     if (!email || !role) {
       return NextResponse.json({ error: 'email và role là bắt buộc' }, { status: 400 })
@@ -38,6 +38,11 @@ export async function POST(request: NextRequest) {
     const validRoles = ['admin', 'head_therapist', 'senior_therapist', 'technician_therapist', 'junior_therapist', 'parent']
     if (!validRoles.includes(role)) {
       return NextResponse.json({ error: 'Role không hợp lệ' }, { status: 400 })
+    }
+
+    // Parent records require a phone (mirrors /head/children parent creation).
+    if (role === 'parent' && !String(phone ?? '').trim()) {
+      return NextResponse.json({ error: 'SĐT bắt buộc cho phụ huynh' }, { status: 400 })
     }
 
     const adminClient = createAdminClient()
@@ -67,6 +72,7 @@ export async function POST(request: NextRequest) {
         role,
         full_name: full_name || '',
         email,
+        phone:     phone || null,
         must_change_password: true,
       })
 

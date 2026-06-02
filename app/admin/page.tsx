@@ -42,6 +42,7 @@ export default function AdminPage() {
   const [email, setEmail]       = useState('')
   const [role, setRole]         = useState('senior_therapist')
   const [fullName, setFullName] = useState('')
+  const [phone, setPhone]       = useState('')
   const [creating, setCreating] = useState(false)
   const [createResult, setCreateResult] = useState<{
     success?: boolean
@@ -72,12 +73,12 @@ export default function AdminPage() {
       const res = await fetch('/api/admin/create-user', {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
-        body:    JSON.stringify({ email, role, full_name: fullName }),
+        body:    JSON.stringify({ email, role, full_name: fullName, phone }),
       })
       const data = await res.json()
       setCreateResult(data)
       if (data.success) {
-        setEmail(''); setFullName('')
+        setEmail(''); setFullName(''); setPhone('')
         loadUsers()
       }
     } catch {
@@ -153,11 +154,30 @@ export default function AdminPage() {
                   <option value="admin">Admin</option>
                 </select>
               </div>
+              <div>
+                <label className="block text-xs font-semibold text-[var(--ink-3)] uppercase tracking-wider mb-1.5">
+                  SĐT {role === 'parent' ? <span className="text-[var(--red)]">*</span> : <span className="text-[var(--ink-3)] normal-case font-normal">(tùy chọn)</span>}
+                </label>
+                <input
+                  type="tel"
+                  value={phone}
+                  onChange={e => setPhone(e.target.value)}
+                  placeholder="0909..."
+                  className={`w-full h-9 px-3 text-sm border rounded-lg focus:outline-none ${
+                    role === 'parent' && !phone.trim()
+                      ? 'border-[var(--red)] focus:border-[var(--red)]'
+                      : 'border-[var(--rule)] focus:border-[var(--navy)]'
+                  }`}
+                />
+                {role === 'parent' && !phone.trim() && (
+                  <div className="mt-1 text-[11px] text-[var(--red)]">SĐT bắt buộc cho phụ huynh</div>
+                )}
+              </div>
             </div>
 
             <button
               type="submit"
-              disabled={!email || creating}
+              disabled={!email || (role === 'parent' && !phone.trim()) || creating}
               className="h-9 px-6 bg-[var(--navy)] text-white rounded-lg text-sm font-semibold hover:bg-[var(--navy-mid)] disabled:opacity-40"
             >
               {creating ? 'Đang tạo...' : 'Tạo tài khoản'}
