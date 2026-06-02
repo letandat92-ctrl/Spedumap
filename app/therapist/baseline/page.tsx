@@ -87,7 +87,7 @@ export default function BaselinePage() {
   useEffect(() => {
     supabase
       .from('children')
-      .select('id, name, dob, parent_id, parent_email, parent_name, parent_phone, parent:parent_id(full_name)')
+      .select('id, name, dob, parent_id, parent_email, parent_name, parent:parent_id(full_name)')
       .order('name')
       .then(({ data }) => {
         if (!data) return
@@ -214,7 +214,6 @@ export default function BaselinePage() {
         const { error: updErr } = await supabase
           .from('children')
           .update({
-            parent_phone: output.child.parent_phone || null,
             parent_name:  output.child.parent_name || null,
           })
           .eq('id', resolvedChildId)
@@ -228,7 +227,6 @@ export default function BaselinePage() {
             dob:          output.child.dob,
             parent_email: output.child.parent_email,
             parent_name:  output.child.parent_name,
-            parent_phone: output.child.parent_phone,
           }, { onConflict: 'id' })
           .select('id')
           .single()
