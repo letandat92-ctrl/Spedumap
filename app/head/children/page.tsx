@@ -251,11 +251,11 @@ export default function HeadChildrenPage() {
   function openAssign(child: Child, cycle: Cycle) {
     if (!canAssign) return
     if (cycle.status !== 'pending') { setAssignError('Chỉ phân công khi cycle ở trạng thái Chờ assign.'); return }
+    // Seed only from the cycle's existing team. Lead is NOT auto-assigned to
+    // teacher_id — the person who locked baseline (Service 1) is usually not the
+    // intervention lead (Service 2). Whoever assigns must pick the lead manually.
     const sel: Record<string, 'lead' | 'member'> = {}
     for (const m of cycle.cycle_therapists || []) sel[m.therapist_id] = m.role_in_cycle === 'lead' ? 'lead' : 'member'
-    const lead = cycle.teacher_id
-    if (lead && !sel[lead]) sel[lead] = 'lead'
-    if (!Object.values(sel).includes('lead') && lead) sel[lead] = 'lead'
     setAssignChild(child); setAssignCycle(cycle); setAssignSel(sel)
     setAssignError(null); setAssignOpen(true)
   }
@@ -573,8 +573,12 @@ export default function HeadChildrenPage() {
               )}
             </div>
             <div className="hc-modal-footer">
-              <div className="hc-assign-count">{Object.keys(assignSel).length} đã chọn</div>
-              <button className="hc-btn-next" disabled={assignSaving || Object.keys(assignSel).length === 0} onClick={saveAssign}>
+              <div className="hc-assign-count">
+                {Object.keys(assignSel).length} đã chọn · {Object.values(assignSel).includes('lead')
+                  ? <span style={{ color: '#1A6A3A' }}>★ đã có lead</span>
+                  : <span style={{ color: '#B52020' }}>chọn 1 lead cho team</span>}
+              </div>
+              <button className="hc-btn-next" disabled={assignSaving || !Object.values(assignSel).includes('lead')} onClick={saveAssign}>
                 {assignSaving ? 'Đang lưu...' : 'Lưu phân công'}
               </button>
             </div>
