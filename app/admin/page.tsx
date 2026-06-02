@@ -193,18 +193,26 @@ export default function AdminPage() {
             }`}>
               {createResult.success ? (
                 <div>
-                  <div className="font-semibold text-[var(--green)] text-sm mb-2">✓ Tài khoản đã tạo thành công</div>
+                  <div className="font-semibold text-[var(--green)] text-sm mb-2">
+                    ✓ {createResult.temp_password ? 'Tài khoản đã tạo thành công' : 'Đã tạo hồ sơ phụ huynh'}
+                  </div>
                   <div className="text-sm text-[var(--ink-2)] space-y-1">
-                    <div>Email: <span className="font-mono font-bold">{createResult.message?.split(':')[0]?.split('.')[0] || email}</span></div>
-                    <div className="flex items-center gap-2">
-                      <span>Mật khẩu tạm:</span>
-                      <code className="bg-white px-2 py-0.5 rounded border border-[var(--green-bd)] font-mono font-bold text-[var(--green)] text-base tracking-wider">
-                        {createResult.temp_password}
-                      </code>
-                    </div>
-                    <div className="text-xs text-[var(--ink-3)] mt-2">
-                      Gửi mật khẩu này cho therapist. Họ sẽ được yêu cầu đổi mật khẩu trong lần đăng nhập đầu tiên.
-                    </div>
+                    {createResult.temp_password ? (
+                      <>
+                        <div>Email: <span className="font-mono font-bold">{createResult.message?.split(':')[0]?.split('.')[0] || email}</span></div>
+                        <div className="flex items-center gap-2">
+                          <span>Mật khẩu tạm:</span>
+                          <code className="bg-white px-2 py-0.5 rounded border border-[var(--green-bd)] font-mono font-bold text-[var(--green)] text-base tracking-wider">
+                            {createResult.temp_password}
+                          </code>
+                        </div>
+                        <div className="text-xs text-[var(--ink-3)] mt-2">
+                          Gửi mật khẩu này cho therapist. Họ sẽ được yêu cầu đổi mật khẩu trong lần đăng nhập đầu tiên.
+                        </div>
+                      </>
+                    ) : (
+                      <div>{createResult.message || 'Đã tạo hồ sơ phụ huynh (không cấp đăng nhập).'}</div>
+                    )}
                   </div>
                 </div>
               ) : (

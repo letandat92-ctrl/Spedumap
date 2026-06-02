@@ -46,6 +46,31 @@ export async function POST(request: NextRequest) {
     }
 
     const adminClient = createAdminClient()
+
+    // Parent = data record only, NOT a login account. Insert a user_profiles
+    // row (id auto-generated) with no auth user and no password. (manage-parent
+    // / /head/children still create logins for now — reconciled in a later step.)
+    if (role === 'parent') {
+      const { data: prow, error: pErr } = await adminClient
+        .from('user_profiles')
+        .insert({ role: 'parent', full_name: full_name || '', email, phone: phone || null })
+        .select('id')
+        .single()
+      if (pErr) {
+        const msg = pErr.code === '23505'
+          ? 'Email hoặc SĐT phụ huynh đã tồn tại'
+          : 'Lỗi tạo hồ sơ phụ huynh: ' + pErr.message
+        return NextResponse.json({ error: msg }, { status: pErr.code === '23505' ? 409 : 500 })
+      }
+      return NextResponse.json({
+        success: true,
+        user_id: prow.id,
+        email,
+        role,
+        message: 'Đã tạo hồ sơ phụ huynh (không cấp đăng nhập)',
+      })
+    }
+
     const tempPassword = generatePassword()
 
     // 1. Create auth user
