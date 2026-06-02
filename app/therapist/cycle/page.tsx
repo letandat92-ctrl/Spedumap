@@ -159,6 +159,7 @@ export default function CyclePage() {
         try {
           const { error } = await supabase.from('cycles').update({
             status:     'active',
+            cycle_name: form.cycleName,
             started_at: form.startDate,
             governance_meta: activeCycle.governance_meta,
           }).eq('id', cycleId)
