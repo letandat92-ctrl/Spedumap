@@ -251,7 +251,7 @@ export default function BaselinePage() {
           started_at: output.eval_date,
           governance_meta: {
             knowledge_domain: output.knowledge_domain,
-            protocol_version: 'engine_v3.2',
+            protocol_version: 'engine_v3.3',
           },
         })
         .select('id')

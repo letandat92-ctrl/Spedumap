@@ -76,8 +76,8 @@ export function useCycle() {
       governance_meta: {
         knowledge_domain:        data.knowledge_domain ?? 'senior_therapist',
         protocol_version:        'v1.0',
-        scoring_version:         '1.1',
-        engine_version:          '3.2',
+        scoring_version:         '1.2',
+        engine_version:          '3.3',
         trajectory_model_version: null,
         is_sandbox:               form.isSandbox,
         sandbox_hypothesis:       form.isSandbox ? form.sandboxHypothesis : null,

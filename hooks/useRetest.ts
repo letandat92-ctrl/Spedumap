@@ -204,7 +204,7 @@ export function useRetest(cycleId: string | null) {
             total_score_end:  r.total,
             stage_end:        r.stage,
             signals_end:      r.signals,
-            protocol_version: 'engine_v3.2',
+            protocol_version: 'engine_v3.3',
             layer_eval_avg:    layerEvalAvg,
             engine_validation: engineValidation,
           },
