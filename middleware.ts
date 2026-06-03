@@ -1,16 +1,6 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
-
-// Role → allowed path prefixes
-const ROLE_ROUTES: Record<string, string[]> = {
-  admin:                ['/admin', '/therapist', '/head', '/parent', '/reception'],
-  head_therapist:       ['/head', '/therapist'],
-  senior_therapist:     ['/therapist'],
-  technician_therapist: ['/therapist'],
-  junior_therapist:     ['/therapist'],
-  parent:               ['/parent'],
-  reception:            ['/reception'],
-}
+import { ROLE_ROUTES } from '@/lib/permissions'
 
 // Public routes — no auth required
 // '/confirm' is the parent session-confirmation page: it talks only to the

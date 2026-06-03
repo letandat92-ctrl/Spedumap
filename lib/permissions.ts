@@ -29,3 +29,15 @@ export const PERMISSIONS: Record<Action, Role[]> = {
 export function can(role: Role | string, action: Action): boolean {
   return PERMISSIONS[action]?.includes(role as Role) ?? false
 }
+
+// ROLE_ROUTES — canonical route-prefix map shared by middleware and hub.
+// Middleware imports this instead of defining its own copy.
+export const ROLE_ROUTES: Record<string, string[]> = {
+  admin:                ['/admin', '/therapist', '/head', '/parent', '/reception'],
+  head_therapist:       ['/head', '/therapist'],
+  senior_therapist:     ['/therapist'],
+  technician_therapist: ['/therapist'],
+  junior_therapist:     ['/therapist'],
+  parent:               ['/parent'],
+  reception:            ['/reception'],
+}
