@@ -7,11 +7,12 @@ export const dynamic = 'force-dynamic'
 
 
 interface UserProfile {
-  id:         string
-  email?:     string
-  role:       string
-  full_name?: string
-  created_at?:string
+  id:          string
+  email?:      string
+  role:        string
+  full_name?:  string
+  created_at?: string
+  status?:     string
 }
 
 const ROLE_LABELS: Record<string, string> = {
@@ -20,6 +21,7 @@ const ROLE_LABELS: Record<string, string> = {
   senior_therapist:     'Senior Therapist',
   technician_therapist: 'Technician',
   junior_therapist:     'Junior Therapist',
+  reception:            'Lễ tân',
   parent:               'Phụ huynh',
 }
 
@@ -29,21 +31,23 @@ const ROLE_COLORS: Record<string, string> = {
   senior_therapist:     'bg-blue-100 text-blue-800',
   technician_therapist: 'bg-blue-100 text-blue-800',
   junior_therapist:     'bg-sky-100 text-sky-800',
+  reception:            'bg-orange-100 text-orange-800',
   parent:               'bg-green-100 text-green-800',
 }
 
 export default function AdminPage() {
   const supabase = createClient()
 
-  const [users, setUsers]       = useState<UserProfile[]>([])
-  const [loading, setLoading]   = useState(true)
+  const [users, setUsers]           = useState<UserProfile[]>([])
+  const [loading, setLoading]       = useState(true)
+  const [adminEmail, setAdminEmail] = useState('')
 
   // Create user form
-  const [email, setEmail]       = useState('')
-  const [role, setRole]         = useState('senior_therapist')
-  const [fullName, setFullName] = useState('')
-  const [phone, setPhone]       = useState('')
-  const [creating, setCreating] = useState(false)
+  const [email, setEmail]         = useState('')
+  const [role, setRole]           = useState('senior_therapist')
+  const [fullName, setFullName]   = useState('')
+  const [phone, setPhone]         = useState('')
+  const [creating, setCreating]   = useState(false)
   const [createResult, setCreateResult] = useState<{
     success?: boolean
     message?: string
@@ -51,15 +55,24 @@ export default function AdminPage() {
     error?: string
   } | null>(null)
 
+  // Delete + re-auth state
+  const [deleteTarget, setDeleteTarget]     = useState<UserProfile | null>(null)
+  const [reAuthPassword, setReAuthPassword] = useState('')
+  const [deleting, setDeleting]             = useState(false)
+  const [deleteError, setDeleteError]       = useState<string | null>(null)
+
   useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => setAdminEmail(data.user?.email ?? ''))
     loadUsers()
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   async function loadUsers() {
     setLoading(true)
     const { data } = await supabase
       .from('user_profiles')
-      .select('*')
+      .select('id, email, role, full_name, created_at, status')
+      .eq('status', 'active')
       .order('created_at', { ascending: false })
     setUsers(data || [])
     setLoading(false)
@@ -88,8 +101,99 @@ export default function AdminPage() {
     }
   }
 
+  async function handleDeleteConfirm() {
+    if (!deleteTarget || !reAuthPassword) return
+    setDeleting(true)
+    setDeleteError(null)
+
+    // M3 re-auth: verify admin's own password before proceeding
+    const { error: authErr } = await supabase.auth.signInWithPassword({
+      email:    adminEmail,
+      password: reAuthPassword,
+    })
+    if (authErr) {
+      setDeleteError('Mật khẩu không đúng. Vui lòng thử lại.')
+      setDeleting(false)
+      return
+    }
+
+    try {
+      const res = await fetch('/api/admin/delete-user', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ user_id: deleteTarget.id }),
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        setDeleteError(data.error ?? 'Lỗi không xác định')
+      } else {
+        setDeleteTarget(null)
+        setReAuthPassword('')
+        loadUsers()
+      }
+    } catch {
+      setDeleteError('Không kết nối được server')
+    } finally {
+      setDeleting(false)
+    }
+  }
+
+  function closeDeleteModal() {
+    setDeleteTarget(null)
+    setReAuthPassword('')
+    setDeleteError(null)
+  }
+
   return (
     <div className="min-h-screen bg-[var(--bg)]">
+
+      {/* Re-auth / confirm delete modal */}
+      {deleteTarget && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+          <div className="bg-white rounded-xl shadow-xl p-6 w-full max-w-sm mx-4">
+            <h3 className="font-semibold text-[var(--ink)] text-base mb-1">Xác nhận vô hiệu hoá</h3>
+            <p className="text-sm text-[var(--ink-3)] mb-4">
+              Vô hiệu hoá <span className="font-medium text-[var(--ink)]">{deleteTarget.full_name || deleteTarget.email}</span>
+              {' '}({ROLE_LABELS[deleteTarget.role] || deleteTarget.role}).
+              {deleteTarget.role !== 'parent' && ' Tài khoản đăng nhập sẽ bị thu hồi ngay.'}
+            </p>
+
+            <label className="block text-xs font-semibold text-[var(--ink-3)] uppercase tracking-wider mb-1.5">
+              Nhập mật khẩu của bạn để xác nhận
+            </label>
+            <input
+              type="password"
+              value={reAuthPassword}
+              onChange={e => { setReAuthPassword(e.target.value); setDeleteError(null) }}
+              placeholder="Mật khẩu hiện tại của bạn"
+              className="w-full h-10 px-3 border border-[var(--rule)] rounded-lg text-sm focus:outline-none focus:border-[var(--navy)] mb-3"
+              autoFocus
+              onKeyDown={e => { if (e.key === 'Enter' && reAuthPassword) handleDeleteConfirm() }}
+            />
+
+            {deleteError && (
+              <div className="mb-3 text-sm text-[var(--red)]">{deleteError}</div>
+            )}
+
+            <div className="flex gap-2 justify-end">
+              <button
+                onClick={closeDeleteModal}
+                disabled={deleting}
+                className="px-4 h-9 border border-[var(--rule)] rounded-lg text-sm text-[var(--ink-3)] hover:bg-[var(--rule-2)] disabled:opacity-40"
+              >
+                Huỷ
+              </button>
+              <button
+                onClick={handleDeleteConfirm}
+                disabled={!reAuthPassword || deleting}
+                className="px-4 h-9 bg-red-600 text-white rounded-lg text-sm font-semibold hover:bg-red-700 disabled:opacity-40"
+              >
+                {deleting ? 'Đang xử lý...' : 'Vô hiệu hoá'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Header */}
       <div className="bg-[var(--navy)] px-8 py-4 flex items-center justify-between">
@@ -150,6 +254,7 @@ export default function AdminPage() {
                   <option value="junior_therapist">Junior Therapist</option>
                   <option value="technician_therapist">Technician Therapist</option>
                   <option value="head_therapist">Head Therapist</option>
+                  <option value="reception">Lễ tân</option>
                   <option value="parent">Phụ huynh</option>
                   <option value="admin">Admin</option>
                 </select>
@@ -256,6 +361,12 @@ export default function AdminPage() {
                         {new Date(u.created_at).toLocaleDateString('vi-VN')}
                       </span>
                     )}
+                    <button
+                      onClick={() => { setDeleteTarget(u); setDeleteError(null) }}
+                      className="text-xs text-[var(--ink-3)] hover:text-red-600 px-2 py-1 rounded hover:bg-red-50 transition-colors"
+                    >
+                      Vô hiệu hoá
+                    </button>
                   </div>
                 </div>
               ))}

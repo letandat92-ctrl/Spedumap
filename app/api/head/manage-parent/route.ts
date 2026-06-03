@@ -42,6 +42,7 @@ export async function POST(request: NextRequest) {
         .select('id, email, full_name, phone, role')
         .or(filters.join(','))
         .eq('role', 'parent')
+        .eq('status', 'active')
         .limit(1)
       const parent = rows?.[0] ?? null
       return NextResponse.json({ found: !!parent, parent })

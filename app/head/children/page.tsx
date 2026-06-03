@@ -103,6 +103,7 @@ export default function HeadChildrenPage() {
       .from('user_profiles')
       .select('id, email, full_name, phone, status')
       .eq('role', 'parent')
+      .eq('status', 'active')
       .order('full_name')
     const parentList = (ps as Parent[]) || []
     setParents(parentList)
