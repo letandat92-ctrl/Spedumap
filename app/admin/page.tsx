@@ -1,7 +1,8 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { createClient } from '@/lib/supabase/client'
+import { ROLES } from '@/lib/permissions'
 
 export const dynamic = 'force-dynamic'
 
@@ -51,9 +52,14 @@ export default function AdminPage() {
   const [createResult, setCreateResult] = useState<{
     success?: boolean
     message?: string
+    email?: string
     temp_password?: string
     error?: string
   } | null>(null)
+
+  // Filter + search state (client-side, no refetch)
+  const [filterRole, setFilterRole]   = useState<string>('all')
+  const [searchText, setSearchText]   = useState('')
 
   // Delete + re-auth state
   const [deleteTarget, setDeleteTarget]     = useState<UserProfile | null>(null)
@@ -66,6 +72,24 @@ export default function AdminPage() {
     loadUsers()
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
+
+  // Stats always on full active set; filter/search narrow the list display only
+  const roleCounts = useMemo(() =>
+    Object.fromEntries(ROLES.map(r => [r, users.filter(u => u.role === r).length])),
+  [users])
+
+  const filteredUsers = useMemo(() => {
+    let list = users
+    if (filterRole !== 'all') list = list.filter(u => u.role === filterRole)
+    if (searchText.trim()) {
+      const q = searchText.trim().toLowerCase()
+      list = list.filter(u =>
+        u.full_name?.toLowerCase().includes(q) ||
+        u.email?.toLowerCase().includes(q)
+      )
+    }
+    return list
+  }, [users, filterRole, searchText])
 
   async function loadUsers() {
     setLoading(true)
@@ -304,7 +328,7 @@ export default function AdminPage() {
                   <div className="text-sm text-[var(--ink-2)] space-y-1">
                     {createResult.temp_password ? (
                       <>
-                        <div>Email: <span className="font-mono font-bold">{createResult.message?.split(':')[0]?.split('.')[0] || email}</span></div>
+                        <div>Email: <span className="font-mono font-bold">{createResult.email || email}</span></div>
                         <div className="flex items-center gap-2">
                           <span>Mật khẩu tạm:</span>
                           <code className="bg-white px-2 py-0.5 rounded border border-[var(--green-bd)] font-mono font-bold text-[var(--green)] text-base tracking-wider">
@@ -331,20 +355,75 @@ export default function AdminPage() {
 
         {/* User list */}
         <div className="bg-white border border-[var(--rule)] rounded-xl">
-          <div className="px-6 py-4 border-b border-[var(--rule)] flex items-center justify-between">
-            <h2 className="font-serif text-lg font-bold text-[var(--navy)]">
+
+          {/* Header row */}
+          <div className="px-6 py-4 border-b border-[var(--rule)] flex items-center justify-between gap-4">
+            <h2 className="font-serif text-lg font-bold text-[var(--navy)] shrink-0">
               Danh sách tài khoản ({users.length})
             </h2>
-            <button onClick={loadUsers} className="text-xs text-[var(--ink-3)] hover:text-[var(--navy)]">
+            {/* Search */}
+            <input
+              type="text"
+              value={searchText}
+              onChange={e => setSearchText(e.target.value)}
+              placeholder="Tìm tên / email…"
+              className="flex-1 max-w-xs h-8 px-3 text-sm border border-[var(--rule)] rounded-lg focus:outline-none focus:border-[var(--navy)]"
+            />
+            <button onClick={loadUsers} className="text-xs text-[var(--ink-3)] hover:text-[var(--navy)] shrink-0">
               Làm mới
             </button>
           </div>
 
+          {/* Stats row — always reflects full active set */}
+          <div className="px-6 py-3 border-b border-[var(--rule-2)] flex items-center gap-3 flex-wrap">
+            {ROLES.filter(r => roleCounts[r] > 0).map(r => (
+              <span key={r} className="flex items-center gap-1.5 text-xs">
+                <span className={`font-semibold px-2 py-0.5 rounded-full ${ROLE_COLORS[r] || 'bg-gray-100 text-gray-600'}`}>
+                  {ROLE_LABELS[r] || r}
+                </span>
+                <span className="text-[var(--ink-3)]">{roleCounts[r]}</span>
+              </span>
+            ))}
+            <span className="ml-auto text-xs text-[var(--ink-3)]">
+              Tổng: {users.length}
+            </span>
+          </div>
+
+          {/* Filter chips */}
+          <div className="px-6 py-2.5 border-b border-[var(--rule-2)] flex items-center gap-2 flex-wrap">
+            <span className="text-xs text-[var(--ink-3)] mr-1">Lọc:</span>
+            <button
+              onClick={() => setFilterRole('all')}
+              className={`text-xs px-2.5 py-1 rounded-full border transition-colors ${
+                filterRole === 'all'
+                  ? 'bg-[var(--navy)] text-white border-[var(--navy)]'
+                  : 'border-[var(--rule)] text-[var(--ink-3)] hover:border-[var(--navy)] hover:text-[var(--navy)]'
+              }`}
+            >
+              Tất cả
+            </button>
+            {ROLES.filter(r => roleCounts[r] > 0).map(r => (
+              <button
+                key={r}
+                onClick={() => setFilterRole(filterRole === r ? 'all' : r)}
+                className={`text-xs px-2.5 py-1 rounded-full border transition-colors ${
+                  filterRole === r
+                    ? 'bg-[var(--navy)] text-white border-[var(--navy)]'
+                    : 'border-[var(--rule)] text-[var(--ink-3)] hover:border-[var(--navy)] hover:text-[var(--navy)]'
+                }`}
+              >
+                {ROLE_LABELS[r] || r}
+              </button>
+            ))}
+          </div>
+
           {loading ? (
             <div className="p-8 text-center text-sm text-[var(--ink-3)]">Đang tải...</div>
+          ) : filteredUsers.length === 0 ? (
+            <div className="p-8 text-center text-sm text-[var(--ink-3)]">Không tìm thấy tài khoản nào.</div>
           ) : (
             <div className="divide-y divide-[var(--rule-2)]">
-              {users.map(u => (
+              {filteredUsers.map(u => (
                 <div key={u.id} className="px-6 py-4 flex items-center justify-between">
                   <div>
                     <div className="text-sm font-medium text-[var(--ink)]">

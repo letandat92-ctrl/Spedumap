@@ -30,6 +30,13 @@ export function can(role: Role | string, action: Action): boolean {
   return PERMISSIONS[action]?.includes(role as Role) ?? false
 }
 
+// ROLES — canonical ordered list for UI iteration (stats, filter chips, etc.)
+// Use this instead of hardcoding role arrays in components.
+export const ROLES: Role[] = [
+  'admin', 'head_therapist', 'senior_therapist',
+  'technician_therapist', 'junior_therapist', 'reception', 'parent',
+]
+
 // ROLE_ROUTES — canonical route-prefix map shared by middleware and hub.
 // Middleware imports this instead of defining its own copy.
 export const ROLE_ROUTES: Record<string, string[]> = {
