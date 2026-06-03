@@ -19,7 +19,7 @@ export const dynamic = 'force-dynamic'
 const BM: Record<string, { label: string; blocks: Record<string, string> }> = {
   L0: { label: 'L0 · Sức khỏe & Điều hòa sinh học', blocks: { sleep: 'Sleep', microbiome: 'Microbiome', nutrition: 'Nutrition', immune: 'Immune', metabolic: 'Metabolic' } },
   L1: { label: 'L1 · Nền tảng hệ thần kinh', blocks: { arousal: 'Arousal', reflex_survival: 'Reflex — Survival', reflex_postural: 'Reflex — Postural', reflex_cortical: 'Reflex — Cortical', tone: 'Muscle Tone', ns_stability: 'Neural Stability' } },
-  L2: { label: 'L2 · Hệ thống giác quan', blocks: { vestibular: 'Vestibular', proprioception: 'Proprioception', auditory: 'Auditory', visual: 'Visual', tactile: 'Tactile', interoception: 'Interoception', taste_smell: 'Taste/Smell' } },
+  L2: { label: 'L2 · Hệ thống giác quan', blocks: { vestibular: 'Vestibular', proprioception: 'Proprioception', auditory: 'Auditory', visual: 'Visual', tactile: 'Tactile', taste: 'Taste', smell: 'Smell' } },
   L3: { label: 'L3 · Vận động', blocks: { motor_planning: 'Motor Planning', gross_motor: 'Gross Motor', fine_motor: 'Fine Motor', postural_control: 'Postural Control', bilateral_coord: 'Bilateral Coord.' } },
   L4: { label: 'L4 · Xử lý thông tin', blocks: { attention: 'Attention Focus', auditory_processing: 'Auditory Processing', visual_processing: 'Visual Processing', wm_link: 'Working Memory Link' } },
   L5: { label: 'L5 · Kỹ năng giao tiếp', blocks: { oral_language: 'Oral Language', word_finding: 'Word Finding', phonemic_awareness: 'Phonemic Awareness', auditory_memory: 'Auditory Memory', visual_memory: 'Visual Memory' } },

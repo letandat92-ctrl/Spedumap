@@ -22,7 +22,7 @@ const LAYER_COLORS: Record<string, string> = {
 const BM: Record<string, { label: string; blocks: Record<string, string> }> = {
   L0:{label:'L0 · Sinh học', blocks:{sleep:'Sleep',microbiome:'Microbiome',nutrition:'Nutrition',immune:'Immune',metabolic:'Metabolic'}},
   L1:{label:'L1 · Thần kinh', blocks:{arousal:'Arousal',reflex_survival:'Reflex Survival',reflex_postural:'Reflex Postural',reflex_cortical:'Reflex Cortical',tone:'Muscle Tone',ns_stability:'Neural Stability'}},
-  L2:{label:'L2 · Giác quan', blocks:{vestibular:'Vestibular',proprioception:'Proprioception',auditory:'Auditory',visual:'Visual',tactile:'Tactile',interoception:'Interoception',taste_smell:'Taste/Smell'}},
+  L2:{label:'L2 · Giác quan', blocks:{vestibular:'Vestibular',proprioception:'Proprioception',auditory:'Auditory',visual:'Visual',tactile:'Tactile',taste:'Taste',smell:'Smell'}},
   L3:{label:'L3 · Vận động', blocks:{motor_planning:'Motor Planning',gross_motor:'Gross Motor',fine_motor:'Fine Motor',postural_control:'Postural Control',bilateral_coord:'Bilateral Coord.'}},
   L4:{label:'L4 · Xử lý', blocks:{attention:'Attention Focus',auditory_processing:'Auditory Processing',visual_processing:'Visual Processing',wm_link:'Working Memory Link'}},
   L5:{label:'L5 · Giao tiếp', blocks:{oral_language:'Oral Language',word_finding:'Word Finding',phonemic_awareness:'Phonemic Awareness',auditory_memory:'Auditory Memory',visual_memory:'Visual Memory'}},
@@ -49,7 +49,6 @@ const PROP: Record<string, Record<string, number>> = {
   attention:           { oral_language:.50, word_finding:.45, auditory_memory:.40 },
   auditory_processing: { phonemic_awareness:.65, oral_language:.50 },
   phonemic_awareness:  { reading:.70, writing:.50 },
-  interoception:       { arousal:.40, self_control:.35 },
 }
 
 type RecType = 'leverage' | 'outlier' | 'bottleneck' | 'custom'

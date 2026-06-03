@@ -22,7 +22,7 @@ const LAYER_COLORS: Record<string,string> = {
 const B2L: Record<string,string> = {
   sleep:'L0',microbiome:'L0',nutrition:'L0',immune:'L0',metabolic:'L0',
   arousal:'L1',reflex_survival:'L1',reflex_postural:'L1',reflex_cortical:'L1',tone:'L1',ns_stability:'L1',
-  vestibular:'L2',proprioception:'L2',auditory:'L2',visual:'L2',tactile:'L2',interoception:'L2',taste_smell:'L2',
+  vestibular:'L2',proprioception:'L2',auditory:'L2',visual:'L2',tactile:'L2',taste:'L2',smell:'L2',
   motor_planning:'L3',gross_motor:'L3',fine_motor:'L3',postural_control:'L3',bilateral_coord:'L3',
   attention:'L4',auditory_processing:'L4',visual_processing:'L4',wm_link:'L4',
   oral_language:'L5',word_finding:'L5',phonemic_awareness:'L5',auditory_memory:'L5',visual_memory:'L5',
@@ -34,7 +34,7 @@ const BN: Record<string,string> = {
   arousal:'Arousal',reflex_survival:'Reflex Survival',reflex_postural:'Reflex Postural',
   reflex_cortical:'Reflex Cortical',tone:'Muscle Tone',ns_stability:'Neural Stability',
   vestibular:'Vestibular',proprioception:'Proprioception',auditory:'Auditory',visual:'Visual',
-  tactile:'Tactile',interoception:'Interoception',taste_smell:'Taste/Smell',
+  tactile:'Tactile',taste:'Taste',smell:'Smell',
   motor_planning:'Motor Planning',gross_motor:'Gross Motor',fine_motor:'Fine Motor',
   postural_control:'Postural Control',bilateral_coord:'Bilateral Coord.',
   attention:'Attention Focus',auditory_processing:'Auditory Processing',

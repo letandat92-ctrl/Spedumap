@@ -16,7 +16,7 @@ export const dynamic = 'force-dynamic'
 const BN_VI: Record<string, string> = {
   sleep: 'Giấc ngủ', microbiome: 'Hệ vi sinh đường ruột', nutrition: 'Dinh dưỡng', immune: 'Miễn dịch', metabolic: 'Chuyển hoá',
   arousal: 'Mức độ tỉnh táo', reflex_survival: 'Phản xạ sinh tồn', reflex_postural: 'Phản xạ tư thế', reflex_cortical: 'Phản xạ vỏ não', tone: 'Trương lực cơ', ns_stability: 'Ổn định thần kinh',
-  vestibular: 'Tiền đình (Thăng bằng)', proprioception: 'Cảm nhận cơ thể', auditory: 'Thính giác', visual: 'Thị giác', tactile: 'Xúc giác', interoception: 'Cảm nhận nội tại', taste_smell: 'Vị giác / Khứu giác',
+  vestibular: 'Tiền đình (Thăng bằng)', proprioception: 'Cảm nhận cơ thể', auditory: 'Thính giác', visual: 'Thị giác', tactile: 'Xúc giác', taste: 'Vị giác', smell: 'Khứu giác',
   motor_planning: 'Lập kế hoạch vận động', gross_motor: 'Vận động thô', fine_motor: 'Vận động tinh', postural_control: 'Kiểm soát tư thế', bilateral_coord: 'Phối hợp hai bên',
   attention: 'Tập trung chú ý', auditory_processing: 'Xử lý thính giác', visual_processing: 'Xử lý thị giác', wm_link: 'Trí nhớ làm việc',
   oral_language: 'Ngôn ngữ nói', word_finding: 'Tìm từ', phonemic_awareness: 'Nhận thức âm vị', auditory_memory: 'Trí nhớ thính giác', visual_memory: 'Trí nhớ thị giác',
@@ -26,7 +26,7 @@ const BN_VI: Record<string, string> = {
 const B2L: Record<string, string> = {
   sleep: 'L0', microbiome: 'L0', nutrition: 'L0', immune: 'L0', metabolic: 'L0',
   arousal: 'L1', reflex_survival: 'L1', reflex_postural: 'L1', reflex_cortical: 'L1', tone: 'L1', ns_stability: 'L1',
-  vestibular: 'L2', proprioception: 'L2', auditory: 'L2', visual: 'L2', tactile: 'L2', interoception: 'L2', taste_smell: 'L2',
+  vestibular: 'L2', proprioception: 'L2', auditory: 'L2', visual: 'L2', tactile: 'L2', taste: 'L2', smell: 'L2',
   motor_planning: 'L3', gross_motor: 'L3', fine_motor: 'L3', postural_control: 'L3', bilateral_coord: 'L3',
   attention: 'L4', auditory_processing: 'L4', visual_processing: 'L4', wm_link: 'L4',
   oral_language: 'L5', word_finding: 'L5', phonemic_awareness: 'L5', auditory_memory: 'L5', visual_memory: 'L5',

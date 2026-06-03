@@ -21,7 +21,7 @@ export const THRESHOLD = 2.5
 const BLOCK_WEIGHTS_RAW: Record<string, Record<string, number>> = {
   L0: { sleep: 0.25, microbiome: 0.25, nutrition: 0.20, immune: 0.15, metabolic: 0.15 },
   L1: { arousal: 0.40, reflex_survival: 0.10, reflex_postural: 0.10, reflex_cortical: 0.05, tone: 0.20, ns_stability: 0.15 },
-  L2: { vestibular: 0.20, proprioception: 0.15, auditory: 0.15, visual: 0.15, tactile: 0.10, interoception: 0.10, taste_smell: 0.15 },
+  L2: { vestibular: 0.22, proprioception: 0.18, auditory: 0.16, visual: 0.16, tactile: 0.12, taste: 0.08, smell: 0.08 },
   L3: { motor_planning: 1 / 5, gross_motor: 1 / 5, fine_motor: 1 / 5, postural_control: 1 / 5, bilateral_coord: 1 / 5 },
   L4: { attention: 0.35, auditory_processing: 0.30, visual_processing: 0.30, wm_link: 0.05 },
   L5: { oral_language: 1 / 5, word_finding: 1 / 5, phonemic_awareness: 1 / 5, auditory_memory: 1 / 5, visual_memory: 1 / 5 },

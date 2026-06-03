@@ -163,19 +163,19 @@ export const ANCHOR: Record<string, AnchorEntry> = {
     'Xử lý xúc giác tương đối tốt. Có thể có sở thích nhỏ nhưng không ảnh hưởng sinh hoạt.',
     'Xử lý xúc giác tốt. Không có phản ứng bất thường. Tham gia đa dạng hoạt động xúc giác.',
   ]},
-  interoception: { name: 'Interoception — Cảm giác nội quan', rows: [
-    'Không nhận biết các tín hiệu cơ thể cơ bản: đói/no, mắc tiểu, đau, mệt. Thường xuyên có tai nạn vệ sinh.',
-    'Nhận biết tín hiệu cơ thể rất kém. Thỉnh thoảng không kịp vệ sinh. Không nhận ra đói/no đúng lúc.',
-    'Nhận biết được một số tín hiệu cơ thể nhưng chậm hoặc không nhất quán. Tự vệ sinh được nhưng cần nhắc.',
-    'Nhận biết hầu hết tín hiệu cơ thể cơ bản. Tự quản lý vệ sinh tốt. Có thể diễn đạt đói/no/mệt.',
-    'Nhận biết tốt các tín hiệu cơ thể. Tự quản lý nhu cầu sinh lý. Kết nối cảm giác với trạng thái cảm xúc.',
+  taste: { name: 'Taste — Vị giác', rows: [
+    'Phản ứng cực đoan với vị: nôn/ọe khi nếm vị nhất định, hoặc liếm/ăn đồ vật không phải thức ăn (pica). Ăn được rất ít món.',
+    'Nhạy cảm vị rõ rệt. Né tránh nhiều nhóm thức ăn theo vị (chua/đắng/mặn). Kén ăn nặng, ảnh hưởng dinh dưỡng.',
+    'Có nhạy cảm vị nhất định. Né tránh một số vị cụ thể nhưng vẫn ăn được nhóm thức ăn cơ bản.',
+    'Xử lý vị tương đối tốt. Có khẩu vị riêng nhưng ăn được đa dạng món.',
+    'Xử lý vị bình thường. Ăn đa dạng, chấp nhận vị mới. Không phản ứng bất thường.',
   ]},
-  taste_smell: { name: 'Taste / Smell — Vị giác / Khứu giác', rows: [
-    'Phản ứng cực đoan: nôn khi tiếp xúc với mùi/vị nhất định, hoặc ăn/liếm đồ vật không phải thức ăn (pica).',
-    'Nhạy cảm mùi/vị rõ rệt. Né tránh nhiều loại thức ăn. Phản ứng tiêu cực mạnh với mùi bình thường.',
-    'Có nhạy cảm nhất định. Né tránh một số nhóm thức ăn cụ thể nhưng không ảnh hưởng nghiêm trọng.',
-    'Xử lý mùi/vị tương đối tốt. Có sở thích nhất định nhưng ăn được đa dạng.',
-    'Xử lý mùi/vị bình thường. Ăn đa dạng. Không có phản ứng bất thường với mùi thông thường.',
+  smell: { name: 'Smell — Khứu giác', rows: [
+    'Phản ứng cực đoan với mùi: nôn/ọe hoặc hoảng loạn với mùi thường, hoặc ngửi/tìm mùi mọi vật liên tục bất thường.',
+    'Nhạy cảm mùi rõ rệt. Phản ứng mạnh (che mũi, bỏ chạy) với mùi bình thường ở nhà/lớp.',
+    'Có nhạy cảm với một số mùi cụ thể, nhưng không ảnh hưởng nghiêm trọng sinh hoạt.',
+    'Xử lý mùi tương đối tốt. Khó chịu với mùi mạnh nhưng thích nghi được.',
+    'Xử lý mùi bình thường. Không phản ứng bất thường với mùi thông thường.',
   ]},
   motor_planning: { name: 'Motor Planning — Lập kế hoạch vận động', rows: [
     'Không thể thực hiện chuỗi vận động mới dù đơn giản. Không bắt chước động tác.',
