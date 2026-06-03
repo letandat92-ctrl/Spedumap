@@ -543,7 +543,7 @@ export default function BaselinePage() {
               <div className="mt-1 text-[11px] text-[var(--sub)]">Đang tìm hồ sơ phụ huynh…</div>
             )}
             {parentLookupStatus === 'not_found' && (meta.parentEmail.trim() || meta.parentPhone.trim()) && (
-              <div className="mt-1 text-[11px] text-[var(--gold)]">Không tìm thấy phụ huynh — kiểm tra lại email hoặc SĐT</div>
+              <div className="mt-1 text-[11px] text-[var(--gold)]">Phụ huynh chưa có hồ sơ — tạo ở Lễ tân/Admin trước</div>
             )}
           </div>
 
