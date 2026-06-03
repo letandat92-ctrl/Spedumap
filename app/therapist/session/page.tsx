@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { useSession, type LocalScore, type SessionInfo } from '@/hooks/useSession'
+import { useSession, computeBlockDelta, type LocalScore, type SessionInfo } from '@/hooks/useSession'
 import { createClient } from '@/lib/supabase/client'
 import { runEngine } from '@/lib/engine'
 import { A4PageWrapper } from '@/components/A4PageWrapper'
@@ -89,7 +89,7 @@ const EVAL_SCALE: Array<{ v: number; label: string; color: string }> = [
   { v: 6, label: 'Rất tiến\nbộ',      color: '#0A4A28' },  // --s6 (inline; not in globals.css)
 ]
 
-const LOCAL_TO_DELTA: Record<number, number> = { '-2': -0.50, '-1': -0.20, '0': 0.00, '1': 0.20, '2': 0.40 }
+// LOCAL_TO_DELTA removed — use computeBlockDelta(local, targetDelta, N) from useSession (v1.3)
 
 // ── Score helpers (mirror getBlockScore / layerScore / totalFromBaseline) ──
 function getScore(v: unknown): number {
@@ -650,8 +650,8 @@ export default function SessionPage() {
                       const targetDelta = tScore - baseScore
                       const a  = activities[key]
                       const ls = a?.localScore ?? null
-                      const newScore = ls !== null ? Math.min(tScore, current + targetDelta * (LOCAL_TO_DELTA[ls] ?? 0)) : null
-                      const deltaPreview = ls !== null ? targetDelta * (LOCAL_TO_DELTA[ls] ?? 0) : 0
+                      const newScore = ls !== null ? Math.min(tScore, current + computeBlockDelta(ls, targetDelta, plannedSessions)) : null
+                      const deltaPreview = ls !== null ? computeBlockDelta(ls, targetDelta, plannedSessions) : 0
                       return (
                         <tr key={key} style={ls !== null ? { background: '#F3FAF5' } : undefined}>
                           <td style={{ padding: '6px 8px', borderBottom: '1px solid var(--rule-2)', verticalAlign: 'top', fontFamily: FONT_MONO, fontSize: 11, color: 'var(--ink-3)', textAlign: 'center', width: 24 }}>{i + 1}</td>
