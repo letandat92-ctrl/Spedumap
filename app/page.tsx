@@ -110,10 +110,6 @@ export default async function RootPage() {
     }))
     .filter(sec => sec.tiles.length > 0)
 
-  // Single tile → go straight
-  const totalTiles = visibleSections.reduce((n, s) => n + s.tiles.length, 0)
-  if (totalTiles === 1) redirect(visibleSections[0].tiles[0].href)
-
   return (
     <>
       {/* rise animation + hover — CSS only, no JS event handlers needed */}
