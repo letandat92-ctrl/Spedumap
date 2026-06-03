@@ -12,7 +12,7 @@ import { LayerSection } from '@/components/blocks/LayerSection'
 import { BaselineKPI } from '@/components/blocks/BaselineKPI'
 import { BaselineCharts } from '@/components/charts/BaselineCharts'
 import { SignalStrip } from '@/components/charts/CycleComponents'
-import AssessmentForm from '@/components/forms/AssessmentForm'
+
 
 export const dynamic = 'force-dynamic'
 
@@ -65,10 +65,6 @@ export default function BaselinePage() {
   const [lockPassword, setLockPassword]   = useState('')
   const [passwordError, setPasswordError] = useState('')
   const [attachments, setAttachments]     = useState<Array<{name:string;size:number;type:string}>>([])
-  const [showAssessmentForm, setShowAssessmentForm] = useState(false)
-  const [childId, setChildId] = useState<string | null>(null)
-  const [therapistId, setTherapistId] = useState<string | null>(null)
-
   // ── Child directory picker ──
   const [childDirectory, setChildDirectory] = useState<PickerChild[]>([])
   const [childDropdownOpen, setChildDropdownOpen] = useState(false)
@@ -77,14 +73,10 @@ export default function BaselinePage() {
   // Parent lookup state (X1)
   const [parentLookupStatus, setParentLookupStatus] = useState<'idle' | 'loading' | 'found' | 'not_found'>('idle')
 
-  const supabase = createClient()
+  // 1d: Pyramid modal
+  const [pyramidOpen, setPyramidOpen] = useState(false)
 
-  // Get therapist ID from auth
-  useEffect(() => {
-    supabase.auth.getUser().then(({ data: { user } }) => {
-      if (user?.id) setTherapistId(user.id)
-    })
-  }, [supabase])
+  const supabase = createClient()
 
   // Load child directory for the picker (existing children + their parent info)
   useEffect(() => {
@@ -105,12 +97,13 @@ export default function BaselinePage() {
       })
   }, [supabase])
 
-  // X1: Lookup parent on Enter — query user_profiles by email OR phone
+  // X1: Lookup parent on Enter — query user_profiles by email OR phone (1 field đủ)
   async function lookupParent() {
     const email = meta.parentEmail.trim()
     const phone = meta.parentPhone.trim()
-    if (!email && !phone) return
+    if (!email && !phone) return          // cả 2 rỗng mới bỏ qua
     setParentLookupStatus('loading')
+    // Build OR filter — chỉ push field nào có giá trị
     const conditions: string[] = []
     if (email) conditions.push(`email.eq.${email}`)
     if (phone) conditions.push(`phone.eq.${phone}`)
@@ -120,8 +113,7 @@ export default function BaselinePage() {
       .eq('role', 'parent')
       .eq('status', 'active')
       .or(conditions.join(','))
-      .limit(1)
-      .single()
+      .maybeSingle()                      // trả null (không lỗi) khi 0 rows
     if (data) {
       setMetaField('parentId', data.id)
       setMetaField('parentName', data.full_name ?? '')
@@ -187,9 +179,15 @@ export default function BaselinePage() {
     e.target.value = ''
   }
 
+  // Today's date for dob max constraint (1b)
+  const todayISO = new Date().toISOString().split('T')[0]
+
+  // 1b: dob must not be in the future
+  const dobFuture = !!(meta.childDob && meta.childDob > todayISO)
+
   // Meta gate: required fields filled? (X3: parentId from lookup is mandatory)
   const metaComplete = !!(
-    meta.childName && meta.childDob && meta.evaluatorName &&
+    meta.childName && meta.childDob && !dobFuture && meta.evaluatorName &&
     meta.evalDate && meta.evalTimeStart && meta.evalTimeEnd &&
     meta.parentId
   )
@@ -307,10 +305,8 @@ export default function BaselinePage() {
       localStorage.setItem(LS_KEYS.BASELINE, JSON.stringify(finalOutput))
 
       setIsLocked(true)
-      setChildId(resolvedChildId)
       setShowLockModal(false)
-      setShowAssessmentForm(true)
-      // Don't redirect immediately — let user fill assessment first
+      router.push('/therapist/goal')
 
     } catch (err) {
       setSaveError(err instanceof Error ? err.message : 'Lỗi không xác định')
@@ -349,6 +345,14 @@ export default function BaselinePage() {
               {enteredCount}/{totalCount}
             </span>
           </div>
+          {/* Pyramid diagram */}
+          <button
+            onClick={() => setPyramidOpen(true)}
+            className="text-[11px] font-semibold tracking-[0.04em] rounded-[3px] px-3 py-[7px] border border-[var(--border)] bg-transparent text-[var(--sub)] hover:text-[var(--ink)] hover:border-[var(--navy)] transition-all"
+            style={{ fontFamily: "'Oswald', sans-serif" }}
+          >
+            Sơ đồ Pyramid
+          </button>
           {/* Lock trigger */}
           <button
             onClick={() => setShowLockModal(true)}
@@ -432,9 +436,15 @@ export default function BaselinePage() {
               <input
                 type="date"
                 value={meta.childDob}
+                max={todayISO}
                 onChange={e => setMetaField('childDob', e.target.value)}
-                className="w-full h-8 px-2 text-sm border border-[var(--rule)] rounded focus:outline-none focus:border-[var(--navy)]"
+                className={`w-full h-8 px-2 text-sm border rounded focus:outline-none ${
+                  dobFuture ? 'border-[var(--red)] focus:border-[var(--red)]' : 'border-[var(--rule)] focus:border-[var(--navy)]'
+                }`}
               />
+              {dobFuture && (
+                <div className="mt-0.5 text-[10px] text-[var(--red)]">Ngày sinh không thể là tương lai</div>
+              )}
             </div>
           </div>
 
@@ -713,41 +723,25 @@ export default function BaselinePage() {
         </div>
       )}
 
-      {/* Assessment Form — After baseline locked */}
-      {isLocked && showAssessmentForm && childId && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg shadow-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="p-6 border-b border-neutral-200 flex justify-between items-center sticky top-0 bg-white">
-              <h2 className="text-lg font-semibold text-neutral-900">Assessment (Đánh giá chi tiết)</h2>
-              <button
-                onClick={() => {
-                  setShowAssessmentForm(false)
-                  // Redirect to goal setting after assessment
-                  setTimeout(() => router.push('/therapist/goal'), 500)
-                }}
-                className="text-neutral-500 hover:text-neutral-700 text-2xl font-light"
-              >
-                ✕
-              </button>
-            </div>
-            <div className="p-6">
-              {therapistId && childId ? (
-                <AssessmentForm
-                  childId={childId}
-                  therapistId={therapistId}
-                  supabaseClient={supabase}
-                  onSuccess={() => {
-                    // After assessment saved, redirect to goal
-                    setTimeout(() => router.push('/therapist/goal'), 1000)
-                  }}
-                  onError={(err) => {
-                    console.error('Assessment save failed:', err)
-                  }}
-                />
-              ) : (
-                <div className="text-center text-neutral-500 py-4">Loading...</div>
-              )}
-            </div>
+      {/* 1d: Pyramid diagram modal */}
+      {pyramidOpen && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60"
+          onClick={() => setPyramidOpen(false)}
+        >
+          <div
+            className="relative max-w-[90vw] max-h-[90vh]"
+            onClick={e => e.stopPropagation()}
+          >
+            <button
+              onClick={() => setPyramidOpen(false)}
+              className="absolute -top-8 right-0 text-white text-xl font-light hover:text-neutral-300"
+            >✕</button>
+            <img
+              src="/pyramid.png"
+              alt="SPEDUMAP Pyramid"
+              className="max-w-full max-h-[85vh] object-contain rounded shadow-2xl"
+            />
           </div>
         </div>
       )}
