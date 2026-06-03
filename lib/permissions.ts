@@ -8,7 +8,8 @@ export type Role =
 
 export type Action =
   'assessment' | 'cycle_open' | 'daily_session' |
-  'view_progress' | 'close_cycle' | 'assign_case' | 'create_user' | 'create_parent'
+  'view_progress' | 'close_cycle' | 'assign_case' |
+  'create_user' | 'create_parent' | 'delete_user' | 'delete_parent'
 
 export const PERMISSIONS: Record<Action, Role[]> = {
   assessment:    ['admin', 'head_therapist', 'senior_therapist'],
@@ -21,6 +22,8 @@ export const PERMISSIONS: Record<Action, Role[]> = {
   assign_case:   ['admin', 'head_therapist'],
   create_user:   ['admin'],
   create_parent: ['admin', 'reception'],
+  delete_user:   ['admin'],
+  delete_parent: ['admin', 'reception'],
 }
 
 export function can(role: Role | string, action: Action): boolean {
