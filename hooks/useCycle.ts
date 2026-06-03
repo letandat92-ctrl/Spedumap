@@ -76,7 +76,7 @@ export function useCycle() {
       governance_meta: {
         knowledge_domain:        data.knowledge_domain ?? 'senior_therapist',
         protocol_version:        'v1.0',
-        scoring_version:         '1.2',
+        scoring_version:         '1.3',   // v1.3: delta = (targetDelta/N)*PACE[local]
         engine_version:          '3.3',
         trajectory_model_version: null,
         is_sandbox:               form.isSandbox,

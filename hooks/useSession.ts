@@ -42,10 +42,9 @@ export type RegressionClass = 'transitional' | 'pathological' | 'noise'
 
 export const LAYER_IDS = ['L0', 'L1', 'L2', 'L3', 'L4', 'L5', 'L6', 'L7']
 
-// delta map — mirrors spedumap_config.js
-const LOCAL_TO_DELTA: Record<number, number> = {
-  '-2': -0.50, '-1': -0.20, '0': 0.00, '1': 0.20, '2': 0.40,
-}
+// Import + re-export delta model from canonical lib/scoring.ts (v1.3)
+export { computeBlockDelta, PACE } from '@/lib/scoring'
+import { computeBlockDelta } from '@/lib/scoring'
 
 // block → layer map — mirrors B2L in spedumap_config.js
 const B2L: Record<string, string> = {
@@ -196,6 +195,12 @@ export function useSession() {
     const target = (cycle.target as {blocks: Record<string, unknown>})?.blocks || {}
     const sessionIndex = ((cycle.daily_sessions as unknown[]) || []).length + 1
 
+    // N = planned_sessions for this cycle (v1.3 delta model)
+    const N = (cycle?.planned_sessions as number) || (() => {
+      console.warn('[useSession] planned_sessions missing — falling back to 24')
+      return 24
+    })()
+
     const builtActivities = Object.entries(activities)
       .filter(([, a]) => a.localScore !== null)
       .map(([block, a]) => {
@@ -204,7 +209,7 @@ export function useSession() {
         const baselineScore = getBlockScore((cycle.baseline as {blocks: Record<string, unknown>})?.blocks?.[block])
         const targetScore   = getBlockScore(targetBlock)
         const targetDelta   = targetScore - baselineScore
-        const delta         = targetDelta * (LOCAL_TO_DELTA[localScore] ?? 0)
+        const delta         = computeBlockDelta(localScore, targetDelta, N)
         const currentAfter  = makeBlock(Math.min(targetScore, (cur[block] ?? baselineScore) + delta))
         return {
           block,
@@ -317,13 +322,17 @@ export function useSession() {
   if (cycle) {
     const baseB   = (cycle.baseline as { blocks: Record<string, unknown> })?.blocks || {}
     const targetB = (cycle.target as { blocks: Record<string, unknown> })?.blocks || {}
+    const liveN   = (cycle?.planned_sessions as number) || (() => {
+      console.warn('[useSession/liveScores] planned_sessions missing — falling back to 24')
+      return 24
+    })()
     for (const [block, a] of Object.entries(activities)) {
       if (a.localScore === null) continue
       const baseVal     = getBlockScore(baseB[block])
       const targetScore = getBlockScore(targetB[block])
       const targetDelta = targetScore - baseVal
       const cur         = currentScores[block] ?? baseVal
-      liveScores[block] = Math.min(targetScore, cur + targetDelta * (LOCAL_TO_DELTA[a.localScore] ?? 0))
+      liveScores[block] = Math.min(targetScore, cur + computeBlockDelta(a.localScore, targetDelta, liveN))
     }
   }
 
