@@ -76,7 +76,6 @@ export default function BaselinePage() {
 
   // Parent lookup state (X1)
   const [parentLookupStatus, setParentLookupStatus] = useState<'idle' | 'loading' | 'found' | 'not_found'>('idle')
-  const [parentLookupName, setParentLookupName] = useState<string | null>(null)
 
   const supabase = createClient()
 
@@ -106,42 +105,34 @@ export default function BaselinePage() {
       })
   }, [supabase])
 
-  // X1: Lookup parent in user_profiles by email or phone (debounced 600ms)
-  useEffect(() => {
+  // X1: Lookup parent on Enter — query user_profiles by email OR phone
+  async function lookupParent() {
     const email = meta.parentEmail.trim()
     const phone = meta.parentPhone.trim()
-    if (!email && !phone) {
-      setParentLookupStatus('idle')
-      setParentLookupName(null)
-      setMetaField('parentId', null)
-      return
-    }
+    if (!email && !phone) return
     setParentLookupStatus('loading')
-    const timer = setTimeout(async () => {
-      const conditions: string[] = []
-      if (email) conditions.push(`email.eq.${email}`)
-      if (phone) conditions.push(`phone.eq.${phone}`)
-      const { data } = await supabase
-        .from('user_profiles')
-        .select('id, full_name, email, phone')
-        .eq('role', 'parent')
-        .eq('status', 'active')
-        .or(conditions.join(','))
-        .limit(1)
-        .single()
-      if (data) {
-        setMetaField('parentId', data.id)
-        setParentLookupName(data.full_name || data.email || null)
-        setParentLookupStatus('found')
-      } else {
-        setMetaField('parentId', null)
-        setParentLookupName(null)
-        setParentLookupStatus('not_found')
-      }
-    }, 600)
-    return () => clearTimeout(timer)
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [meta.parentEmail, meta.parentPhone])
+    const conditions: string[] = []
+    if (email) conditions.push(`email.eq.${email}`)
+    if (phone) conditions.push(`phone.eq.${phone}`)
+    const { data } = await supabase
+      .from('user_profiles')
+      .select('id, full_name, email, phone')
+      .eq('role', 'parent')
+      .eq('status', 'active')
+      .or(conditions.join(','))
+      .limit(1)
+      .single()
+    if (data) {
+      setMetaField('parentId', data.id)
+      setMetaField('parentName', data.full_name ?? '')
+      if (data.email) setMetaField('parentEmail', data.email)
+      if (data.phone) setMetaField('parentPhone', data.phone)
+      setParentLookupStatus('found')
+    } else {
+      setMetaField('parentId', null)
+      setParentLookupStatus('not_found')
+    }
+  }
 
   // Pick a child from the directory → auto-fill identity + parent fields
   function selectChild(c: PickerChild) {
@@ -155,7 +146,6 @@ export default function BaselinePage() {
     if (c.parent_id) {
       setMetaField('parentId', c.parent_id)
       setParentLookupStatus('found')
-      setParentLookupName(c.parent_full_name ?? c.parent_name ?? null)
     }
     setChildDropdownOpen(false)
   }
@@ -452,10 +442,12 @@ export default function BaselinePage() {
             <div>
               <label className="block text-xs text-[var(--ink-3)] mb-1">Tên phụ huynh</label>
               <input
+                readOnly
                 value={meta.parentName}
-                onChange={e => setMetaField('parentName', e.target.value)}
-                className="w-full h-8 px-2 text-sm border border-[var(--rule)] rounded focus:outline-none focus:border-[var(--navy)]"
-                placeholder="Nguyễn Thị B"
+                className={`w-full h-8 px-2 text-sm border rounded ${
+                  meta.parentName ? 'bg-[#F5F9F5] border-[var(--green)] text-[var(--ink)]' : 'bg-[var(--warm-bg)] border-[var(--rule)] text-[var(--sub)]'
+                }`}
+                placeholder="Tự điền từ hồ sơ"
               />
             </div>
             <div>
@@ -466,10 +458,12 @@ export default function BaselinePage() {
                 onChange={e => {
                   setMetaField('parentPhone', e.target.value)
                   setMetaField('parentId', null)
+                  setMetaField('parentName', '')
                   setParentLookupStatus('idle')
                 }}
+                onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); lookupParent() } }}
                 className="w-full h-8 px-2 text-sm border border-[var(--rule)] rounded focus:outline-none focus:border-[var(--navy)]"
-                placeholder="0909..."
+                placeholder="0909... rồi Enter"
               />
             </div>
           </div>
@@ -518,9 +512,6 @@ export default function BaselinePage() {
           <div>
             <label className="block text-xs text-[var(--ink-3)] mb-1">
               Email phụ huynh <span className="text-[var(--red)]">*</span>
-              {parentLookupStatus === 'found' && (
-                <span className="ml-1 text-[10px] text-[var(--green)]">· {parentLookupName ?? 'tìm thấy'}</span>
-              )}
             </label>
             <input
               type="email"
@@ -528,19 +519,24 @@ export default function BaselinePage() {
               onChange={e => {
                 setMetaField('parentEmail', e.target.value)
                 setMetaField('parentId', null)
+                setMetaField('parentName', '')
                 setParentLookupStatus('idle')
               }}
+              onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); lookupParent() } }}
               className={`w-full h-8 px-2 text-sm border rounded focus:outline-none ${
                 parentLookupStatus === 'found'
                   ? 'border-[var(--green)] focus:border-[var(--green)]'
-                  : parentLookupStatus === 'not_found' && meta.parentEmail.trim()
+                  : parentLookupStatus === 'not_found' && (meta.parentEmail.trim() || meta.parentPhone.trim())
                     ? 'border-[var(--gold)] focus:border-[var(--gold)]'
                     : 'border-[var(--rule)] focus:border-[var(--navy)]'
               }`}
-              placeholder="parent@email.com"
+              placeholder="parent@email.com rồi Enter"
             />
             {parentLookupStatus === 'loading' && (
-              <div className="mt-1 text-[11px] text-[var(--sub)]">Đang tìm hồ sơ phụ huynh…</div>
+              <div className="mt-1 text-[11px] text-[var(--sub)]">Đang tìm hồ sơ…</div>
+            )}
+            {parentLookupStatus === 'found' && (
+              <div className="mt-1 text-[11px] font-semibold text-[var(--green)]">✓ Đã liên kết</div>
             )}
             {parentLookupStatus === 'not_found' && (meta.parentEmail.trim() || meta.parentPhone.trim()) && (
               <div className="mt-1 text-[11px] text-[var(--gold)]">Phụ huynh chưa có hồ sơ — tạo ở Lễ tân/Admin trước</div>
