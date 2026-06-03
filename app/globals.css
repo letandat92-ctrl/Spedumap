@@ -205,4 +205,16 @@ body {
     size: A4;
     margin: 8mm 10mm;
   }
+  /* Ensure all panels render fully — no clipping from overflow:hidden containers */
+  *, *::before, *::after {
+    overflow: visible !important;
+  }
+  body, html {
+    height: auto !important;
+  }
+  /* Prevent panel content from being cut across page breaks */
+  .print-panel {
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
 }
