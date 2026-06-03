@@ -10,7 +10,13 @@
 // would reject it. Auth here is the unguessable capability token + per-token
 // rate limit (custom auth).
 //
-// Request body: { token: string, action: 'load' | 'confirm' }
+// Request body:
+//   load:    { token, action: 'load' }
+//   confirm: { token, action: 'confirm', contact: string }
+//            contact = email or phone provided by parent (knowledge factor).
+//            Resolved against user_profiles row linked via
+//            session → cycle → child → parent_id → user_profiles.
+//            Email compared lowercase+trim; phone compared digits-only.
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
@@ -37,10 +43,12 @@ Deno.serve(async (req) => {
 
   let token = ''
   let action = ''
+  let contact = ''
   try {
     const body = await req.json()
-    token = String(body?.token ?? '')
-    action = String(body?.action ?? '')
+    token   = String(body?.token   ?? '')
+    action  = String(body?.action  ?? '')
+    contact = String(body?.contact ?? '').trim()
   } catch {
     return json({ ok: false, error: 'bad_request' }, 400)
   }
@@ -75,6 +83,45 @@ Deno.serve(async (req) => {
 
   if (action === 'confirm') {
     if (sess.parent_confirmed === true) return json({ ok: true, already: true })
+
+    // ── Knowledge-factor: verify contact against parent's profile ──────────
+    // Chain: session.cycle_id → cycles.child_id → children.parent_id → user_profiles
+    if (!contact) return json({ ok: false, error: 'contact_required', message: 'Vui lòng nhập email hoặc SĐT phụ huynh' }, 400)
+
+    const { data: cyc2 } = await supa
+      .from('cycles').select('child_id').eq('id', sess.cycle_id).single()
+    const childId2 = cyc2?.child_id ?? null
+
+    let parentEmail: string | null = null
+    let parentPhone: string | null = null
+
+    if (childId2) {
+      const { data: ch } = await supa
+        .from('children').select('parent_id').eq('id', childId2).single()
+      const parentId = ch?.parent_id ?? null
+      if (parentId) {
+        const { data: pr } = await supa
+          .from('user_profiles').select('email, phone').eq('id', parentId).single()
+        parentEmail = pr?.email ?? null
+        parentPhone = pr?.phone ?? null
+      }
+    }
+
+    // Normalize helpers
+    const norm    = (s: string | null) => (s ?? '').toLowerCase().trim()
+    const digitsOnly = (s: string) => s.replace(/\D/g, '')
+
+    const contactNorm   = norm(contact)
+    const contactDigits = digitsOnly(contact)
+
+    const emailMatch = parentEmail && norm(parentEmail) === contactNorm
+    const phoneMatch = parentPhone && digitsOnly(parentPhone) === contactDigits && contactDigits.length >= 8
+
+    if (!emailMatch && !phoneMatch) {
+      return json({ ok: false, error: 'contact_mismatch', message: 'Thông tin không khớp hồ sơ phụ huynh' }, 403)
+    }
+    // ── End knowledge-factor ────────────────────────────────────────────────
+
     const { error } = await supa
       .from('daily_sessions')
       .update({ parent_confirmed: true, parent_confirmed_at: new Date().toISOString() })

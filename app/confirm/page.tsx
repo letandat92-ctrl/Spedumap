@@ -46,6 +46,7 @@ interface LoadResp {
   ok: boolean
   already?: boolean
   error?: string
+  message?: string
   child: { name: string; dob: string | null }
   planned_sessions: number
   baseline: { blocks: Record<string, unknown>; total_score: number }
@@ -153,12 +154,14 @@ function ConfirmInner() {
   const [view, setView] = useState<View>('loading')
   const [data, setData] = useState<LoadResp | null>(null)
   const [confirming, setConfirming] = useState(false)
+  const [contact, setContact] = useState('')
+  const [contactError, setContactError] = useState<string | null>(null)
 
-  const callFn = useCallback(async (action: 'load' | 'confirm'): Promise<LoadResp | null> => {
+  const callFn = useCallback(async (action: 'load' | 'confirm', extra?: Record<string, string>): Promise<LoadResp | null> => {
     const res = await fetch(FN_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', apikey: ANON, Authorization: `Bearer ${ANON}` },
-      body: JSON.stringify({ token, action }),
+      body: JSON.stringify({ token, action, ...extra }),
     })
     try { return await res.json() } catch { return null }
   }, [token])
@@ -177,10 +180,19 @@ function ConfirmInner() {
   }, [token, callFn])
 
   async function handleConfirm() {
+    if (!contact.trim()) { setContactError('Vui lòng nhập email hoặc SĐT để xác nhận'); return }
+    setContactError(null)
     setConfirming(true)
-    const resp = await callFn('confirm')
+    const resp = await callFn('confirm', { contact: contact.trim() })
     setConfirming(false)
-    if (!resp || !resp.ok) { setView('error'); return }
+    if (!resp) { setView('error'); return }
+    if (!resp.ok) {
+      if (resp.error === 'contact_mismatch' || resp.error === 'contact_required') {
+        setContactError(resp.message ?? 'Thông tin không khớp hồ sơ phụ huynh')
+        return
+      }
+      setView('error'); return
+    }
     setView(resp.already ? 'already' : 'success')
   }
 
@@ -197,7 +209,13 @@ function ConfirmInner() {
           <div className="cf-state"><div className="cf-state-sub">Đang tải...</div></div>
         )}
 
-        {view === 'main' && data && <MainView data={data} confirming={confirming} onConfirm={handleConfirm} />}
+        {view === 'main' && data && (
+          <MainView
+            data={data} confirming={confirming} onConfirm={handleConfirm}
+            contact={contact} onContactChange={c => { setContact(c); setContactError(null) }}
+            contactError={contactError}
+          />
+        )}
 
         {view === 'already' && (
           <div className="cf-state">
@@ -227,7 +245,10 @@ function ConfirmInner() {
   )
 }
 
-function MainView({ data, confirming, onConfirm }: { data: LoadResp; confirming: boolean; onConfirm: () => void }) {
+function MainView({ data, confirming, onConfirm, contact, onContactChange, contactError }: {
+  data: LoadResp; confirming: boolean; onConfirm: () => void
+  contact: string; onContactChange: (v: string) => void; contactError: string | null
+}) {
   const s = data.this_session
   const baselineBlocks = data.baseline.blocks || {}
   const targetBlocks   = data.target.blocks || {}
@@ -383,7 +404,29 @@ function MainView({ data, confirming, onConfirm }: { data: LoadResp; confirming:
         <div className="cf-confirm-icon">📋</div>
         <div className="cf-confirm-title">Xác nhận thông tin</div>
         <div className="cf-confirm-sub">Bằng cách bấm xác nhận, bạn xác nhận rằng con đã tham gia buổi trị liệu này và thông tin trên là chính xác.</div>
-        <button className="cf-btn-confirm" onClick={onConfirm} disabled={confirming}>
+
+        {/* Knowledge factor — email hoặc SĐT */}
+        <div style={{ marginBottom: 14, textAlign: 'left', maxWidth: 320, marginLeft: 'auto', marginRight: 'auto' }}>
+          <label style={{ display: 'block', fontSize: 11, fontWeight: 700, letterSpacing: '.06em', textTransform: 'uppercase', color: '#374151', marginBottom: 5 }}>
+            Email hoặc SĐT phụ huynh
+          </label>
+          <input
+            type="text"
+            value={contact}
+            onChange={e => onContactChange(e.target.value)}
+            placeholder="parent@email.com hoặc 0909..."
+            style={{
+              width: '100%', height: 44, border: contactError ? '1.5px solid #B52020' : '1.5px solid #E5E7EB',
+              borderRadius: 7, padding: '0 12px', fontFamily: "'Source Sans 3', sans-serif",
+              fontSize: 14, color: '#111827', outline: 'none', background: '#fff',
+            }}
+          />
+          {contactError && (
+            <div style={{ marginTop: 5, fontSize: 11.5, color: '#B52020', lineHeight: 1.4 }}>{contactError}</div>
+          )}
+        </div>
+
+        <button className="cf-btn-confirm" onClick={onConfirm} disabled={confirming || !contact.trim()}>
           {confirming ? 'Đang xác nhận...' : '✓ Xác nhận buổi trị liệu'}
         </button>
         <div className="cf-confirm-legal">Thông tin xác nhận sẽ được lưu trữ bảo mật và hỗ trợ theo dõi tiến triển của con.</div>
