@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { useRole } from '@/hooks/useRole'
 import { can } from '@/lib/permissions'
 import { createClient } from '@/lib/supabase/client'
+import { HubBar } from '@/components/HubBar'
 
 export const dynamic = 'force-dynamic'
 
@@ -139,6 +140,7 @@ export default function ReceptionPage() {
 
   return (
     <div className="min-h-screen bg-[var(--bg)]">
+      <HubBar />
 
       {/* Re-auth / confirm delete modal */}
       {deleteTarget && (

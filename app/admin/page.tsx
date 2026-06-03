@@ -222,7 +222,7 @@ export default function AdminPage() {
       {/* Header */}
       <div className="bg-[var(--navy)] px-8 py-4 flex items-center justify-between">
         <div>
-          <span className="font-serif font-bold text-white text-lg">SPEDUMAP</span>
+          <a href="/" className="font-serif font-bold text-white text-lg" style={{ textDecoration: 'none' }}>SPEDUMAP</a>
           <span className="text-white/50 text-sm ml-2">/ Admin Panel</span>
         </div>
         <button

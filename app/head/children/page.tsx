@@ -313,7 +313,7 @@ export default function HeadChildrenPage() {
       <style>{CSS}</style>
 
       <header className="hc-header">
-        <div className="hc-hlogo">SPEDUMAP</div>
+        <a href="/" className="hc-hlogo" style={{ textDecoration: 'none', color: 'inherit' }}>SPEDUMAP</a>
         <nav className="hc-hnav">
           <span className="hc-hnav-item active">Trẻ &amp; Phụ huynh</span>
           <a className="hc-hnav-item" onClick={() => router.push('/head/dashboard')}>Dashboard</a>

@@ -298,7 +298,8 @@ export default function GoalPage() {
         style={{ gridColumn: '1 / -1', background: '#fff', borderBottom: '1.5px solid var(--border)', zIndex: 50 }}
       >
         <div style={{ fontFamily: OSWALD, fontSize: 15, fontWeight: 700, letterSpacing: '.04em' }}>
-          SPEDUMAP <span style={{ color: 'var(--red)' }}>Goal Setting</span>
+          <a href="/" style={{ textDecoration: 'none', color: 'inherit' }}>SPEDUMAP</a>{' '}
+          <span style={{ color: 'var(--red)' }}>Goal Setting</span>
         </div>
 
         {/* Wizard: Baseline (done) → Goals (active) → Cycle — matches template (3 steps) */}

@@ -7,6 +7,7 @@ import { createClient } from '@/lib/supabase/client'
 import { runEngine } from '@/lib/engine'
 import { A4PageWrapper } from '@/components/A4PageWrapper'
 import { DocumentHeader } from '@/components/DocumentHeader'
+import { HubBar } from '@/components/HubBar'
 
 export const dynamic = 'force-dynamic'
 
@@ -412,7 +413,8 @@ export default function SessionPage() {
   }
 
   return (
-    <div className="h-screen overflow-y-auto bg-[var(--bg)] py-6" style={{ fontFamily: FONT_BODY }}>
+    <div className="h-screen overflow-y-auto bg-[var(--bg)]" style={{ fontFamily: FONT_BODY }}>
+      <HubBar />
       {/* Full-width A4 document (rebuilt to match ui_daily_session.html) */}
         <A4PageWrapper>
           <DocumentHeader

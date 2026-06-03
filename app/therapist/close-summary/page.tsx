@@ -205,7 +205,7 @@ function CloseSummaryInner() {
 
       {/* NAV BAR */}
       <nav style={{ height: 48, background: C.navy, display: 'flex', alignItems: 'center', padding: '0 24px', gap: 16, position: 'sticky', top: 0, zIndex: 40 }}>
-        <span style={{ fontFamily: "'Oswald', sans-serif", fontSize: 16, fontWeight: 700, color: '#fff', letterSpacing: '.06em' }}>SPEDUMAP</span>
+        <a href="/" style={{ textDecoration: 'none', fontFamily: "'Oswald', sans-serif", fontSize: 16, fontWeight: 700, color: '#fff', letterSpacing: '.06em' }}>SPEDUMAP</a>
         <span style={{ color: 'rgba(255,255,255,.25)', fontSize: 16 }}>/</span>
         <span style={{ fontSize: 13, color: 'rgba(255,255,255,.75)', fontWeight: 600 }}>Cycle Close Summary</span>
         <div style={{ flex: 1 }} />

@@ -118,7 +118,8 @@ function RetestInner() {
       <header className="flex-shrink-0 min-h-[52px] flex items-center justify-between px-5 py-2 bg-[var(--card)] border-b border-[var(--border)] z-30 sticky top-0 gap-3">
         <div className="flex items-center gap-3 min-w-0">
           <h1 className="text-[15px] font-bold tracking-[0.04em] flex-shrink-0" style={{ fontFamily: "'Oswald', sans-serif" }}>
-            SPEDUMAP <span className="text-[var(--red)]">Retest</span>
+            <a href="/" style={{ textDecoration: 'none', color: 'inherit' }}>SPEDUMAP</a>{' '}
+            <span className="text-[var(--red)]">Retest</span>
           </h1>
           <span className="text-[9px] font-bold px-[7px] py-0.5 rounded-[3px] bg-[var(--gold-bg)] text-[var(--gold)] border border-[var(--gold-bd)] flex-shrink-0" style={{ fontFamily: "'Oswald', sans-serif" }}>
             BLIND ASSESSMENT

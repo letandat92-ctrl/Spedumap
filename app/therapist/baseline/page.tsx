@@ -291,7 +291,8 @@ export default function BaselinePage() {
       {/* ── TOP APP-BAR HEADER ── */}
       <header className="flex-shrink-0 h-[52px] flex items-center justify-between px-5 bg-[var(--card)] border-b border-[var(--border)] z-30">
         <h1 className="text-[15px] font-bold tracking-[0.04em]" style={{ fontFamily: "'Oswald', sans-serif" }}>
-          SPEDUMAP <span className="text-[var(--red)]">Baseline</span> Setting
+          <a href="/" style={{ textDecoration: 'none', color: 'inherit' }}>SPEDUMAP</a>{' '}
+          <span className="text-[var(--red)]">Baseline</span> Setting
         </h1>
         <div className="flex items-center gap-3">
           {/* Blocks progress track */}

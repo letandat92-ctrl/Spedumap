@@ -196,7 +196,7 @@ export default function CyclePage() {
       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
         <LogoSVG size={24} />
         <span style={{ fontFamily: SERIF, fontSize: 15, fontWeight: 700, color: '#fff' }}>
-          SPEDUMAP{' '}
+          <a href="/" style={{ textDecoration: 'none', color: 'inherit' }}>SPEDUMAP</a>{' '}
           <span style={{ color: 'rgba(255,255,255,.5)', fontWeight: 400, fontSize: 13 }}>/ Mở Cycle</span>
         </span>
       </div>

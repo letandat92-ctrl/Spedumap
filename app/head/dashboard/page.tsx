@@ -227,7 +227,7 @@ export default function HeadDashboard() {
       {/* Header */}
       <div className="bg-[var(--navy)] px-8 py-4 flex items-center justify-between">
         <div className="flex items-center gap-5">
-          <span className="font-serif font-bold text-white text-lg">SPEDUMAP</span>
+          <a href="/" className="font-serif font-bold text-white text-lg" style={{ textDecoration: 'none' }}>SPEDUMAP</a>
           <nav className="flex items-center gap-1">
             <button onClick={() => router.push('/head/children')}
               className="text-xs font-semibold text-white/50 hover:text-white/80 px-2 py-1">

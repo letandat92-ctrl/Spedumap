@@ -6,6 +6,7 @@ import { createClient } from '@/lib/supabase/client'
 import { runEngine } from '@/lib/engine'
 import { useRole } from '@/hooks/useRole'
 import { can } from '@/lib/permissions'
+import { HubBar } from '@/components/HubBar'
 import { LS_KEYS } from '@/types/spedumap'
 import { ReportKPI, ChildStrip, MetadataStrip, SessionTimeline } from '@/components/charts/ReportComponents'
 import { LineChart, Line, XAxis, YAxis, Tooltip, Legend, CartesianGrid, ResponsiveContainer } from 'recharts'
@@ -207,7 +208,9 @@ export default function ReportPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[var(--bg)] p-6 max-w-5xl mx-auto">
+    <div className="min-h-screen bg-[var(--bg)]">
+      <HubBar />
+      <div className="p-6 max-w-5xl mx-auto">
       <div className="mb-6">
         <h1 className="font-serif text-2xl font-bold text-[var(--navy)]">Progress Report</h1>
       </div>
@@ -332,6 +335,7 @@ export default function ReportPage() {
             Bước tiếp theo: đánh giá lại 39 block một cách độc lập (blind) để nghiệm thu chu kỳ.
           </p>
         </div>
+      </div>
       </div>
     </div>
   )
