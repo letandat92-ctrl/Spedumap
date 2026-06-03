@@ -74,6 +74,9 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL('/auth/login', request.url))
   }
 
+  // Hub root — let app/page.tsx handle role routing
+  if (path === '/') return supabaseResponse
+
   // Check role has access to this route
   const allowedPrefixes = ROLE_ROUTES[role] || []
   const hasAccess = allowedPrefixes.some(prefix => path.startsWith(prefix))
