@@ -17,7 +17,7 @@ export interface GoalEntry {
 
 export interface CycleSettings {
   duration:         number   // e.g. 8
-  unit:             'weeks' | 'sessions' | 'months'
+  unit:             'sessions'
   start_date:       string   // ISO date
   planned_sessions: number
   notes:            string
@@ -84,7 +84,7 @@ function getBlockScore(block: CanonicalBlock | undefined): number {
 function initCycleSettings(): CycleSettings {
   return {
     duration:         8,
-    unit:             'weeks',
+    unit:             'sessions',
     start_date:       new Date().toISOString().split('T')[0],
     planned_sessions: 24,
     notes:            '',
@@ -114,16 +114,7 @@ export function useGoal() {
 
   // Update cycle settings field
   const setSettingsField = useCallback(<K extends keyof CycleSettings>(key: K, value: CycleSettings[K]) => {
-    setSettings(prev => {
-      const next = { ...prev, [key]: value }
-      // Auto-compute planned_sessions
-      if (key === 'duration' || key === 'unit') {
-        next.planned_sessions = next.unit === 'weeks'
-          ? (Number(next.duration) * 3)
-          : Number(next.duration)
-      }
-      return next
-    })
+    setSettings(prev => ({ ...prev, [key]: value }))
   }, [])
 
   // Toggle a block in/out of goals

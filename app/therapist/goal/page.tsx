@@ -161,6 +161,9 @@ export default function GoalPage() {
   const [pickerOpen, setPickerOpen]     = useState(false)
   const [pickerSearch, setPickerSearch] = useState('')
 
+  // 2b: Pyramid modal
+  const [pyramidOpen, setPyramidOpen]   = useState(false)
+
   const goalCount = Object.keys(goals).length
 
   // Build the recommended list once baseline data is available.
@@ -321,6 +324,13 @@ export default function GoalPage() {
             style={{ border: '1.5px solid var(--border)', background: 'transparent', fontFamily: OSWALD, fontSize: 11, fontWeight: 600, letterSpacing: '.04em', color: 'var(--sub)' }}
           >
             ← Baseline
+          </button>
+          <button
+            onClick={() => setPyramidOpen(true)}
+            className="h-8 px-3.5 rounded transition-colors"
+            style={{ border: '1.5px solid var(--border)', background: 'transparent', fontFamily: OSWALD, fontSize: 11, fontWeight: 600, letterSpacing: '.04em', color: 'var(--sub)' }}
+          >
+            Sơ đồ Pyramid
           </button>
           <button
             onClick={handleConfirm}
@@ -639,26 +649,17 @@ export default function GoalPage() {
           className="flex flex-wrap items-center gap-2.5 px-3.5 py-2"
           style={{ background: '#fff', borderTop: '1px solid var(--border)' }}
         >
-          <span style={{ fontSize: 9, fontWeight: 600, letterSpacing: '.1em', textTransform: 'uppercase', color: 'var(--sub)' }}>Cycle</span>
+          <span style={{ fontSize: 9, fontWeight: 600, letterSpacing: '.1em', textTransform: 'uppercase', color: 'var(--sub)' }}>Số buổi</span>
           <input
             type="number"
             min={1}
-            max={52}
-            value={settings.duration}
-            onChange={e => setSettingsField('duration', parseInt(e.target.value) || 8)}
+            max={999}
+            value={settings.planned_sessions}
+            onChange={e => setSettingsField('planned_sessions', parseInt(e.target.value) || 24)}
             className="h-7 px-1.5 rounded text-center focus:outline-none"
-            style={{ width: 56, border: '1.5px solid var(--border)', background: 'var(--warm-bg)', fontFamily: INTER, fontSize: 11, color: 'var(--ink)' }}
+            style={{ width: 64, border: '1.5px solid var(--border)', background: 'var(--warm-bg)', fontFamily: INTER, fontSize: 11, color: 'var(--ink)' }}
           />
-          <select
-            value={settings.unit}
-            onChange={e => setSettingsField('unit', e.target.value as 'weeks' | 'sessions' | 'months')}
-            className="h-7 px-1.5 rounded focus:outline-none"
-            style={{ width: 90, border: '1.5px solid var(--border)', background: 'var(--warm-bg)', fontFamily: INTER, fontSize: 11, color: 'var(--ink)' }}
-          >
-            <option value="weeks">Tuần</option>
-            <option value="sessions">Sessions</option>
-            <option value="months">Tháng</option>
-          </select>
+          <span style={{ fontSize: 9, fontWeight: 600, letterSpacing: '.08em', textTransform: 'uppercase', color: 'var(--sub)' }}>Sessions</span>
           <span className="ml-1" style={{ fontSize: 9, fontWeight: 600, letterSpacing: '.1em', textTransform: 'uppercase', color: 'var(--sub)' }}>Bắt đầu</span>
           <input
             type="date"
@@ -700,6 +701,26 @@ export default function GoalPage() {
             Hoàn tác
           </button>
           <span style={{ fontSize: 10, color: '#888' }}>Ctrl+Z</span>
+        </div>
+      )}
+
+      {/* 2b: Pyramid diagram modal */}
+      {pyramidOpen && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60"
+          onClick={() => setPyramidOpen(false)}
+        >
+          <div className="relative max-w-[90vw] max-h-[90vh]" onClick={e => e.stopPropagation()}>
+            <button
+              onClick={() => setPyramidOpen(false)}
+              className="absolute -top-8 right-0 text-white text-xl font-light hover:text-neutral-300"
+            >✕</button>
+            <img
+              src="/pyramid.png"
+              alt="SPEDUMAP Pyramid"
+              className="max-w-full max-h-[85vh] object-contain rounded shadow-2xl"
+            />
+          </div>
         </div>
       )}
     </div>
