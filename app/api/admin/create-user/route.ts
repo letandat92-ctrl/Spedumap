@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { createClient } from '@/lib/supabase/server'
+import { can } from '@/lib/permissions'
 
 function generatePassword(): string {
   const chars = 'ABCDEFGHJKMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789'
@@ -24,9 +25,7 @@ export async function POST(request: NextRequest) {
       .eq('id', user.id)
       .single()
 
-    if (profile?.role !== 'admin') {
-      return NextResponse.json({ error: 'Forbidden — admin only' }, { status: 403 })
-    }
+    const callerRole = profile?.role ?? ''
 
     // Parse request body
     const { email, role, full_name, phone } = await request.json()
@@ -35,22 +34,15 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'email và role là bắt buộc' }, { status: 400 })
     }
 
-    const validRoles = ['admin', 'head_therapist', 'senior_therapist', 'technician_therapist', 'junior_therapist', 'parent']
-    if (!validRoles.includes(role)) {
-      return NextResponse.json({ error: 'Role không hợp lệ' }, { status: 400 })
-    }
-
-    // Parent records require a phone (mirrors /head/children parent creation).
-    if (role === 'parent' && !String(phone ?? '').trim()) {
-      return NextResponse.json({ error: 'SĐT bắt buộc cho phụ huynh' }, { status: 400 })
-    }
-
-    const adminClient = createAdminClient()
-
-    // Parent = data record only, NOT a login account. Insert a user_profiles
-    // row (id auto-generated) with no auth user and no password. (manage-parent
-    // / /head/children still create logins for now — reconciled in a later step.)
+    // Branch A — parent record-only (no auth user): caller needs create_parent
     if (role === 'parent') {
+      if (!can(callerRole, 'create_parent')) {
+        return NextResponse.json({ error: 'Forbidden — create_parent required' }, { status: 403 })
+      }
+      if (!String(phone ?? '').trim()) {
+        return NextResponse.json({ error: 'SĐT bắt buộc cho phụ huynh' }, { status: 400 })
+      }
+      const adminClient = createAdminClient()
       const { data: prow, error: pErr } = await adminClient
         .from('user_profiles')
         .insert({ role: 'parent', full_name: full_name || '', email, phone: phone || null })
@@ -71,6 +63,17 @@ export async function POST(request: NextRequest) {
       })
     }
 
+    // Branch B — staff account with login: caller needs create_user
+    if (!can(callerRole, 'create_user')) {
+      return NextResponse.json({ error: 'Forbidden — create_user required' }, { status: 403 })
+    }
+
+    const validStaffRoles = ['admin', 'head_therapist', 'senior_therapist', 'technician_therapist', 'junior_therapist', 'reception']
+    if (!validStaffRoles.includes(role)) {
+      return NextResponse.json({ error: 'Role không hợp lệ' }, { status: 400 })
+    }
+
+    const adminClient = createAdminClient()
     const tempPassword = generatePassword()
 
     // 1. Create auth user

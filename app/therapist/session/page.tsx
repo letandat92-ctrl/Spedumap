@@ -193,9 +193,11 @@ export default function SessionPage() {
       let link: string | null = null
       const cycleId = (cycle?.supabase_cycle_id as string) || (cycle?.cycle_id as string)
       if (cycleId && cycleId.includes('-')) {
+        const { data: { user: authUser } } = await supabase.auth.getUser()
         const { data: sessRow, error: sbErr } = await supabase.from('daily_sessions').insert({
           cycle_id:            cycleId,
           child_id:            (cycle?.child as { id: string })?.id,
+          therapist_id:        authUser?.id ?? null,
           date:                output.date,
           session_index:       output.session_index,
           is_first_session:    output.is_first_session,

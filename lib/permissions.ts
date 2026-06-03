@@ -4,11 +4,11 @@
 
 export type Role =
   'admin' | 'head_therapist' | 'senior_therapist' |
-  'technician_therapist' | 'junior_therapist' | 'parent'
+  'technician_therapist' | 'junior_therapist' | 'parent' | 'reception'
 
 export type Action =
   'assessment' | 'cycle_open' | 'daily_session' |
-  'view_progress' | 'close_cycle' | 'assign_case' | 'create_user'
+  'view_progress' | 'close_cycle' | 'assign_case' | 'create_user' | 'create_parent'
 
 export const PERMISSIONS: Record<Action, Role[]> = {
   assessment:    ['admin', 'head_therapist', 'senior_therapist'],
@@ -20,6 +20,7 @@ export const PERMISSIONS: Record<Action, Role[]> = {
   close_cycle:   ['admin', 'head_therapist'],
   assign_case:   ['admin', 'head_therapist'],
   create_user:   ['admin'],
+  create_parent: ['admin', 'reception'],
 }
 
 export function can(role: Role | string, action: Action): boolean {

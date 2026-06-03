@@ -110,7 +110,10 @@ export function useSession() {
   const [sessionDate, setSessionDate] = useState(new Date().toISOString().split('T')[0])
   const [therapistNote, setTherapistNote] = useState('')
   const [loadError, setLoadError] = useState<string | null>(null)
-  const [submitted, setSubmitted] = useState(false)
+  const [submitted, setSubmittedRaw] = useState(false)
+  // One-way latch: once a session is committed it cannot be un-submitted in the
+  // same browser session.
+  const setSubmitted = (v: boolean) => { if (v) setSubmittedRaw(true) }
 
   // ── New session-detail state (backed by daily_sessions columns / JSONB) ──
   const [observedActivities, setObservedActivities] = useState<ObservedActivity[]>([])

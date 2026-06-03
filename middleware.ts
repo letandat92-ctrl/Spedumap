@@ -3,12 +3,13 @@ import { NextResponse, type NextRequest } from 'next/server'
 
 // Role → allowed path prefixes
 const ROLE_ROUTES: Record<string, string[]> = {
-  admin:                ['/admin', '/therapist', '/head', '/parent'],
+  admin:                ['/admin', '/therapist', '/head', '/parent', '/reception'],
   head_therapist:       ['/head', '/therapist'],
   senior_therapist:     ['/therapist'],
   technician_therapist: ['/therapist'],
   junior_therapist:     ['/therapist'],
   parent:               ['/parent'],
+  reception:            ['/reception'],
 }
 
 // Public routes — no auth required
@@ -93,6 +94,7 @@ export async function middleware(request: NextRequest) {
       role === 'admin'          ? '/admin'          :
       role === 'head_therapist' ? '/head/dashboard' :
       role === 'parent'         ? '/parent'         :
+      role === 'reception'      ? '/reception'      :
       '/therapist/baseline'   // senior_therapist, technician_therapist, junior_therapist
     return NextResponse.redirect(new URL(defaultRoute, request.url))
   }
