@@ -360,7 +360,6 @@ export default function SessionPage() {
   const observedKeys = new Set(observedActivities.map(o => o.block))
   const refObservedKeys = new Set(observedBlocksRef.map(o => o.block))
   const pickerOptions = Object.keys(BN).filter(k =>
-    B2L[k] !== 'L0' &&                   // 4: bỏ L0 (sleep/microbiome/nutrition/immune/metabolic)
     !(k in targetBlocks) && !observedKeys.has(k) && !refObservedKeys.has(k) &&
     (obsSearch.trim() === '' || BN[k].toLowerCase().includes(obsSearch.toLowerCase()))
   )
