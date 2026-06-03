@@ -74,6 +74,10 @@ export default function BaselinePage() {
   const [childDropdownOpen, setChildDropdownOpen] = useState(false)
   const [childLocked, setChildLocked] = useState(false)  // true when pre-selected via retest seed
 
+  // Parent lookup state (X1)
+  const [parentLookupStatus, setParentLookupStatus] = useState<'idle' | 'loading' | 'found' | 'not_found'>('idle')
+  const [parentLookupName, setParentLookupName] = useState<string | null>(null)
+
   const supabase = createClient()
 
   // Get therapist ID from auth
@@ -102,6 +106,43 @@ export default function BaselinePage() {
       })
   }, [supabase])
 
+  // X1: Lookup parent in user_profiles by email or phone (debounced 600ms)
+  useEffect(() => {
+    const email = meta.parentEmail.trim()
+    const phone = meta.parentPhone.trim()
+    if (!email && !phone) {
+      setParentLookupStatus('idle')
+      setParentLookupName(null)
+      setMetaField('parentId', null)
+      return
+    }
+    setParentLookupStatus('loading')
+    const timer = setTimeout(async () => {
+      const conditions: string[] = []
+      if (email) conditions.push(`email.eq.${email}`)
+      if (phone) conditions.push(`phone.eq.${phone}`)
+      const { data } = await supabase
+        .from('user_profiles')
+        .select('id, full_name, email, phone')
+        .eq('role', 'parent')
+        .eq('status', 'active')
+        .or(conditions.join(','))
+        .limit(1)
+        .single()
+      if (data) {
+        setMetaField('parentId', data.id)
+        setParentLookupName(data.full_name || data.email || null)
+        setParentLookupStatus('found')
+      } else {
+        setMetaField('parentId', null)
+        setParentLookupName(null)
+        setParentLookupStatus('not_found')
+      }
+    }, 600)
+    return () => clearTimeout(timer)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [meta.parentEmail, meta.parentPhone])
+
   // Pick a child from the directory → auto-fill identity + parent fields
   function selectChild(c: PickerChild) {
     setMetaField('childName', c.name)
@@ -110,6 +151,12 @@ export default function BaselinePage() {
     setMetaField('parentName', c.parent_name ?? c.parent_full_name ?? '')
     setMetaField('parentPhone', c.parent_phone ?? '')
     setMetaField('selectedChildId', c.id)
+    // If child already linked to a parent user, pre-fill parentId (skip lookup wait)
+    if (c.parent_id) {
+      setMetaField('parentId', c.parent_id)
+      setParentLookupStatus('found')
+      setParentLookupName(c.parent_full_name ?? c.parent_name ?? null)
+    }
     setChildDropdownOpen(false)
   }
 
@@ -150,11 +197,11 @@ export default function BaselinePage() {
     e.target.value = ''
   }
 
-  // Meta gate: required fields filled?
+  // Meta gate: required fields filled? (X3: parentId from lookup is mandatory)
   const metaComplete = !!(
     meta.childName && meta.childDob && meta.evaluatorName &&
     meta.evalDate && meta.evalTimeStart && meta.evalTimeEnd &&
-    meta.parentEmail.trim()
+    meta.parentId
   )
 
   // All 39 blocks must have a score
@@ -209,12 +256,13 @@ export default function BaselinePage() {
       // 1. Resolve child — reuse the picked directory child, else create new
       let resolvedChildId: string
       if (meta.selectedChildId) {
-        // Existing child: don't create a duplicate; refresh parent contact.
+        // Existing child: don't create a duplicate; refresh parent contact (X2).
         resolvedChildId = meta.selectedChildId
         const { error: updErr } = await supabase
           .from('children')
           .update({
             parent_name:  output.child.parent_name || null,
+            parent_id:    meta.parentId || null,
           })
           .eq('id', resolvedChildId)
         if (updErr) throw new Error('Lỗi cập nhật thông tin trẻ: ' + updErr.message)
@@ -227,6 +275,7 @@ export default function BaselinePage() {
             dob:          output.child.dob,
             parent_email: output.child.parent_email,
             parent_name:  output.child.parent_name,
+            parent_id:    meta.parentId || null,  // X2: link to user_profiles row
           }, { onConflict: 'id' })
           .select('id')
           .single()
@@ -414,7 +463,11 @@ export default function BaselinePage() {
               <input
                 type="tel"
                 value={meta.parentPhone}
-                onChange={e => setMetaField('parentPhone', e.target.value)}
+                onChange={e => {
+                  setMetaField('parentPhone', e.target.value)
+                  setMetaField('parentId', null)
+                  setParentLookupStatus('idle')
+                }}
                 className="w-full h-8 px-2 text-sm border border-[var(--rule)] rounded focus:outline-none focus:border-[var(--navy)]"
                 placeholder="0909..."
               />
@@ -465,20 +518,32 @@ export default function BaselinePage() {
           <div>
             <label className="block text-xs text-[var(--ink-3)] mb-1">
               Email phụ huynh <span className="text-[var(--red)]">*</span>
+              {parentLookupStatus === 'found' && (
+                <span className="ml-1 text-[10px] text-[var(--green)]">· {parentLookupName ?? 'tìm thấy'}</span>
+              )}
             </label>
             <input
               type="email"
               value={meta.parentEmail}
-              onChange={e => setMetaField('parentEmail', e.target.value)}
+              onChange={e => {
+                setMetaField('parentEmail', e.target.value)
+                setMetaField('parentId', null)
+                setParentLookupStatus('idle')
+              }}
               className={`w-full h-8 px-2 text-sm border rounded focus:outline-none ${
-                meta.parentEmail.trim()
-                  ? 'border-[var(--rule)] focus:border-[var(--navy)]'
-                  : 'border-[var(--red)] focus:border-[var(--red)]'
+                parentLookupStatus === 'found'
+                  ? 'border-[var(--green)] focus:border-[var(--green)]'
+                  : parentLookupStatus === 'not_found' && meta.parentEmail.trim()
+                    ? 'border-[var(--gold)] focus:border-[var(--gold)]'
+                    : 'border-[var(--rule)] focus:border-[var(--navy)]'
               }`}
               placeholder="parent@email.com"
             />
-            {!meta.parentEmail.trim() && (
-              <div className="mt-1 text-[11px] text-[var(--red)]">Email phụ huynh là bắt buộc</div>
+            {parentLookupStatus === 'loading' && (
+              <div className="mt-1 text-[11px] text-[var(--sub)]">Đang tìm hồ sơ phụ huynh…</div>
+            )}
+            {parentLookupStatus === 'not_found' && (meta.parentEmail.trim() || meta.parentPhone.trim()) && (
+              <div className="mt-1 text-[11px] text-[var(--gold)]">Không tìm thấy phụ huynh — kiểm tra lại email hoặc SĐT</div>
             )}
           </div>
 
@@ -511,7 +576,14 @@ export default function BaselinePage() {
 
         </div>
 
+        {/* X4: Block entry locked until metaComplete */}
+        {!metaComplete && (
+          <div className="mx-3 mt-2 mb-0 px-3 py-2 rounded-md bg-[var(--gold-bg)] border border-[var(--gold-bd)] text-[11px] font-semibold text-[var(--gold)]" style={{ fontFamily: "'Oswald', sans-serif" }}>
+            Điền đầy đủ thông tin phụ huynh (email/SĐT khớp hồ sơ) để mở nhập điểm
+          </div>
+        )}
         {/* Block sections */}
+        <fieldset disabled={!metaComplete} className="contents">
         <div className="p-2">
           {LAYER_IDS.map(lid => (
             <LayerSection
@@ -536,6 +608,7 @@ export default function BaselinePage() {
             />
           ))}
         </div>
+        </fieldset>{/* end X4 block gate */}
 
         {/* Lock button + validation */}
         <div className="sticky bottom-0 p-4 bg-[var(--card)] border-t border-[var(--border)]">
