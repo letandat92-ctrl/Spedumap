@@ -3,9 +3,9 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import { createClient } from '@/lib/supabase/server'
 
 // POST /api/head/manage-parent
-// Service-role parent management for the Head "Trẻ & Phụ huynh" page.
-// Actions: 'lookup' | 'create' | 'send_magic_link'. Caller must be
-// head_therapist or admin (verified via their cookie session).
+// Service-role parent lookup for the Head "Trẻ & Phụ huynh" page.
+// Action: 'lookup' only. Caller must be head_therapist or admin.
+// Parent creation goes through /reception (reception role) or /admin.
 
 const STAFF = ['head_therapist', 'admin']
 
@@ -26,10 +26,8 @@ export async function POST(request: NextRequest) {
     const action = String(body?.action ?? '')
     const email  = (body?.email ?? '').trim()
     const phone  = (body?.phone ?? '').trim()
-    const fullName = (body?.full_name ?? '').trim()
 
     const admin = createAdminClient()
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL || new URL(request.url).origin
 
     // ── lookup: find an existing parent by email OR phone ──
     if (action === 'lookup') {
@@ -46,48 +44,6 @@ export async function POST(request: NextRequest) {
         .limit(1)
       const parent = rows?.[0] ?? null
       return NextResponse.json({ found: !!parent, parent })
-    }
-
-    // ── create: new parent auth user + profile + magic link ──
-    if (action === 'create') {
-      if (!email || !phone || !fullName) {
-        return NextResponse.json({ error: 'email, phone, full_name là bắt buộc' }, { status: 400 })
-      }
-      const { data: created, error: cErr } = await admin.auth.admin.createUser({
-        email,
-        email_confirm: false,
-        user_metadata: { full_name: fullName, phone },
-      })
-      if (cErr || !created?.user) {
-        return NextResponse.json({ error: 'Lỗi tạo tài khoản: ' + (cErr?.message ?? 'unknown') }, { status: 400 })
-      }
-      const { error: pErr } = await admin.from('user_profiles').insert({
-        id: created.user.id, email, full_name: fullName, phone, role: 'parent',
-      })
-      if (pErr) {
-        await admin.auth.admin.deleteUser(created.user.id)
-        return NextResponse.json({ error: 'Lỗi tạo profile: ' + pErr.message }, { status: 500 })
-      }
-      // Magic link (Supabase delivers via configured SMTP).
-      await admin.auth.admin.generateLink({
-        type: 'magiclink', email,
-        options: { redirectTo: `${appUrl}/auth/callback?next=/parent` },
-      })
-      return NextResponse.json({
-        parent: { id: created.user.id, email, full_name: fullName, phone, role: 'parent' },
-        magic_link_sent: true,
-      })
-    }
-
-    // ── send_magic_link: (re)send to an existing parent ──
-    if (action === 'send_magic_link') {
-      if (!email) return NextResponse.json({ error: 'email là bắt buộc' }, { status: 400 })
-      const { data, error } = await admin.auth.admin.generateLink({
-        type: 'magiclink', email,
-        options: { redirectTo: `${appUrl}/auth/callback?next=/parent` },
-      })
-      if (error) return NextResponse.json({ error: error.message }, { status: 400 })
-      return NextResponse.json({ ok: true, action_link: data?.properties?.action_link ?? null })
     }
 
     return NextResponse.json({ error: 'Hành động không hợp lệ' }, { status: 400 })

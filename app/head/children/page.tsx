@@ -1,11 +1,9 @@
 'use client'
 
 // app/head/children/page.tsx — Head "Trẻ & Phụ huynh" management.
-// Ported from ui_head_children.html. Lists parents (user_profiles role=parent)
-// with their children (+ active/pending cycle), client-side search, and a
-// 2-step "add parent & child" modal. Parent create/lookup + magic link go
-// through /api/head/manage-parent (service role); the child INSERT is a direct
-// authenticated write (children RLS allows it).
+// Lists parents (user_profiles role=parent) with their children + active/pending
+// cycles, client-side search, and assign-therapist modal (7B cycle_therapists).
+// Parent/child creation goes through /reception or /admin — not this page.
 
 import { useEffect, useState, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
@@ -76,20 +74,7 @@ export default function HeadChildrenPage() {
   const [assignSaving, setAssignSaving] = useState(false)
   const [assignError, setAssignError]   = useState<string | null>(null)
 
-  // Modal state
-  const [modalOpen, setModalOpen] = useState(false)
-  const [step, setStep]           = useState<1 | 2>(1)
-  const [pEmail, setPEmail] = useState('')
-  const [pPhone, setPPhone] = useState('')
-  const [pName, setPName]   = useState('')
-  const [foundParentId, setFoundParentId] = useState<string | null>(null)
-  const [lookup, setLookup] = useState<{ kind: 'found' | 'new'; label: string } | null>(null)
-  const [cName, setCName] = useState('')
-  const [cDob, setCDob]   = useState('')
-  const [cGender, setCGender] = useState('')
-  const [presetParentId, setPresetParentId] = useState<string | null>(null) // when "add child" for an existing parent
-  const [submitting, setSubmitting] = useState(false)
-  const [modalError, setModalError] = useState<string | null>(null)
+
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => setCurrentUserId(data.user?.id ?? null))
@@ -159,91 +144,6 @@ export default function HeadChildrenPage() {
       if (next.has(id)) next.delete(id); else next.add(id)
       return next
     })
-  }
-
-  // ── Modal ──
-  function openAddModal(parentId?: string) {
-    setStep(1); setModalError(null); setLookup(null); setFoundParentId(null)
-    setPEmail(''); setPPhone(''); setPName(''); setCName(''); setCDob(''); setCGender('')
-    if (parentId) {
-      // Add child for an existing parent → skip lookup, go to step 2.
-      const p = parents.find(x => x.id === parentId)
-      setPresetParentId(parentId)
-      setFoundParentId(parentId)
-      setPEmail(p?.email ?? ''); setPName(p?.full_name ?? '')
-      setStep(2)
-    } else {
-      setPresetParentId(null)
-    }
-    setModalOpen(true)
-  }
-  function closeModal() { setModalOpen(false) }
-
-  async function runLookup() {
-    if (presetParentId) return
-    if (!pEmail.includes('@') && pPhone.trim().length <= 8) { setLookup(null); setFoundParentId(null); return }
-    try {
-      const res = await fetch('/api/head/manage-parent', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'lookup', email: pEmail, phone: pPhone }),
-      })
-      const data = await res.json()
-      if (data.found && data.parent) {
-        setFoundParentId(data.parent.id)
-        setPName(data.parent.full_name ?? '')
-        setLookup({ kind: 'found', label: `✓ Tìm thấy phụ huynh: ${data.parent.full_name ?? data.parent.email} — thêm trẻ mới cho phụ huynh này` })
-      } else {
-        setFoundParentId(null)
-        setLookup({ kind: 'new', label: '✦ Phụ huynh mới — sẽ tạo tài khoản và gửi magic link qua email' })
-      }
-    } catch {
-      setLookup(null)
-    }
-  }
-
-  const step1Valid = !!(pEmail.includes('@') && pPhone.trim() && (foundParentId || pName.trim()))
-  const step2Valid = !!(cName.trim() && cDob)
-
-  async function handleSubmit() {
-    if (step === 1) { setStep(2); setModalError(null); return }
-    // step 2 → resolve parent then insert child
-    setSubmitting(true); setModalError(null)
-    try {
-      let parentId = foundParentId
-      let parentEmail = pEmail.trim()
-
-      if (!parentId) {
-        const res = await fetch('/api/head/manage-parent', {
-          method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ action: 'create', email: pEmail, phone: pPhone, full_name: pName }),
-        })
-        const data = await res.json()
-        if (!res.ok || !data.parent) throw new Error(data.error || 'Lỗi tạo phụ huynh')
-        parentId = data.parent.id
-        parentEmail = data.parent.email
-      }
-
-      const { error: childErr } = await supabase.from('children').insert({
-        name: cName.trim(),
-        dob: cDob,
-        gender: cGender || null,
-        parent_id: parentId,
-        parent_email: parentEmail,
-        created_by: currentUserId,
-      })
-      if (childErr) {
-        if (childErr.code === '23505') throw new Error('Trẻ này đã có hồ sơ (trùng tên + ngày sinh).')
-        throw new Error('Lỗi tạo hồ sơ trẻ: ' + childErr.message)
-      }
-
-      setModalOpen(false)
-      await load()
-      if (parentId) setOpenCards(prev => new Set(prev).add(parentId!))
-    } catch (e) {
-      setModalError(e instanceof Error ? e.message : 'Lỗi không xác định')
-    } finally {
-      setSubmitting(false)
-    }
   }
 
   // ── Assign-therapist modal ──
@@ -330,9 +230,6 @@ export default function HeadChildrenPage() {
             <div className="hc-page-title">Trẻ &amp; Phụ huynh</div>
             <div className="hc-page-sub">Quản lý hồ sơ phụ huynh và trẻ can thiệp</div>
           </div>
-          <button className="hc-btn-primary" onClick={() => openAddModal()}>
-            <span className="hc-ico">+</span> Thêm phụ huynh &amp; trẻ
-          </button>
         </div>
 
         {/* Stats */}
@@ -427,9 +324,6 @@ export default function HeadChildrenPage() {
                         </div>
                       )
                     })}
-                    <div className="hc-add-child-row">
-                      <button className="hc-btn-add-child" onClick={() => openAddModal(p.id)}>+ Thêm trẻ cho phụ huynh này</button>
-                    </div>
                   </div>
                 )}
               </div>
@@ -437,97 +331,6 @@ export default function HeadChildrenPage() {
           })
         )}
       </div>
-
-      {/* MODAL */}
-      {modalOpen && (
-        <div className="hc-modal-overlay open" onClick={e => { if (e.target === e.currentTarget) closeModal() }}>
-          <div className="hc-modal">
-            <div className="hc-modal-head">
-              <div className="hc-modal-title">{step === 1 ? 'Bước 1 — Phụ huynh' : 'Bước 2 — Thông tin trẻ'}</div>
-              <button className="hc-modal-close" onClick={closeModal}>×</button>
-            </div>
-            <div className="hc-modal-body">
-              <div className="hc-steps">
-                <div className={`hc-step ${step === 1 ? 'active' : 'done'}`}><span className="hc-step-num">Bước 1</span>Phụ huynh</div>
-                <div className={`hc-step ${step === 2 ? 'active' : ''}`}><span className="hc-step-num">Bước 2</span>Thông tin trẻ</div>
-              </div>
-
-              {step === 1 ? (
-                <>
-                  <div className="hc-form-row">
-                    <div className="hc-form-group">
-                      <div className="hc-form-label">Email <span className="hc-req">*</span></div>
-                      <input className="hc-form-input" type="email" value={pEmail}
-                        onChange={e => setPEmail(e.target.value)} onBlur={runLookup} placeholder="parent@email.com" />
-                    </div>
-                    <div className="hc-form-group">
-                      <div className="hc-form-label">Số điện thoại <span className="hc-req">*</span></div>
-                      <input className="hc-form-input" value={pPhone}
-                        onChange={e => setPPhone(e.target.value)} onBlur={runLookup} placeholder="09xx xxx xxx" />
-                    </div>
-                  </div>
-                  {lookup && (
-                    <div className={`hc-lookup-result ${lookup.kind === 'found' ? 'hc-lookup-found' : 'hc-lookup-new'}`} style={{ display: 'block' }}>
-                      {lookup.label}
-                    </div>
-                  )}
-                  <div className="hc-form-group" style={{ marginTop: 14 }}>
-                    <div className="hc-form-label">Họ tên phụ huynh <span className="hc-req">*</span></div>
-                    <input className="hc-form-input" value={pName} disabled={!!foundParentId}
-                      onChange={e => setPName(e.target.value)} placeholder="Nguyễn Thị Mai" />
-                  </div>
-                </>
-              ) : (
-                <>
-                  {presetParentId && (
-                    <div className="hc-lookup-result hc-lookup-found" style={{ display: 'block', marginBottom: 14 }}>
-                      Thêm trẻ cho: <strong>{pName || pEmail}</strong>
-                    </div>
-                  )}
-                  <div className="hc-form-group">
-                    <div className="hc-form-label">Họ tên trẻ <span className="hc-req">*</span></div>
-                    <input className="hc-form-input" value={cName} onChange={e => setCName(e.target.value)} placeholder="Nguyễn Minh Tuấn" />
-                  </div>
-                  <div className="hc-form-row">
-                    <div className="hc-form-group">
-                      <div className="hc-form-label">Ngày sinh <span className="hc-req">*</span></div>
-                      <input className="hc-form-input" type="date" value={cDob} onChange={e => setCDob(e.target.value)} />
-                    </div>
-                    <div className="hc-form-group">
-                      <div className="hc-form-label">Giới tính</div>
-                      <select className="hc-form-input" style={{ cursor: 'pointer' }} value={cGender} onChange={e => setCGender(e.target.value)}>
-                        <option value="">— Chọn —</option>
-                        <option value="male">Nam</option>
-                        <option value="female">Nữ</option>
-                        <option value="other">Khác</option>
-                      </select>
-                    </div>
-                  </div>
-                  <div style={{ background: 'var(--teal-bg)', border: '1px solid var(--teal-bd)', borderRadius: 6, padding: '10px 12px', fontSize: 11.5, color: 'var(--teal)', marginTop: 4 }}>
-                    {foundParentId
-                      ? 'Phụ huynh đã có tài khoản — không gửi lại magic link.'
-                      : 'Phụ huynh sẽ nhận email magic link để truy cập cổng thông tin sau khi tạo.'}
-                  </div>
-                </>
-              )}
-
-              {modalError && (
-                <div className="hc-lookup-result hc-lookup-new" style={{ display: 'block', marginTop: 12, background: 'var(--red-bg)', borderColor: 'var(--red-bd)', color: 'var(--red)' }}>
-                  {modalError}
-                </div>
-              )}
-            </div>
-            <div className="hc-modal-footer">
-              <button className="hc-btn-cancel" onClick={() => { if (step === 2 && !presetParentId) { setStep(1); setModalError(null) } else closeModal() }}>
-                {step === 2 && !presetParentId ? '← Quay lại' : 'Huỷ'}
-              </button>
-              <button className="hc-btn-next" disabled={submitting || (step === 1 ? !step1Valid : !step2Valid)} onClick={handleSubmit}>
-                {submitting ? 'Đang lưu...' : step === 1 ? 'Tiếp theo →' : 'Tạo hồ sơ ✓'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* ASSIGN THERAPIST MODAL */}
       {assignOpen && assignCycle && (
