@@ -7,7 +7,7 @@ import { useRole } from '@/hooks/useRole'
 import { can } from '@/lib/permissions'
 import { createClient } from '@/lib/supabase/client'
 import { getScore } from '@/lib/engine'
-import { ONTOLOGY_VERSION } from '@/lib/ontology'
+import { ONTOLOGY_VERSION, DEFAULT_SOURCE_TYPE, reliabilityTierFor } from '@/lib/ontology'
 import { LS_KEYS, type Directionality } from '@/types/spedumap'
 import { LayerSection } from '@/components/blocks/LayerSection'
 import { BaselineKPI } from '@/components/blocks/BaselineKPI'
@@ -280,10 +280,12 @@ export default function BaselinePage() {
           teacher_id: user.id ?? null,
           status:     'pending',
           baseline:   {
-            blocks:      output.baseline_blocks,
-            total_score: output.engine_snapshot.total,
-            stage:       output.engine_snapshot.stage,
-            locked_at:   output.locked_at,
+            blocks:           output.baseline_blocks,
+            total_score:      output.engine_snapshot.total,
+            stage:            output.engine_snapshot.stage,
+            locked_at:        output.locked_at,
+            source_type:      DEFAULT_SOURCE_TYPE,
+            reliability_tier: reliabilityTierFor(DEFAULT_SOURCE_TYPE),
           },
           target:     { blocks: {} },
           started_at: output.eval_date,

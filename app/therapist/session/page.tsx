@@ -33,7 +33,7 @@ const BN: Record<string, string> = {
   math:'Math',writing:'Writing',reading:'Reading',
 }
 
-import { B2L, LAYER_IDS, BLOCK_WEIGHTS as BW_ONTO } from '@/lib/ontology'
+import { B2L, LAYER_IDS, BLOCK_WEIGHTS as BW_ONTO, DEFAULT_SOURCE_TYPE, reliabilityTierFor } from '@/lib/ontology'
 const LAYER_NAMES: Record<string, string> = {
   L0:'L0 Health & Nutrition', L1:'L1 Regulation', L2:'L2 Sensory', L3:'L3 Motor',
   L4:'L4 Processing', L5:'L5 Communication', L6:'L6 Social', L7:'L7 Academic',
@@ -191,6 +191,8 @@ export default function SessionPage() {
           plan_note:           output.plan_note,
           layer_eval:          output.layer_eval,
           parent_confirmed:    false,
+          source_type:         DEFAULT_SOURCE_TYPE,
+          reliability_tier:    reliabilityTierFor(DEFAULT_SOURCE_TYPE),
         }).select('id, confirm_token').single()
         if (sbErr) console.warn('Supabase save failed:', sbErr.message)
 

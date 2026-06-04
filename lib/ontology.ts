@@ -111,6 +111,18 @@ export const LAYER_EXPECTED_LAG: Record<string, { fast: number; typical: number 
   L7: { fast: 2,  typical: 6  },
 }
 
+// ── Source types + reliability tier helpers ──────────────────────────────────
+// launch: chỉ in_person ghi mặc định. Scale: thêm UI chọn source_type, write-path đã sẵn.
+export const SOURCE_TYPES = ['in_person', 'remote', 'parent_report'] as const
+export type SourceType = (typeof SOURCE_TYPES)[number]
+export const DEFAULT_SOURCE_TYPE: SourceType = 'in_person'
+
+/** Tier name for a given source type.
+ *  RELIABILITY_WEIGHT keys ARE the tier names, so tier = source_type. */
+export function reliabilityTierFor(src: SourceType): string {
+  return src
+}
+
 // ── Reliability weight by observation modality ──────────────────────────────
 export const RELIABILITY_WEIGHT: Record<string, number> = {
   in_person:     1.0,
