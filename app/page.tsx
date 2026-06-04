@@ -40,6 +40,7 @@ const SECTIONS: { title: string; tiles: Tile[] }[] = [
     { label: 'Tổng kết Đóng',    desc: 'So sánh 3-way, seed baseline kế.',              href: '/therapist/close-summary',route: '/therapist', action: 'close_cycle',   icon: 'checkCircle',   accent: 'bronze' },
   ]},
   { title: 'Quản trị & Tiếp đón', tiles: [
+    { label: 'Nhân sự trị liệu',       desc: 'Xem, sửa thông tin therapist.',         href: '/head/staff', route: '/head',      action: 'edit_user',     icon: 'people',   accent: 'navy'   },
     { label: 'Quản lý người dùng',      desc: 'Tạo account staff, gán role.',          href: '/admin',     route: '/admin',     action: 'create_user',   icon: 'usersCog', accent: 'navy'   },
     { label: 'Tạo hồ sơ phụ huynh',    desc: 'Record-only, không cấp đăng nhập.',     href: '/reception', route: '/reception', action: 'create_parent', icon: 'userPlus', accent: 'bronze' },
   ]},
@@ -146,6 +147,10 @@ export default async function RootPage() {
               border: '1px solid rgba(255,255,255,.18)', textTransform: 'uppercase' }}>
               {ROLE_LABEL[role!] || role}
             </span>
+            <a href="/profile" style={{
+              fontFamily: "'Source Sans 3',sans-serif", fontSize: 12, fontWeight: 600,
+              color: '#D6E2F0', textDecoration: 'none', padding: '5px 8px',
+            }}>Hồ sơ</a>
             <HubLogoutButton />
           </div>
         </header>

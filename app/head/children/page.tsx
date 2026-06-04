@@ -217,9 +217,11 @@ export default function HeadChildrenPage() {
         <nav className="hc-hnav">
           <span className="hc-hnav-item active">Trẻ &amp; Phụ huynh</span>
           <a className="hc-hnav-item" onClick={() => router.push('/head/dashboard')}>Dashboard</a>
+          <a className="hc-hnav-item" onClick={() => router.push('/head/staff')}>Nhân sự</a>
         </nav>
         <div className="hc-hright">
           <div className="hc-hrole">Head Therapist</div>
+          <a className="hc-hnav-item" href="/profile" style={{ textDecoration: 'none' }}>Hồ sơ</a>
           <a className="hc-hnav-item" onClick={() => supabase.auth.signOut().then(() => router.push('/auth/login'))}>Đăng xuất</a>
         </div>
       </header>

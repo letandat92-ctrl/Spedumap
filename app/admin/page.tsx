@@ -2,7 +2,8 @@
 
 import { useState, useEffect, useMemo } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { ROLES } from '@/lib/permissions'
+import { ROLES, can, canManage, type Role } from '@/lib/permissions'
+import { useRole } from '@/hooks/useRole'
 
 export const dynamic = 'force-dynamic'
 
@@ -14,6 +15,7 @@ interface UserProfile {
   full_name?:  string
   created_at?: string
   status?:     string
+  phone?:      string
 }
 
 const ROLE_LABELS: Record<string, string> = {
@@ -38,6 +40,7 @@ const ROLE_COLORS: Record<string, string> = {
 
 export default function AdminPage() {
   const supabase = createClient()
+  const { role: myRole } = useRole()
 
   const [users, setUsers]           = useState<UserProfile[]>([])
   const [loading, setLoading]       = useState(true)
@@ -67,6 +70,15 @@ export default function AdminPage() {
   const [deleting, setDeleting]             = useState(false)
   const [deleteError, setDeleteError]       = useState<string | null>(null)
 
+  // Edit modal state
+  const [editTarget, setEditTarget]         = useState<UserProfile | null>(null)
+  const [editName, setEditName]             = useState('')
+  const [editPhone, setEditPhone]           = useState('')
+  const [editStatus, setEditStatus]         = useState('active')
+  const [editRole, setEditRole]             = useState('')
+  const [editSaving, setEditSaving]         = useState(false)
+  const [editError, setEditError]           = useState<string | null>(null)
+
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => setAdminEmail(data.user?.email ?? ''))
     loadUsers()
@@ -74,12 +86,16 @@ export default function AdminPage() {
   }, [])
 
   // Stats always on full active set; filter/search narrow the list display only
+  const manageable = useMemo(() =>
+    myRole ? users.filter(u => canManage(myRole, u.role)) : [],
+  [users, myRole])
+
   const roleCounts = useMemo(() =>
-    Object.fromEntries(ROLES.map(r => [r, users.filter(u => u.role === r).length])),
-  [users])
+    Object.fromEntries(ROLES.map(r => [r, manageable.filter(u => u.role === r).length])),
+  [manageable])
 
   const filteredUsers = useMemo(() => {
-    let list = users
+    let list = manageable
     if (filterRole !== 'all') list = list.filter(u => u.role === filterRole)
     if (searchText.trim()) {
       const q = searchText.trim().toLowerCase()
@@ -89,13 +105,18 @@ export default function AdminPage() {
       )
     }
     return list
-  }, [users, filterRole, searchText])
+  }, [manageable, filterRole, searchText])
+
+  // Roles that this caller can assign via edit
+  const assignableRoles = useMemo(() =>
+    myRole ? ROLES.filter(r => canManage(myRole, r)) : [],
+  [myRole])
 
   async function loadUsers() {
     setLoading(true)
     const { data } = await supabase
       .from('user_profiles')
-      .select('id, email, role, full_name, created_at, status')
+      .select('id, email, role, full_name, created_at, status, phone')
       .eq('status', 'active')
       .order('created_at', { ascending: false })
     setUsers(data || [])
@@ -130,7 +151,6 @@ export default function AdminPage() {
     setDeleting(true)
     setDeleteError(null)
 
-    // M3 re-auth: verify admin's own password before proceeding
     const { error: authErr } = await supabase.auth.signInWithPassword({
       email:    adminEmail,
       password: reAuthPassword,
@@ -167,6 +187,51 @@ export default function AdminPage() {
     setReAuthPassword('')
     setDeleteError(null)
   }
+
+  // ── Edit modal handlers ──
+  function openEdit(u: UserProfile) {
+    setEditTarget(u)
+    setEditName(u.full_name || '')
+    setEditPhone(u.phone || '')
+    setEditStatus(u.status || 'active')
+    setEditRole(u.role)
+    setEditError(null)
+  }
+  function closeEdit() { setEditTarget(null); setEditError(null) }
+
+  async function handleEditSave() {
+    if (!editTarget) return
+    setEditSaving(true)
+    setEditError(null)
+    try {
+      const patch: Record<string, string> = {}
+      if (editName !== (editTarget.full_name || '')) patch.full_name = editName
+      if (editPhone !== (editTarget.phone || '')) patch.phone = editPhone
+      if (editStatus !== (editTarget.status || 'active')) patch.status = editStatus
+      if (editRole !== editTarget.role) patch.role = editRole
+
+      if (Object.keys(patch).length === 0) { closeEdit(); return }
+
+      const res = await fetch('/api/admin/edit-user', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ target_id: editTarget.id, patch }),
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        setEditError(data.error ?? 'Lỗi không xác định')
+      } else {
+        closeEdit()
+        loadUsers()
+      }
+    } catch {
+      setEditError('Không kết nối được server')
+    } finally {
+      setEditSaving(false)
+    }
+  }
+
+  const canEdit = can(myRole, 'edit_user')
 
   return (
     <div className="min-h-screen bg-[var(--bg)]">
@@ -219,18 +284,77 @@ export default function AdminPage() {
         </div>
       )}
 
+      {/* Edit user modal */}
+      {editTarget && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+          <div className="bg-white rounded-xl shadow-xl p-6 w-full max-w-md mx-4">
+            <h3 className="font-semibold text-[var(--ink)] text-base mb-4">
+              Chỉnh sửa — {editTarget.full_name || editTarget.email}
+            </h3>
+
+            <div className="space-y-3">
+              <div>
+                <label className="block text-xs font-semibold text-[var(--ink-3)] uppercase tracking-wider mb-1">Họ tên</label>
+                <input value={editName} onChange={e => setEditName(e.target.value)}
+                  className="w-full h-9 px-3 text-sm border border-[var(--rule)] rounded-lg focus:outline-none focus:border-[var(--navy)]" />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-[var(--ink-3)] uppercase tracking-wider mb-1">SĐT</label>
+                <input value={editPhone} onChange={e => setEditPhone(e.target.value)}
+                  className="w-full h-9 px-3 text-sm border border-[var(--rule)] rounded-lg focus:outline-none focus:border-[var(--navy)]" />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-[var(--ink-3)] uppercase tracking-wider mb-1">Trạng thái</label>
+                <select value={editStatus} onChange={e => setEditStatus(e.target.value)}
+                  className="w-full h-9 px-3 text-sm border border-[var(--rule)] rounded-lg focus:outline-none focus:border-[var(--navy)]">
+                  <option value="active">Active</option>
+                  <option value="inactive">Inactive</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-[var(--ink-3)] uppercase tracking-wider mb-1">Role</label>
+                <select value={editRole} onChange={e => setEditRole(e.target.value)}
+                  className="w-full h-9 px-3 text-sm border border-[var(--rule)] rounded-lg focus:outline-none focus:border-[var(--navy)]">
+                  {assignableRoles.map(r => (
+                    <option key={r} value={r}>{ROLE_LABELS[r] || r}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            {editError && (
+              <div className="mt-3 text-sm text-[var(--red)]">{editError}</div>
+            )}
+
+            <div className="flex gap-2 justify-end mt-5">
+              <button onClick={closeEdit} disabled={editSaving}
+                className="px-4 h-9 border border-[var(--rule)] rounded-lg text-sm text-[var(--ink-3)] hover:bg-[var(--rule-2)] disabled:opacity-40">
+                Huỷ
+              </button>
+              <button onClick={handleEditSave} disabled={editSaving}
+                className="px-4 h-9 bg-[var(--navy)] text-white rounded-lg text-sm font-semibold hover:bg-[var(--navy-mid)] disabled:opacity-40">
+                {editSaving ? 'Đang lưu...' : 'Lưu thay đổi'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Header */}
       <div className="bg-[var(--navy)] px-8 py-4 flex items-center justify-between">
         <div>
           <a href="/" className="font-serif font-bold text-white text-lg" style={{ textDecoration: 'none' }}>SPEDUMAP</a>
           <span className="text-white/50 text-sm ml-2">/ Admin Panel</span>
         </div>
-        <button
-          onClick={() => supabase.auth.signOut().then(() => window.location.href = '/auth/login')}
-          className="text-white/60 text-xs hover:text-white"
-        >
-          Đăng xuất
-        </button>
+        <div className="flex items-center gap-3">
+          <a href="/profile" className="text-white/60 text-xs hover:text-white" style={{ textDecoration: 'none' }}>Hồ sơ</a>
+          <button
+            onClick={() => supabase.auth.signOut().then(() => window.location.href = '/auth/login')}
+            className="text-white/60 text-xs hover:text-white"
+          >
+            Đăng xuất
+          </button>
+        </div>
       </div>
 
       <div className="max-w-5xl mx-auto p-8 space-y-8">
@@ -359,7 +483,7 @@ export default function AdminPage() {
           {/* Header row */}
           <div className="px-6 py-4 border-b border-[var(--rule)] flex items-center justify-between gap-4">
             <h2 className="font-serif text-lg font-bold text-[var(--navy)] shrink-0">
-              Danh sách tài khoản ({users.length})
+              Danh sách tài khoản ({manageable.length})
             </h2>
             {/* Search */}
             <input
@@ -385,7 +509,7 @@ export default function AdminPage() {
               </span>
             ))}
             <span className="ml-auto text-xs text-[var(--ink-3)]">
-              Tổng: {users.length}
+              Tổng: {manageable.length}
             </span>
           </div>
 
@@ -439,6 +563,14 @@ export default function AdminPage() {
                       <span className="text-xs text-[var(--ink-3)]">
                         {new Date(u.created_at).toLocaleDateString('vi-VN')}
                       </span>
+                    )}
+                    {canEdit && (
+                      <button
+                        onClick={() => openEdit(u)}
+                        className="text-xs text-[var(--navy)] hover:text-[var(--teal)] px-2 py-1 rounded hover:bg-blue-50 transition-colors"
+                      >
+                        Sửa
+                      </button>
                     )}
                     <button
                       onClick={() => { setDeleteTarget(u); setDeleteError(null) }}

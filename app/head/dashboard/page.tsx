@@ -234,9 +234,14 @@ export default function HeadDashboard() {
               Trẻ &amp; Phụ huynh
             </button>
             <span className="text-xs font-semibold text-white border-b-2 border-white px-2 py-1">Dashboard</span>
+            <button onClick={() => router.push('/head/staff')}
+              className="text-xs font-semibold text-white/50 hover:text-white/80 px-2 py-1">
+              Nhân sự
+            </button>
           </nav>
         </div>
         <div className="flex items-center gap-4">
+          <a href="/profile" className="text-white/60 text-xs hover:text-white" style={{ textDecoration: 'none' }}>Hồ sơ</a>
           <input
             value={search}
             onChange={e => setSearch(e.target.value)}
