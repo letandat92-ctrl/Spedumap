@@ -45,6 +45,7 @@ export default function AdminPage() {
   const [users, setUsers]           = useState<UserProfile[]>([])
   const [loading, setLoading]       = useState(true)
   const [adminEmail, setAdminEmail] = useState('')
+  const [myUserId, setMyUserId]     = useState('')
 
   // Create user form
   const [email, setEmail]         = useState('')
@@ -52,6 +53,7 @@ export default function AdminPage() {
   const [fullName, setFullName]   = useState('')
   const [phone, setPhone]         = useState('')
   const [creating, setCreating]   = useState(false)
+  const [pwCopied, setPwCopied]   = useState(false)
   const [createResult, setCreateResult] = useState<{
     success?: boolean
     message?: string
@@ -63,6 +65,10 @@ export default function AdminPage() {
   // Filter + search state (client-side, no refetch)
   const [filterRole, setFilterRole]   = useState<string>('all')
   const [searchText, setSearchText]   = useState('')
+  const [showInactive, setShowInactive] = useState(false)
+
+  // Reactivate
+  const [reactivatingId, setReactivatingId] = useState<string | null>(null)
 
   // Delete + re-auth state
   const [deleteTarget, setDeleteTarget]     = useState<UserProfile | null>(null)
@@ -80,8 +86,11 @@ export default function AdminPage() {
   const [editError, setEditError]           = useState<string | null>(null)
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => setAdminEmail(data.user?.email ?? ''))
-    loadUsers()
+    supabase.auth.getUser().then(({ data }) => {
+      setAdminEmail(data.user?.email ?? '')
+      setMyUserId(data.user?.id ?? '')
+    })
+    loadUsers(false)
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
@@ -89,6 +98,17 @@ export default function AdminPage() {
   const manageable = useMemo(() =>
     myRole ? users.filter(u => canManage(myRole, u.role)) : [],
   [users, myRole])
+
+  // UI guards — mirror server-side rules (server still enforces; this is UX-only)
+  const activeAdminCount = useMemo(() =>
+    users.filter(u => u.role === 'admin' && (u.status ?? 'active') === 'active').length,
+  [users])
+
+  function isDeactivatable(u: UserProfile): boolean {
+    if (u.id === myUserId) return false                              // self
+    if (u.role === 'admin' && activeAdminCount === 1) return false  // last active admin
+    return true
+  }
 
   const roleCounts = useMemo(() =>
     Object.fromEntries(ROLES.map(r => [r, manageable.filter(u => u.role === r).length])),
@@ -112,15 +132,31 @@ export default function AdminPage() {
     myRole ? ROLES.filter(r => canManage(myRole, r)) : [],
   [myRole])
 
-  async function loadUsers() {
+  async function loadUsers(inactive = showInactive) {
     setLoading(true)
-    const { data } = await supabase
+    let q = supabase
       .from('user_profiles')
       .select('id, email, role, full_name, created_at, status, phone')
-      .eq('status', 'active')
       .order('created_at', { ascending: false })
+    if (!inactive) q = q.eq('status', 'active')
+    const { data } = await q
     setUsers(data || [])
     setLoading(false)
+  }
+
+  async function handleReactivate(u: UserProfile) {
+    if (!canManage(myRole, u.role)) return
+    setReactivatingId(u.id)
+    try {
+      await fetch('/api/admin/edit-user', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ target_id: u.id, patch: { status: 'active' } }),
+      })
+      loadUsers(showInactive)
+    } finally {
+      setReactivatingId(null)
+    }
   }
 
   async function handleCreate(e: React.FormEvent) {
@@ -430,7 +466,7 @@ export default function AdminPage() {
 
             <button
               type="submit"
-              disabled={!email || (role === 'parent' && !phone.trim()) || creating}
+              disabled={!email || !fullName.trim() || (role === 'parent' && !phone.trim()) || creating}
               className="h-9 px-6 bg-[var(--navy)] text-white rounded-lg text-sm font-semibold hover:bg-[var(--navy-mid)] disabled:opacity-40"
             >
               {creating ? 'Đang tạo...' : 'Tạo tài khoản'}
@@ -453,13 +489,28 @@ export default function AdminPage() {
                     {createResult.temp_password ? (
                       <>
                         <div>Email: <span className="font-mono font-bold">{createResult.email || email}</span></div>
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 flex-wrap">
                           <span>Mật khẩu tạm:</span>
                           <code className="bg-white px-2 py-0.5 rounded border border-[var(--green-bd)] font-mono font-bold text-[var(--green)] text-base tracking-wider">
                             {createResult.temp_password}
                           </code>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              navigator.clipboard?.writeText(createResult.temp_password ?? '').then(() => {
+                                setPwCopied(true)
+                                setTimeout(() => setPwCopied(false), 2000)
+                              })
+                            }}
+                            className="px-2 py-0.5 text-xs font-semibold bg-[var(--green)] text-white rounded hover:opacity-80"
+                          >
+                            {pwCopied ? '✓ Đã copy' : 'Copy'}
+                          </button>
                         </div>
-                        <div className="text-xs text-[var(--ink-3)] mt-2">
+                        <div className="mt-2 p-2 bg-yellow-50 border border-yellow-300 rounded text-xs text-yellow-800 font-semibold">
+                          ⚠ Lưu mật khẩu ngay — chỉ hiện một lần, không thể khôi phục sau khi đóng thông báo này.
+                        </div>
+                        <div className="text-xs text-[var(--ink-3)] mt-1">
                           Gửi mật khẩu này cho therapist. Họ sẽ được yêu cầu đổi mật khẩu trong lần đăng nhập đầu tiên.
                         </div>
                       </>
@@ -493,7 +544,19 @@ export default function AdminPage() {
               placeholder="Tìm tên / email…"
               className="flex-1 max-w-xs h-8 px-3 text-sm border border-[var(--rule)] rounded-lg focus:outline-none focus:border-[var(--navy)]"
             />
-            <button onClick={loadUsers} className="text-xs text-[var(--ink-3)] hover:text-[var(--navy)] shrink-0">
+            <label className="flex items-center gap-1.5 text-xs text-[var(--ink-3)] cursor-pointer select-none shrink-0">
+              <input
+                type="checkbox"
+                checked={showInactive}
+                onChange={e => {
+                  setShowInactive(e.target.checked)
+                  loadUsers(e.target.checked)
+                }}
+                className="w-3.5 h-3.5"
+              />
+              Hiện đã vô hiệu
+            </label>
+            <button onClick={() => loadUsers(showInactive)} className="text-xs text-[var(--ink-3)] hover:text-[var(--navy)] shrink-0">
               Làm mới
             </button>
           </div>
@@ -547,40 +610,74 @@ export default function AdminPage() {
             <div className="p-8 text-center text-sm text-[var(--ink-3)]">Không tìm thấy tài khoản nào.</div>
           ) : (
             <div className="divide-y divide-[var(--rule-2)]">
-              {filteredUsers.map(u => (
-                <div key={u.id} className="px-6 py-4 flex items-center justify-between">
-                  <div>
-                    <div className="text-sm font-medium text-[var(--ink)]">
-                      {u.full_name || '—'}
+              {filteredUsers.map(u => {
+                const inactive = (u.status ?? 'active') === 'inactive'
+                const canDeactivate = isDeactivatable(u)
+                const deactivateTitle = !canDeactivate
+                  ? u.id === myUserId
+                    ? 'Không thể vô hiệu hoá tài khoản của chính mình'
+                    : 'Không thể vô hiệu hoá admin active cuối cùng'
+                  : undefined
+                return (
+                  <div key={u.id} className={`px-6 py-4 flex items-center justify-between ${inactive ? 'opacity-50 bg-[var(--rule-2)]' : ''}`}>
+                    <div>
+                      <div className="text-sm font-medium text-[var(--ink)]">
+                        {u.full_name || '—'}
+                        {inactive && <span className="ml-2 text-[10px] font-semibold text-orange-600 bg-orange-100 px-1.5 py-0.5 rounded">Inactive</span>}
+                      </div>
+                      <div className="text-xs text-[var(--ink-3)] mt-0.5">{u.email || u.id}</div>
                     </div>
-                    <div className="text-xs text-[var(--ink-3)] mt-0.5">{u.email || u.id}</div>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <span className={`text-xs font-semibold px-2 py-1 rounded-full ${ROLE_COLORS[u.role] || 'bg-gray-100 text-gray-600'}`}>
-                      {ROLE_LABELS[u.role] || u.role}
-                    </span>
-                    {u.created_at && (
-                      <span className="text-xs text-[var(--ink-3)]">
-                        {new Date(u.created_at).toLocaleDateString('vi-VN')}
+                    <div className="flex items-center gap-3">
+                      <span className={`text-xs font-semibold px-2 py-1 rounded-full ${ROLE_COLORS[u.role] || 'bg-gray-100 text-gray-600'}`}>
+                        {ROLE_LABELS[u.role] || u.role}
                       </span>
-                    )}
-                    {canEdit && (
-                      <button
-                        onClick={() => openEdit(u)}
-                        className="text-xs text-[var(--navy)] hover:text-[var(--teal)] px-2 py-1 rounded hover:bg-blue-50 transition-colors"
-                      >
-                        Sửa
-                      </button>
-                    )}
-                    <button
-                      onClick={() => { setDeleteTarget(u); setDeleteError(null) }}
-                      className="text-xs text-[var(--ink-3)] hover:text-red-600 px-2 py-1 rounded hover:bg-red-50 transition-colors"
-                    >
-                      Vô hiệu hoá
-                    </button>
+                      {u.created_at && (
+                        <span className="text-xs text-[var(--ink-3)]">
+                          {new Date(u.created_at).toLocaleDateString('vi-VN')}
+                        </span>
+                      )}
+                      {canEdit && !inactive && (
+                        <button
+                          onClick={() => openEdit(u)}
+                          className="text-xs text-[var(--navy)] hover:text-[var(--teal)] px-2 py-1 rounded hover:bg-blue-50 transition-colors"
+                        >
+                          Sửa
+                        </button>
+                      )}
+                      {inactive && canManage(myRole, u.role) && (
+                        <div className="flex flex-col items-end gap-0.5">
+                          <button
+                            onClick={() => handleReactivate(u)}
+                            disabled={reactivatingId === u.id}
+                            className="text-xs text-green-700 hover:text-green-900 px-2 py-1 rounded hover:bg-green-50 transition-colors disabled:opacity-40"
+                          >
+                            {reactivatingId === u.id ? 'Đang xử lý...' : 'Kích hoạt lại'}
+                          </button>
+                          {u.role !== 'parent' && (
+                            <span className="text-[10px] text-orange-600 max-w-[160px] text-right leading-tight">
+                              ⚠ Login đã bị thu hồi — cần tạo lại tài khoản để đăng nhập
+                            </span>
+                          )}
+                        </div>
+                      )}
+                      {!inactive && (
+                        <button
+                          onClick={() => { if (canDeactivate) { setDeleteTarget(u); setDeleteError(null) } }}
+                          disabled={!canDeactivate}
+                          title={deactivateTitle}
+                          className={`text-xs px-2 py-1 rounded transition-colors ${
+                            canDeactivate
+                              ? 'text-[var(--ink-3)] hover:text-red-600 hover:bg-red-50 cursor-pointer'
+                              : 'text-[var(--ink-3)] opacity-30 cursor-not-allowed'
+                          }`}
+                        >
+                          Vô hiệu hoá
+                        </button>
+                      )}
+                    </div>
                   </div>
-                </div>
-              ))}
+                )
+              })}
             </div>
           )}
         </div>

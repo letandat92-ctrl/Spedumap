@@ -34,6 +34,10 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'email và role là bắt buộc' }, { status: 400 })
     }
 
+    if (role !== 'parent' && !String(full_name ?? '').trim()) {
+      return NextResponse.json({ error: 'Họ tên là bắt buộc' }, { status: 400 })
+    }
+
     // Branch A — parent record-only (no auth user): caller needs create_parent
     if (role === 'parent') {
       if (!can(callerRole, 'create_parent')) {
