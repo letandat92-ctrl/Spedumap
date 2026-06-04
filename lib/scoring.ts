@@ -1,4 +1,4 @@
-// lib/scoring.ts — delta model v1.3
+// lib/scoring.ts — delta model (version in lib/ontology.ts SCORING_VERSION).
 // Pure scoring logic. No React, no Supabase — importable in tests and edge.
 
 // Pace multiplier per local-score rating.
@@ -26,5 +26,3 @@ export const PACE: Record<string, number> = {
 export function computeBlockDelta(local: number, targetDelta: number, N: number): number {
   return (targetDelta / Math.max(1, N)) * (PACE[String(local)] ?? 0)
 }
-
-export const SCORING_VERSION = '1.3'

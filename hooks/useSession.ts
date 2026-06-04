@@ -42,7 +42,7 @@ export type RegressionClass = 'transitional' | 'pathological' | 'noise'
 
 export const LAYER_IDS = ['L0', 'L1', 'L2', 'L3', 'L4', 'L5', 'L6', 'L7']
 
-// Import + re-export delta model from canonical lib/scoring.ts
+// Import + re-export delta model from lib/scoring.ts
 export { computeBlockDelta, PACE } from '@/lib/scoring'
 import { computeBlockDelta } from '@/lib/scoring'
 import { B2L } from '@/lib/ontology'

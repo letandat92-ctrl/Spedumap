@@ -30,7 +30,7 @@ export interface RetestMeta {
 }
 
 // ── Constants (from lib/ontology — single source of truth) ────
-import { L2_BLOCKS, LAYER_IDS, B2L, BLOCK_WEIGHTS as BW } from '@/lib/ontology'
+import { L2_BLOCKS, LAYER_IDS, B2L, BLOCK_WEIGHTS as BW, ONTOLOGY_VERSION } from '@/lib/ontology'
 
 function initBlockState(): Record<string, RetestBlockState> {
   const state: Record<string, RetestBlockState> = {}
@@ -181,7 +181,7 @@ export function useRetest(cycleId: string | null) {
             total_score_end:  r.total,
             stage_end:        r.stage,
             signals_end:      r.signals,
-            protocol_version: 'engine_v3.3',
+            protocol_version: `engine_v${ONTOLOGY_VERSION}`,
             layer_eval_avg:    layerEvalAvg,
             engine_validation: engineValidation,
           },

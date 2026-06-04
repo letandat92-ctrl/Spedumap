@@ -7,6 +7,7 @@ import { useRole } from '@/hooks/useRole'
 import { can } from '@/lib/permissions'
 import { createClient } from '@/lib/supabase/client'
 import { getScore } from '@/lib/engine'
+import { ONTOLOGY_VERSION } from '@/lib/ontology'
 import { LS_KEYS, type Directionality } from '@/types/spedumap'
 import { LayerSection } from '@/components/blocks/LayerSection'
 import { BaselineKPI } from '@/components/blocks/BaselineKPI'
@@ -288,7 +289,7 @@ export default function BaselinePage() {
           started_at: output.eval_date,
           governance_meta: {
             knowledge_domain: output.knowledge_domain,
-            protocol_version: 'engine_v3.3',
+            protocol_version: `engine_v${ONTOLOGY_VERSION}`,
           },
         })
         .select('id')

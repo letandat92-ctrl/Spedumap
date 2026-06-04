@@ -68,7 +68,7 @@ const EVAL_SCALE: Array<{ v: number; label: string; color: string }> = [
   { v: 6, label: 'Rất tiến\nbộ',      color: '#0A4A28' },  // --s6 (inline; not in globals.css)
 ]
 
-// LOCAL_TO_DELTA removed — use computeBlockDelta(local, targetDelta, N) from useSession (v1.3)
+// LOCAL_TO_DELTA removed — use computeBlockDelta(local, targetDelta, N) from useSession
 
 // ── Score helpers (mirror getBlockScore / layerScore / totalFromBaseline) ──
 function getScore(v: unknown): number {
