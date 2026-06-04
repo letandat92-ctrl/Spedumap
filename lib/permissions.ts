@@ -37,14 +37,19 @@ export const BRANCH: Record<Role, Branch> = {
 
 // Can `editor` manage (edit/view) `targetRole`?
 // Rules: editor rank must be strictly lower (higher authority) than target,
-// and they must share a branch — except admin (rank 0) who manages all branches.
+// and they must share a branch — except admin (rank 0) who manages all branches,
+// and business branch staff (reception) who also manage client branch (parent).
 export function canManage(editor: Role | string, targetRole: Role | string): boolean {
   const eRank = RANK[editor as Role]
   const tRank = RANK[targetRole as Role]
   if (eRank === undefined || tRank === undefined) return false
   if (eRank >= tRank) return false
   if (eRank === 0) return true
-  return BRANCH[editor as Role] === BRANCH[targetRole as Role]
+  const eBranch = BRANCH[editor as Role]
+  const tBranch = BRANCH[targetRole as Role]
+  if (eBranch === tBranch) return true
+  if (eBranch === 'business' && tBranch === 'client') return true
+  return false
 }
 
 export const PERMISSIONS: Record<Action, Role[]> = {
