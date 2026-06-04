@@ -12,7 +12,7 @@ export type Action =
   'assessment' | 'cycle_open' | 'daily_session' |
   'view_progress' | 'close_cycle' | 'assign_case' |
   'create_user' | 'create_parent' | 'delete_user' | 'delete_parent' |
-  'edit_user'
+  'edit_user' | 'manage_library'
 
 // Numeric rank — lower number = higher authority. admin spans both branches.
 export const RANK: Record<Role, number> = {
@@ -65,7 +65,8 @@ export const PERMISSIONS: Record<Action, Role[]> = {
   create_parent: ['admin', 'reception'],
   delete_user:   ['admin'],
   delete_parent: ['admin', 'reception'],
-  edit_user:     ['admin', 'head_therapist'],
+  edit_user:      ['admin', 'head_therapist'],
+  manage_library: ['admin', 'head_therapist'],
 }
 
 export function can(role: Role | string, action: Action): boolean {
