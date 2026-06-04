@@ -40,9 +40,10 @@ const SECTIONS: { title: string; tiles: Tile[] }[] = [
     { label: 'Tổng kết Đóng',    desc: 'So sánh 3-way, seed baseline kế.',              href: '/therapist/close-summary',route: '/therapist', action: 'close_cycle',   icon: 'checkCircle',   accent: 'bronze' },
   ]},
   { title: 'Quản trị & Tiếp đón', tiles: [
-    { label: 'Nhân sự trị liệu',       desc: 'Xem, sửa thông tin therapist.',         href: '/head/staff', route: '/head',      action: 'edit_user',     icon: 'people',   accent: 'navy'   },
-    { label: 'Quản lý người dùng',      desc: 'Tạo account staff, gán role.',          href: '/admin',     route: '/admin',     action: 'create_user',   icon: 'usersCog', accent: 'navy'   },
-    { label: 'Tạo hồ sơ phụ huynh',    desc: 'Record-only, không cấp đăng nhập.',     href: '/reception', route: '/reception', action: 'create_parent', icon: 'userPlus', accent: 'bronze' },
+    { label: 'Nhân sự trị liệu',       desc: 'Xem, sửa thông tin therapist.',         href: '/head/staff',    route: '/head',      action: 'edit_user',      icon: 'people',   accent: 'navy'   },
+    { label: 'Thư viện bài tập',       desc: 'Quản lý kho bài tập, gán taxonomy.',   href: '/head/library',  route: '/head',      action: 'manage_library', icon: 'book',     accent: 'navy'   },
+    { label: 'Quản lý người dùng',     desc: 'Tạo account staff, gán role.',          href: '/admin',         route: '/admin',     action: 'create_user',    icon: 'usersCog', accent: 'navy'   },
+    { label: 'Tạo hồ sơ phụ huynh',   desc: 'Record-only, không cấp đăng nhập.',     href: '/reception',     route: '/reception', action: 'create_parent',  icon: 'userPlus', accent: 'bronze' },
   ]},
 ]
 
@@ -59,6 +60,7 @@ const ICONS = {
   checkCircle:   '<circle cx="12" cy="12" r="9"/><path d="M8.5 12.5l2.5 2.5 4.5-5"/>',
   usersCog:      '<path d="M17 21v-2a4 4 0 0 0-3-3.87"/><path d="M9 21v-2a4 4 0 0 1 4-4h.5"/><circle cx="9" cy="7" r="4"/><circle cx="18" cy="16" r="3"/><path d="M18 13v1M18 18v1M21 16h-1M16 16h-1"/>',
   userPlus:      '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M19 8v6M22 11h-6"/>',
+  book:          '<path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>',
 }
 
 // Accent → icon bg + icon color (spec palette)

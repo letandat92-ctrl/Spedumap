@@ -218,6 +218,10 @@ export default function HeadDashboard() {
               className="text-xs font-semibold text-white/50 hover:text-white/80 px-2 py-1">
               Nhân sự
             </button>
+            <button onClick={() => router.push('/head/library')}
+              className="text-xs font-semibold text-white/50 hover:text-white/80 px-2 py-1">
+              Thư viện bài tập
+            </button>
           </nav>
         </div>
         <div className="flex items-center gap-4">
