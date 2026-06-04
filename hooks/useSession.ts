@@ -42,21 +42,10 @@ export type RegressionClass = 'transitional' | 'pathological' | 'noise'
 
 export const LAYER_IDS = ['L0', 'L1', 'L2', 'L3', 'L4', 'L5', 'L6', 'L7']
 
-// Import + re-export delta model from canonical lib/scoring.ts (v1.3)
+// Import + re-export delta model from canonical lib/scoring.ts
 export { computeBlockDelta, PACE } from '@/lib/scoring'
 import { computeBlockDelta } from '@/lib/scoring'
-
-// block → layer map — mirrors B2L in spedumap_config.js
-const B2L: Record<string, string> = {
-  sleep: 'L0', microbiome: 'L0', nutrition: 'L0', immune: 'L0', metabolic: 'L0',
-  arousal: 'L1', reflex_survival: 'L1', reflex_postural: 'L1', reflex_cortical: 'L1', tone: 'L1', ns_stability: 'L1',
-  vestibular: 'L2', proprioception: 'L2', auditory: 'L2', visual: 'L2', tactile: 'L2', taste: 'L2', smell: 'L2',
-  motor_planning: 'L3', gross_motor: 'L3', fine_motor: 'L3', postural_control: 'L3', bilateral_coord: 'L3',
-  attention: 'L4', auditory_processing: 'L4', visual_processing: 'L4', wm_link: 'L4',
-  oral_language: 'L5', word_finding: 'L5', phonemic_awareness: 'L5', auditory_memory: 'L5', visual_memory: 'L5',
-  self_control: 'L6', behavior: 'L6', social_skills: 'L6', daily_living: 'L6',
-  math: 'L7', writing: 'L7', reading: 'L7',
-}
+import { B2L } from '@/lib/ontology'
 
 // One row per solution-linked activity — fed into solution_outcomes after the
 // daily_sessions row is persisted (sessionDbId = real DB id, not the local UUID).

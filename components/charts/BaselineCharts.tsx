@@ -6,6 +6,7 @@ import {
   ResponsiveContainer,
 } from 'recharts'
 import type { EngineResult } from '@/hooks/useBaseline'
+import { LAYER_WEIGHTS as LAYER_W } from '@/lib/ontology'
 
 interface BaselineChartsProps {
   engine: EngineResult
@@ -19,10 +20,6 @@ const LAYER_COLORS: Record<string, string> = {
 const LAYER_LABELS: Record<string, string> = {
   L0:'Sinh học', L1:'Thần kinh', L2:'Giác quan', L3:'Vận động',
   L4:'Xử lý', L5:'Giao tiếp', L6:'QL Cuộc sống', L7:'Học thuật',
-}
-
-const LAYER_W: Record<string, number> = {
-  L0:18, L1:16, L2:14, L3:12, L4:12, L5:10, L6:10, L7:8,
 }
 
 export function BaselineCharts({ engine }: BaselineChartsProps) {

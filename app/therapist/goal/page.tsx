@@ -30,7 +30,7 @@ const BM: Record<string, { label: string; blocks: Record<string, string> }> = {
   L7:{label:'L7 · Học thuật', blocks:{math:'Math',writing:'Writing',reading:'Reading'}},
 }
 
-const LAYER_IDS = ['L0','L1','L2','L3','L4','L5','L6','L7']
+import { LAYER_IDS } from '@/lib/ontology'
 
 // Block → layer and block → display-name, derived from BM (single source).
 const B2L: Record<string, string> = {}

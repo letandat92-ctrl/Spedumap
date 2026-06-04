@@ -9,6 +9,7 @@
 import { Suspense, useCallback, useEffect, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { runEngineFromBlocks } from '@/lib/engine'
+import { B2L } from '@/lib/ontology'
 
 export const dynamic = 'force-dynamic'
 
@@ -22,16 +23,6 @@ const BN_VI: Record<string, string> = {
   oral_language: 'Ngôn ngữ nói', word_finding: 'Tìm từ', phonemic_awareness: 'Nhận thức âm vị', auditory_memory: 'Trí nhớ thính giác', visual_memory: 'Trí nhớ thị giác',
   self_control: 'Tự kiểm soát', behavior: 'Hành vi', social_skills: 'Kỹ năng xã hội', daily_living: 'Kỹ năng sống hàng ngày',
   math: 'Toán', writing: 'Viết', reading: 'Đọc',
-}
-const B2L: Record<string, string> = {
-  sleep: 'L0', microbiome: 'L0', nutrition: 'L0', immune: 'L0', metabolic: 'L0',
-  arousal: 'L1', reflex_survival: 'L1', reflex_postural: 'L1', reflex_cortical: 'L1', tone: 'L1', ns_stability: 'L1',
-  vestibular: 'L2', proprioception: 'L2', auditory: 'L2', visual: 'L2', tactile: 'L2', taste: 'L2', smell: 'L2',
-  motor_planning: 'L3', gross_motor: 'L3', fine_motor: 'L3', postural_control: 'L3', bilateral_coord: 'L3',
-  attention: 'L4', auditory_processing: 'L4', visual_processing: 'L4', wm_link: 'L4',
-  oral_language: 'L5', word_finding: 'L5', phonemic_awareness: 'L5', auditory_memory: 'L5', visual_memory: 'L5',
-  self_control: 'L6', behavior: 'L6', social_skills: 'L6', daily_living: 'L6',
-  math: 'L7', writing: 'L7', reading: 'L7',
 }
 const LC: Record<string, string> = {
   L0: '#8B1A1A', L1: '#A02020', L2: '#B83030', L3: '#C55030', L4: '#C87020', L5: '#4A8A60', L6: '#2A6A9A', L7: '#3A5AAA',

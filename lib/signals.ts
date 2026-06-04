@@ -1,26 +1,10 @@
 // lib/signals.ts
 // Single source of truth for deficit-signal calculation (Formula A).
-// Mirrors the engine() in ui_baseline_setting.html / hooks/useBaseline.ts runEngine().
-// Used by:
-//   - hooks/useBaseline.ts   (baseline engine `sig`, persisted to engine_snapshot.signals)
-//   - components/charts/CycleComponents.tsx (SignalStrip cards on baseline + cycle pages)
-// so the baseline and goal pages rank Dominant Deficit with the SAME formula.
+// Taxonomy constants imported from lib/ontology.ts.
+
+import { BLOCK_WEIGHTS as BW, LAYER_IDS } from './ontology'
 
 export const SIGNAL_T = 2.5
-
-// Block-weights per layer (must mirror BW in hooks/useBaseline.ts).
-const BW: Record<string, Record<string, number>> = {
-  L0: { sleep: .25, microbiome: .25, nutrition: .20, immune: .15, metabolic: .15 },
-  L1: { arousal: .40, reflex_survival: .10, reflex_postural: .10, reflex_cortical: .05, tone: .20, ns_stability: .15 },
-  L2: { vestibular: .22, proprioception: .18, auditory: .16, visual: .16, tactile: .12, taste: .08, smell: .08 },
-  L3: { motor_planning: .2, gross_motor: .2, fine_motor: .2, postural_control: .2, bilateral_coord: .2 },
-  L4: { attention: .35, auditory_processing: .30, visual_processing: .30, wm_link: .05 },
-  L5: { oral_language: .2, word_finding: .2, phonemic_awareness: .2, auditory_memory: .2, visual_memory: .2 },
-  L6: { self_control: .25, behavior: .25, social_skills: .25, daily_living: .25 },
-  L7: { math: 1 / 3, writing: 1 / 3, reading: 1 / 3 },
-}
-
-const LAYER_IDS = ['L0', 'L1', 'L2', 'L3', 'L4', 'L5', 'L6', 'L7']
 
 export interface DeficitSignals {
   sensorimotor: number

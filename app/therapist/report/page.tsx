@@ -13,22 +13,11 @@ import { LineChart, Line, XAxis, YAxis, Tooltip, Legend, CartesianGrid, Responsi
 
 export const dynamic = 'force-dynamic'
 
-const LAYER_IDS = ['L0','L1','L2','L3','L4','L5','L6','L7']
+import { LAYER_IDS, B2L } from '@/lib/ontology'
+
 const LAYER_COLORS: Record<string,string> = {
   L0:'#8B1A1A', L1:'#A02020', L2:'#B83030', L3:'#C55030',
   L4:'#C87020', L5:'#4A8A60', L6:'#2A6A9A', L7:'#3A5AAA',
-}
-
-
-const B2L: Record<string,string> = {
-  sleep:'L0',microbiome:'L0',nutrition:'L0',immune:'L0',metabolic:'L0',
-  arousal:'L1',reflex_survival:'L1',reflex_postural:'L1',reflex_cortical:'L1',tone:'L1',ns_stability:'L1',
-  vestibular:'L2',proprioception:'L2',auditory:'L2',visual:'L2',tactile:'L2',taste:'L2',smell:'L2',
-  motor_planning:'L3',gross_motor:'L3',fine_motor:'L3',postural_control:'L3',bilateral_coord:'L3',
-  attention:'L4',auditory_processing:'L4',visual_processing:'L4',wm_link:'L4',
-  oral_language:'L5',word_finding:'L5',phonemic_awareness:'L5',auditory_memory:'L5',visual_memory:'L5',
-  self_control:'L6',behavior:'L6',social_skills:'L6',daily_living:'L6',
-  math:'L7',writing:'L7',reading:'L7',
 }
 const BN: Record<string,string> = {
   sleep:'Sleep',microbiome:'Microbiome',nutrition:'Nutrition',immune:'Immune',metabolic:'Metabolic',

@@ -6,8 +6,8 @@ import {
   ResponsiveContainer,
 } from 'recharts'
 import type { BlocksMap } from '@/types/spedumap'
+import { LAYER_IDS, B2L, BLOCK_WEIGHTS as BW } from '@/lib/ontology'
 
-const LAYER_IDS = ['L0','L1','L2','L3','L4','L5','L6','L7']
 const LAYER_LABELS: Record<string,string> = {
   L0:'L0 Sinh học', L1:'L1 Thần kinh', L2:'L2 Giác quan', L3:'L3 Vận động',
   L4:'L4 Xử lý', L5:'L5 Giao tiếp', L6:'L6 QL Cuộc sống', L7:'L7 Học thuật',
@@ -15,26 +15,6 @@ const LAYER_LABELS: Record<string,string> = {
 const LAYER_COLORS: Record<string,string> = {
   L0:'#8B1A1A', L1:'#A02020', L2:'#B83030', L3:'#C55030',
   L4:'#C87020', L5:'#4A8A60', L6:'#2A6A9A', L7:'#3A5AAA',
-}
-const BW: Record<string,Record<string,number>> = {
-  L0:{sleep:.25,microbiome:.25,nutrition:.20,immune:.15,metabolic:.15},
-  L1:{arousal:.40,reflex_survival:.10,reflex_postural:.10,reflex_cortical:.05,tone:.20,ns_stability:.15},
-  L2:{vestibular:.22,proprioception:.18,auditory:.16,visual:.16,tactile:.12,taste:.08,smell:.08},
-  L3:{motor_planning:.2,gross_motor:.2,fine_motor:.2,postural_control:.2,bilateral_coord:.2},
-  L4:{attention:.35,auditory_processing:.30,visual_processing:.30,wm_link:.05},
-  L5:{oral_language:.2,word_finding:.2,phonemic_awareness:.2,auditory_memory:.2,visual_memory:.2},
-  L6:{self_control:.25,behavior:.25,social_skills:.25,daily_living:.25},
-  L7:{math:1/3,writing:1/3,reading:1/3},
-}
-const B2L: Record<string,string> = {
-  sleep:'L0',microbiome:'L0',nutrition:'L0',immune:'L0',metabolic:'L0',
-  arousal:'L1',reflex_survival:'L1',reflex_postural:'L1',reflex_cortical:'L1',tone:'L1',ns_stability:'L1',
-  vestibular:'L2',proprioception:'L2',auditory:'L2',visual:'L2',tactile:'L2',taste:'L2',smell:'L2',
-  motor_planning:'L3',gross_motor:'L3',fine_motor:'L3',postural_control:'L3',bilateral_coord:'L3',
-  attention:'L4',auditory_processing:'L4',visual_processing:'L4',wm_link:'L4',
-  oral_language:'L5',word_finding:'L5',phonemic_awareness:'L5',auditory_memory:'L5',visual_memory:'L5',
-  self_control:'L6',behavior:'L6',social_skills:'L6',daily_living:'L6',
-  math:'L7',writing:'L7',reading:'L7',
 }
 
 function getScore(v: unknown): number {

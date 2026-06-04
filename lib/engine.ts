@@ -3,31 +3,16 @@
 // pyramid_scoring_engine_v3.html (Steps 1–5: rough layer scores → deficit
 // signals → dynamic weighting → layer lock → total + stage).
 //
-// SINGLE SOURCE OF TRUTH for the total/stage/signals. Used by:
-//   - hooks/useBaseline.ts (baseline lock → engine_snapshot)
-//   - app/therapist/session/page.tsx  (current/target totals)
-//   - app/therapist/report/page.tsx   (current/target totals)
-//
-// Key mappings vs the template's BLOCK_WEIGHTS_RAW:
-//   gut    → microbiome
-//   reflex (0.25) → reflex_survival 0.10 / reflex_postural 0.10 / reflex_cortical 0.05
-//   (the L1 reflex dynamic bump is applied to all three reflex blocks)
+// Taxonomy constants (LAYER_IDS, LAYER_WEIGHTS, BLOCK_WEIGHTS) come from
+// lib/ontology.ts — the single source of truth for the 39-block taxonomy.
 
-export const LAYER_IDS = ['L0', 'L1', 'L2', 'L3', 'L4', 'L5', 'L6', 'L7']
-export const LAYER_WEIGHTS: Record<string, number> = { L0: 18, L1: 16, L2: 14, L3: 12, L4: 12, L5: 10, L6: 10, L7: 8 }
+import {
+  LAYER_IDS, LAYER_WEIGHTS, BLOCK_WEIGHTS as BLOCK_WEIGHTS_RAW,
+} from './ontology'
+
+// Re-export for existing consumers that import from engine
+export { LAYER_IDS, LAYER_WEIGHTS }
 export const THRESHOLD = 2.5
-
-// Raw block weights — pyramid BLOCK_WEIGHTS_RAW with key mappings applied.
-const BLOCK_WEIGHTS_RAW: Record<string, Record<string, number>> = {
-  L0: { sleep: 0.25, microbiome: 0.25, nutrition: 0.20, immune: 0.15, metabolic: 0.15 },
-  L1: { arousal: 0.40, reflex_survival: 0.10, reflex_postural: 0.10, reflex_cortical: 0.05, tone: 0.20, ns_stability: 0.15 },
-  L2: { vestibular: 0.22, proprioception: 0.18, auditory: 0.16, visual: 0.16, tactile: 0.12, taste: 0.08, smell: 0.08 },
-  L3: { motor_planning: 1 / 5, gross_motor: 1 / 5, fine_motor: 1 / 5, postural_control: 1 / 5, bilateral_coord: 1 / 5 },
-  L4: { attention: 0.35, auditory_processing: 0.30, visual_processing: 0.30, wm_link: 0.05 },
-  L5: { oral_language: 1 / 5, word_finding: 1 / 5, phonemic_awareness: 1 / 5, auditory_memory: 1 / 5, visual_memory: 1 / 5 },
-  L6: { self_control: 1 / 4, behavior: 1 / 4, social_skills: 1 / 4, daily_living: 1 / 4 },
-  L7: { math: 1 / 3, writing: 1 / 3, reading: 1 / 3 },
-}
 
 export interface EngineSignals {
   sensorimotor: number
