@@ -130,6 +130,11 @@ export const RELIABILITY_WEIGHT: Record<string, number> = {
   parent_report: 0.4,
 }
 
+// ── DMT engine constants ──────────────────────────────────────────────────────
+// K = logistic steepness for p_stage sigmoid. Prior yếu — sẽ điều chỉnh sau khi
+// có đủ data. CHỈ DÙNG bởi lib/dmt.ts; không ảnh hưởng v1.3 scoring path.
+export const DMT_K = 3.0
+
 // ── Attribution parameters ──────────────────────────────────────────────────
 export const ATTRIBUTION_PARAMS = {
   /** Isolation coefficient — proportion of delta attributed to intervention vs maturation. */
