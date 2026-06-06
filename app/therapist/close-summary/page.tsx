@@ -18,6 +18,7 @@ import {
   type LayerComparison, type VerdictBanner, type SignalShift,
 } from '@/lib/engine'
 import { LS_KEYS } from '@/types/spedumap'
+import { cyclePctFromTotals } from '@/lib/dmt'
 
 export const dynamic = 'force-dynamic'
 
@@ -131,6 +132,41 @@ function CloseSummaryInner() {
     })()
     return () => { cancelled = true }
   }, [cycleId, supabase])
+
+  // DMT shadow: write cycle_error once cycle + retest data available
+  useEffect(() => {
+    if (!cycle?.retest_baseline?.blocks || !cycleId) return
+    ;(async () => {
+      try {
+        const baseNums = toNum(cycle.baseline?.blocks)
+        const tgtNums  = toNum(cycle.target?.blocks)
+        const reNums   = toNum(cycle.retest_baseline?.blocks ?? {})
+
+        // actual cyclePct: same metric as gateForecast (sum of target-block scores)
+        const actual = cyclePctFromTotals(baseNums, tgtNums, reNums)
+
+        // forecast_at_goal = last point of forecast curve (session N)
+        const { data: ledger } = await supabase
+          .from('forecast_ledger')
+          .select('cyclepct_forecast_curve, k_used, version')
+          .eq('cycle_id', cycleId)
+          .order('created_at', { ascending: false })
+          .limit(1)
+        const curve = (ledger?.[0] as { cyclepct_forecast_curve?: Array<{ session: number; cyclepct: number }> } | undefined)?.cyclepct_forecast_curve ?? []
+        const forecastAtGoal = curve.length ? curve[curve.length - 1].cyclepct : null
+
+        await supabase.from('cycle_error').insert({
+          child_id:         cycle.child_id,
+          cycle_id:         cycleId,
+          actual_retest:    { blocks: cycle.retest_baseline?.blocks, total: runEngine(reNums).total },
+          forecast_at_goal: forecastAtGoal,
+          error:            forecastAtGoal !== null ? actual - forecastAtGoal : null,
+          version:          'dmt-v0.4',
+        }).then(({ error: e }) => { if (e) console.debug('[DMT] cycle_error:', e.message) })
+      } catch { /* shadow — silent */ }
+    })()
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cycle, cycleId])
 
   function openNewCycle() {
     if (!cycle?.retest_baseline?.blocks || !child) return
