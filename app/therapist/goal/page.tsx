@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { useGoal, getScaleOptions, type GoalEntry } from '@/hooks/useGoal'
 import { createClient } from '@/lib/supabase/client'
 import { LS_KEYS, type BlocksMap, type CanonicalBlock } from '@/types/spedumap'
+import { gateForecast } from '@/lib/dmt'
 import { GoalKPI } from '@/components/charts/GoalKPI'
 import { GoalChips } from '@/components/charts/GoalKPI'
 import { GoalCharts } from '@/components/charts/GoalCharts'
@@ -30,7 +31,7 @@ const BM: Record<string, { label: string; blocks: Record<string, string> }> = {
   L7:{label:'L7 · Học thuật', blocks:{math:'Math',writing:'Writing',reading:'Reading'}},
 }
 
-import { LAYER_IDS } from '@/lib/ontology'
+import { LAYER_IDS, DMT_K } from '@/lib/ontology'
 
 // Block → layer and block → display-name, derived from BM (single source).
 const B2L: Record<string, string> = {}
@@ -151,6 +152,12 @@ export default function GoalPage() {
   const [saving, setSaving]   = useState(false)
   const [error, setError]     = useState<string | null>(null)
 
+  // DMT shadow — assessment range (không bắt buộc, không chặn flow)
+  const [dmtLayerMin, setDmtLayerMin] = useState(0)
+  const [dmtLayerMax, setDmtLayerMax] = useState(7)
+  const [dmtStageMin, setDmtStageMin] = useState(1)
+  const [dmtStageMax, setDmtStageMax] = useState(5)
+
   // Recommended list (analyze) + custom-added blocks — the rows actually shown.
   const [recs, setRecs] = useState<Rec[]>([])
   // Undo state for the per-row remove × (+ Ctrl+Z).
@@ -250,6 +257,45 @@ export default function GoalPage() {
           .eq('id', cycleId)
         if (sbErr) console.warn('Supabase update failed:', sbErr.message)
       }
+
+      // ── DMT SHADOW (fire-and-forget, không chặn flow, không báo lỗi UI) ──
+      if (cycleId) {
+        const baselineRaw = typeof window !== 'undefined' ? localStorage.getItem(LS_KEYS.BASELINE) : null
+        const childId = baselineRaw ? (JSON.parse(baselineRaw) as { child_id?: string }).child_id ?? null : null
+
+        // helper: CanonicalBlock → number
+        const toNum = (b: unknown): number => {
+          if (typeof b === 'number') return b
+          if (b && typeof b === 'object' && 'score' in b) return Number((b as { score: number }).score)
+          return 0
+        }
+
+        // assessment_range
+        supabase.from('assessment_range').insert({
+          child_id: childId,
+          cycle_id: cycleId,
+          layer_range: [dmtLayerMin, dmtLayerMax],
+          stage_range: [dmtStageMin, dmtStageMax],
+        }).then(({ error: e }) => { if (e) console.debug('[DMT] assessment_range:', e.message) })
+
+        // forecast_ledger
+        const baseNums: Record<string, number> = {}
+        const tgtNums:  Record<string, number> = {}
+        for (const [k, b] of Object.entries(output.baseline_blocks)) baseNums[k] = toNum(b)
+        for (const [k, b] of Object.entries(output.target_blocks))   tgtNums[k]  = toNum(b)
+        const N = output.cycle_settings.planned_sessions || 24
+        const curve = gateForecast(baseNums, tgtNums, N)
+        supabase.from('forecast_ledger').insert({
+          child_id: childId,
+          cycle_id: cycleId,
+          block_target: output.target_blocks,
+          stage_forecast: null,
+          cyclepct_forecast_curve: curve,
+          k_used: DMT_K,
+          version: 'dmt-v0.4',
+        }).then(({ error: e }) => { if (e) console.debug('[DMT] forecast_ledger:', e.message) })
+      }
+      // ── END DMT SHADOW ──
 
       router.push('/therapist/cycle')
     } catch (err) {
@@ -675,6 +721,54 @@ export default function GoalPage() {
             className="flex-1 h-7 px-1.5 rounded focus:outline-none"
             style={{ minWidth: 160, border: '1.5px solid var(--border)', background: 'var(--warm-bg)', fontFamily: INTER, fontSize: 11, color: 'var(--ink)' }}
           />
+        </div>
+
+        {/* DMT: Phạm vi quan sát (shadow — không bắt buộc, không chặn) */}
+        <div
+          className="flex flex-wrap items-center gap-2 px-3.5 py-2"
+          style={{ background: '#F7F5F0', borderTop: '1px dashed var(--border)' }}
+        >
+          <span style={{ fontSize: 9, fontWeight: 700, letterSpacing: '.10em', textTransform: 'uppercase', color: 'var(--sub)', marginRight: 2 }}>
+            DMT Range
+          </span>
+          <span style={{ fontSize: 9, color: 'var(--sub)' }}>Layer</span>
+          {(['L0','L1','L2','L3','L4','L5','L6','L7'] as const).map((_, i) => null).length > 0 ? null : null}
+          <select
+            value={dmtLayerMin}
+            onChange={e => setDmtLayerMin(+e.target.value)}
+            className="h-6 px-1 rounded focus:outline-none"
+            style={{ fontSize: 10, border: '1px solid var(--border)', background: 'var(--warm-bg)' }}
+          >
+            {[0,1,2,3,4,5,6,7].map(i => <option key={i} value={i}>L{i}</option>)}
+          </select>
+          <span style={{ fontSize: 9, color: 'var(--sub)' }}>→</span>
+          <select
+            value={dmtLayerMax}
+            onChange={e => setDmtLayerMax(+e.target.value)}
+            className="h-6 px-1 rounded focus:outline-none"
+            style={{ fontSize: 10, border: '1px solid var(--border)', background: 'var(--warm-bg)' }}
+          >
+            {[0,1,2,3,4,5,6,7].filter(i => i >= dmtLayerMin).map(i => <option key={i} value={i}>L{i}</option>)}
+          </select>
+          <span style={{ fontSize: 9, color: 'var(--sub)', marginLeft: 6 }}>Stage</span>
+          <select
+            value={dmtStageMin}
+            onChange={e => setDmtStageMin(+e.target.value)}
+            className="h-6 px-1 rounded focus:outline-none"
+            style={{ fontSize: 10, border: '1px solid var(--border)', background: 'var(--warm-bg)' }}
+          >
+            {[1,2,3,4,5].map(i => <option key={i} value={i}>{i}</option>)}
+          </select>
+          <span style={{ fontSize: 9, color: 'var(--sub)' }}>→</span>
+          <select
+            value={dmtStageMax}
+            onChange={e => setDmtStageMax(+e.target.value)}
+            className="h-6 px-1 rounded focus:outline-none"
+            style={{ fontSize: 10, border: '1px solid var(--border)', background: 'var(--warm-bg)' }}
+          >
+            {[1,2,3,4,5].filter(i => i >= dmtStageMin).map(i => <option key={i} value={i}>{i}</option>)}
+          </select>
+          <span style={{ fontSize: 9, color: 'var(--sub)', fontStyle: 'italic', marginLeft: 4 }}>(milestone range · shadow)</span>
         </div>
 
         {/* Error banner */}
