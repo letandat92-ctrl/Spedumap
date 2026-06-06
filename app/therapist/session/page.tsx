@@ -34,6 +34,11 @@ const BN: Record<string, string> = {
 }
 
 import { B2L, LAYER_IDS, BLOCK_WEIGHTS as BW_ONTO, DEFAULT_SOURCE_TYPE, reliabilityTierFor } from '@/lib/ontology'
+
+// ── DMT types (shadow only) ──────────────────────────────────────────────────
+interface MilestoneRow { id: string; code: string | null; skill_family: string; stage: number; footprint: Record<string, number> }
+interface MilestoneObsEntry { achievement: number | null; support_level: string | null; time_sec: string }
+const SUPPORT_LEVELS = ['thân-thể', 'một-phần', 'cử-chỉ', 'lời', 'độc-lập'] as const
 const LAYER_NAMES: Record<string, string> = {
   L0:'L0 Health & Nutrition', L1:'L1 Regulation', L2:'L2 Sensory', L3:'L3 Motor',
   L4:'L4 Processing', L5:'L5 Communication', L6:'L6 Social', L7:'L7 Academic',
@@ -143,6 +148,10 @@ export default function SessionPage() {
 
   const [saving, setSaving] = useState(false)
   const [error, setError]   = useState<string | null>(null)
+
+  // DMT shadow state
+  const [dmtMilestones, setDmtMilestones] = useState<MilestoneRow[]>([])
+  const [dmtObs, setDmtObs] = useState<Record<string, MilestoneObsEntry>>({})
   const [obsPickerOpen, setObsPickerOpen] = useState(false)
   const [obsSearch, setObsSearch] = useState('')
   const [solutions, setSolutions] = useState<SolutionItem[]>([])
@@ -157,6 +166,31 @@ export default function SessionPage() {
       .eq('is_active', true)
       .order('title')
       .then(({ data }) => { if (active && data) setSolutions(data as SolutionItem[]) })
+    return () => { active = false }
+  }, [])
+
+  // DMT: load milestones in range for this cycle (shadow, không chặn)
+  useEffect(() => {
+    const sb = createClient()
+    let active = true
+    const raw = localStorage.getItem('spedumap_active_cycle')
+    const parsed = raw ? JSON.parse(raw) : null
+    const cycleId = parsed?.supabase_cycle_id || parsed?.cycle_id
+    if (!cycleId || !cycleId.includes('-')) return
+    ;(async () => {
+      try {
+        const { data: rangeRows } = await sb
+          .from('assessment_range').select('stage_range')
+          .eq('cycle_id', cycleId).order('created_at', { ascending: false }).limit(1)
+        const stageRange: number[] = (rangeRows?.[0] as { stage_range?: number[] } | undefined)?.stage_range ?? []
+        if (!stageRange.length) return
+        const [sMin, sMax] = [Math.min(...stageRange), Math.max(...stageRange)]
+        const { data: ms } = await sb
+          .from('milestone').select('id, code, skill_family, stage, footprint')
+          .eq('is_active', true).gte('stage', sMin).lte('stage', sMax).order('stage')
+        if (active && ms) setDmtMilestones(ms as MilestoneRow[])
+      } catch { /* shadow — silent */ }
+    })()
     return () => { active = false }
   }, [])
 
@@ -203,6 +237,24 @@ export default function SessionPage() {
           if (outcomes.length) {
             const { error: soErr } = await supabase.from('solution_outcomes').insert(outcomes)
             if (soErr) console.warn('solution_outcomes save failed:', soErr.message)
+          }
+
+          // DMT shadow: insert milestone_obs (fire-and-forget, ∅ = NULL per invariant)
+          const milestoneInserts = Object.entries(dmtObs)
+            .filter(([, obs]) => obs.achievement !== undefined || obs.support_level || obs.time_sec)
+            .map(([milestoneId, obs]) => ({
+              child_id:           (cycle?.child as { id?: string })?.id ?? null,
+              cycle_id:           cycleId,
+              milestone_id:       milestoneId,
+              achievement:        obs.achievement,   // NULL when ∅ — KHÔNG set 0
+              support_level:      obs.achievement === null ? null : (obs.support_level || null),
+              time_to_achieve_sec: obs.achievement === null ? null : (obs.time_sec ? parseInt(obs.time_sec) || null : null),
+              reliability_tier:   DEFAULT_SOURCE_TYPE,
+              source_type:        DEFAULT_SOURCE_TYPE,
+            }))
+          if (milestoneInserts.length) {
+            supabase.from('milestone_obs').insert(milestoneInserts)
+              .then(({ error: mErr }) => { if (mErr) console.debug('[DMT] milestone_obs:', mErr.message) })
           }
         }
 
@@ -813,6 +865,97 @@ export default function SessionPage() {
                 </table>
               </div>
             </div>
+
+            {/* ── DMT: Milestone Observation (shadow — chỉ hiện khi có milestone trong range) ── */}
+            {dmtMilestones.length > 0 && (
+              <div style={{ ...cardStyle, marginBottom: 10, borderStyle: 'dashed', borderColor: 'var(--teal-bd)' }}>
+                <div style={{ ...cardHeadStyle, background: 'var(--teal)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span>Quan sát Milestone (DMT)</span>
+                  <span style={{ fontSize: 9, fontWeight: 500, opacity: .7 }}>shadow · không ảnh hưởng điểm</span>
+                </div>
+                <div style={{ padding: '8px 11px' }}>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 10.5 }}>
+                    <thead>
+                      <tr>
+                        <th style={{ ...thStyle, width: '25%' }}>Milestone</th>
+                        <th style={{ ...thStyle, textAlign: 'center' }}>Achievement (∅ = chưa quan sát)</th>
+                        <th style={thStyle}>Mức hỗ trợ</th>
+                        <th style={thStyle}>Thời gian (giây)</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {dmtMilestones.map(m => {
+                        const obs: MilestoneObsEntry = dmtObs[m.id] ?? { achievement: undefined as unknown as null, support_level: null, time_sec: '' }
+                        const isNull = obs.achievement === null
+                        const isUndef = obs.achievement === undefined
+                        return (
+                          <tr key={m.id}>
+                            <td style={{ padding: '5px 8px', borderBottom: '1px solid var(--rule-2)', verticalAlign: 'middle' }}>
+                              <div style={{ fontWeight: 600, color: 'var(--teal)' }}>{m.code || m.skill_family}</div>
+                              <div style={{ fontSize: 9, color: 'var(--ink-3)' }}>Stage {m.stage} · {m.skill_family}</div>
+                            </td>
+                            <td style={{ padding: '5px 8px', borderBottom: '1px solid var(--rule-2)', verticalAlign: 'middle', textAlign: 'center' }}>
+                              <div style={{ display: 'flex', gap: 3, justifyContent: 'center', alignItems: 'center' }}>
+                                {/* ∅ button — sets achievement = null */}
+                                <button
+                                  type="button"
+                                  onClick={() => setDmtObs(prev => ({ ...prev, [m.id]: { ...(prev[m.id] ?? { support_level: null, time_sec: '' }), achievement: isNull ? undefined as unknown as null : null } }))}
+                                  style={{
+                                    width: 28, height: 26, borderRadius: 3, border: `1.5px solid ${isNull ? 'var(--teal)' : 'var(--rule)'}`,
+                                    background: isNull ? 'var(--teal-bg)' : 'transparent',
+                                    color: isNull ? 'var(--teal)' : 'var(--ink-3)', fontWeight: 700, fontSize: 11, cursor: 'pointer',
+                                  }}
+                                >∅</button>
+                                {/* 0, 1, 2, 3 buttons */}
+                                {[0,1,2,3].map(v => {
+                                  const sel = !isNull && !isUndef && obs.achievement === v
+                                  return (
+                                    <button
+                                      key={v}
+                                      type="button"
+                                      disabled={isNull}
+                                      onClick={() => setDmtObs(prev => ({ ...prev, [m.id]: { ...(prev[m.id] ?? { support_level: null, time_sec: '' }), achievement: v } }))}
+                                      style={{
+                                        width: 28, height: 26, borderRadius: 3, border: `1.5px solid ${sel ? 'var(--teal)' : 'var(--rule)'}`,
+                                        background: sel ? 'var(--teal-bg)' : 'transparent',
+                                        color: sel ? 'var(--teal)' : isNull ? 'var(--rule)' : 'var(--ink-3)',
+                                        fontWeight: 700, fontSize: 11, cursor: isNull ? 'not-allowed' : 'pointer',
+                                      }}
+                                    >{v}</button>
+                                  )
+                                })}
+                              </div>
+                            </td>
+                            <td style={{ padding: '5px 8px', borderBottom: '1px solid var(--rule-2)', verticalAlign: 'middle' }}>
+                              <select
+                                disabled={isNull}
+                                value={obs.support_level ?? ''}
+                                onChange={e => setDmtObs(prev => ({ ...prev, [m.id]: { ...(prev[m.id] ?? { achievement: undefined as unknown as null, time_sec: '' }), support_level: e.target.value || null } }))}
+                                style={{ height: 24, fontSize: 10, border: '1px solid var(--rule)', borderRadius: 3, background: isNull ? 'var(--rule-2)' : 'var(--paper)', color: isNull ? 'var(--ink-3)' : 'var(--ink-2)', width: '100%' }}
+                              >
+                                <option value="">—</option>
+                                {SUPPORT_LEVELS.map(l => <option key={l} value={l}>{l}</option>)}
+                              </select>
+                            </td>
+                            <td style={{ padding: '5px 8px', borderBottom: '1px solid var(--rule-2)', verticalAlign: 'middle' }}>
+                              <input
+                                type="number"
+                                min={0}
+                                disabled={isNull}
+                                value={obs.time_sec}
+                                onChange={e => setDmtObs(prev => ({ ...prev, [m.id]: { ...(prev[m.id] ?? { achievement: undefined as unknown as null, support_level: null }), time_sec: e.target.value } }))}
+                                placeholder="giây"
+                                style={{ height: 24, width: 70, fontSize: 10, border: '1px solid var(--rule)', borderRadius: 3, background: isNull ? 'var(--rule-2)' : 'var(--paper)', textAlign: 'right', padding: '0 4px' }}
+                              />
+                            </td>
+                          </tr>
+                        )
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
 
             {/* ── ROW 4: Đánh giá tiến bộ ── */}
             <div style={{ ...cardStyle, marginBottom: 10 }}>
