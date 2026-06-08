@@ -286,13 +286,15 @@ export default function GoalPage() {
         const N = output.cycle_settings.planned_sessions || 24
         const curve = gateForecast(baseNums, tgtNums, N)
         supabase.from('forecast_ledger').insert({
-          child_id: childId,
-          cycle_id: cycleId,
-          block_target: output.target_blocks,
-          stage_forecast: null,
+          child_id:                childId,
+          cycle_id:                cycleId,
+          block_target:            output.target_blocks,
+          stage_forecast:          null,
           cyclepct_forecast_curve: curve,
-          k_used: DMT_K,
-          version: 'dmt-v0.4',
+          k_used:                  DMT_K,
+          version:                 'dmt-v0.4',
+          baseline_snapshot:       baseNums,   // {block:score} tại goal-lock, dùng replay forecast
+          velocity_snapshot:       null,        // chưa đủ lịch sử; Forecast B set sau
         }).then(({ error: e }) => { if (e) console.debug('[DMT] forecast_ledger:', e.message) })
       }
       // ── END DMT SHADOW ──
