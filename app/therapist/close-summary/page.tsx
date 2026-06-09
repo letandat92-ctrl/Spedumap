@@ -18,7 +18,7 @@ import {
   type LayerComparison, type VerdictBanner, type SignalShift,
 } from '@/lib/engine'
 import { LS_KEYS } from '@/types/spedumap'
-import { cyclePctFromTotals } from '@/lib/dmt'
+import { cyclePctFromTotals, expectedStage } from '@/lib/dmt'
 
 export const dynamic = 'force-dynamic'
 
@@ -64,11 +64,13 @@ interface CycleRow {
   close_reason: string | null
   close_note: string | null
   close_summary: string | null
-  baseline: { blocks?: Record<string, unknown>; total_score?: number; stage?: string } | null
+  baseline: { blocks?: Record<string, unknown>; total_score?: number; stage?: string; locked_at?: string; reliability_tier?: string } | null
   target: { blocks?: Record<string, unknown> } | null
-  retest_baseline: { blocks?: Record<string, unknown> } | null
+  retest_baseline: { blocks?: Record<string, unknown>; locked_at?: string } | null
   started_at: string | null
   ended_at: string | null
+  retest_locked_at: string | null
+  governance_meta: { planned_sessions?: number; [key: string]: unknown } | null
 }
 
 // useSearchParams() must be read inside a Suspense boundary (Next.js App Router).
@@ -109,7 +111,7 @@ function CloseSummaryInner() {
       try {
         const { data: cyc, error: cErr } = await supabase
           .from('cycles')
-          .select('id, child_id, status, close_reason, close_note, close_summary, baseline, target, retest_baseline, started_at, ended_at')
+          .select('id, child_id, status, close_reason, close_note, close_summary, baseline, target, retest_baseline, started_at, ended_at, retest_locked_at, governance_meta')
           .eq('id', cycleId)
           .single()
         if (cErr || !cyc) throw new Error('Không tìm thấy chu kỳ')
@@ -161,12 +163,140 @@ function CloseSummaryInner() {
           actual_retest:    { blocks: cycle.retest_baseline?.blocks, total: runEngine(reNums).total },
           forecast_at_goal: forecastAtGoal,
           error:            forecastAtGoal !== null ? actual - forecastAtGoal : null,
-          version:          'dmt-v0.4',
+          version:          'dmt-v0.5',
         }).then(({ error: e }) => { if (e) console.debug('[DMT] cycle_error:', e.message) })
       } catch { /* shadow — silent */ }
     })()
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cycle, cycleId])
+
+  // DMT shadow: write transition_record — one row per skill with observable stage_from
+  // shadow, fire-and-forget, KHÔNG hiển thị, KHÔNG đụng v1.3/suggestion/parent
+  useEffect(() => {
+    if (!cycle?.retest_baseline?.blocks || !cycleId) return
+    ;(async () => {
+      try {
+        const BATTERY_SKILLS = [
+          'gross_motor','fine_motor','daily_living','cognition',
+          'interaction_duration','language','eyecontact_nonverbal','flexibility',
+        ]
+        // Load milestones for all 8 skill families
+        const { data: milestones } = await supabase
+          .from('milestone')
+          .select('skill_family, stage, footprint')
+          .in('skill_family', BATTERY_SKILLS)
+          .eq('is_active', true)
+          .order('stage', { ascending: true })
+        if (!milestones?.length) {
+          console.debug('[DMT] transition_record: no milestones, skip')
+          return
+        }
+
+        // Group by skill_family; extract {block:theta} from DB footprint {block:{theta,w}}
+        const bySkill: Record<string, Array<{ stage: number; footprint: Record<string, number> }>> = {}
+        for (const m of milestones as Array<{ skill_family: string; stage: number; footprint: Record<string, { theta: number }> }>) {
+          if (!bySkill[m.skill_family]) bySkill[m.skill_family] = []
+          const thetaMap: Record<string, number> = {}
+          for (const [block, val] of Object.entries(m.footprint)) thetaMap[block] = val.theta
+          bySkill[m.skill_family].push({ stage: m.stage, footprint: thetaMap })
+        }
+
+        const baseNums = toNum(cycle.baseline?.blocks)
+        const reNums   = toNum(cycle.retest_baseline?.blocks ?? {})
+
+        // domains_applied: solution_outcomes → solution_library.nearme_domain (best-effort)
+        let domainsApplied: string[] | null = null
+        try {
+          const { data: soRows } = await supabase
+            .from('solution_outcomes').select('solution_id').eq('cycle_id', cycleId)
+          const ids = [...new Set((soRows ?? []).map((r: { solution_id: string }) => r.solution_id).filter(Boolean))]
+          if (ids.length) {
+            const { data: libs } = await supabase
+              .from('solution_library').select('nearme_domain').in('id', ids)
+            const domainSet = new Set<string>()
+            for (const lib of libs ?? []) for (const d of ((lib as { nearme_domain?: string[] }).nearme_domain ?? [])) domainSet.add(d)
+            domainsApplied = domainSet.size ? [...domainSet] : null
+          }
+        } catch { /* best-effort */ }
+
+        // elapsed_days: ended_at − started_at; fallback retest_locked_at − baseline.locked_at
+        let elapsedDays: number | null = null
+        if (cycle.ended_at && cycle.started_at) {
+          elapsedDays = Math.round((new Date(cycle.ended_at).getTime() - new Date(cycle.started_at).getTime()) / 86400000)
+        } else {
+          const rl = cycle.retest_locked_at ?? (cycle.retest_baseline as { locked_at?: string } | null)?.locked_at
+          const bl = (cycle.baseline as { locked_at?: string } | null)?.locked_at
+          if (rl && bl) elapsedDays = Math.round((new Date(rl).getTime() - new Date(bl).getTime()) / 86400000)
+        }
+
+        // intensity proxy: sessions per week from sessionCount + elapsed_days
+        // FAIL LOUD: real intensity field does not exist → intensity_is_proxy=true, key present
+        const plannedSessions = cycle.governance_meta?.planned_sessions ?? null
+        const intensityProxy = (sessionCount > 0 && elapsedDays && elapsedDays > 0)
+          ? Math.round(sessionCount / (elapsedDays / 7) * 100) / 100
+          : null
+
+        // age_months at cycle start
+        let ageMonths: number | null = null
+        if (child?.dob && cycle.started_at) {
+          const b = new Date(child.dob), s = new Date(cycle.started_at)
+          ageMonths = (s.getFullYear() - b.getFullYear()) * 12 + (s.getMonth() - b.getMonth())
+          if (s.getDate() < b.getDate()) ageMonths--
+          if (ageMonths < 0) ageMonths = 0
+        }
+
+        const reliabilityTier = (cycle.baseline as { reliability_tier?: string } | null)?.reliability_tier ?? null
+
+        // Build rows: 1 per skill with observable stage_from (null → SKIP, no valid edge)
+        const rows = []
+        for (const skill of BATTERY_SKILLS) {
+          const fps = bySkill[skill]
+          if (!fps?.length) continue
+
+          const stageFrom = expectedStage(baseNums, fps)
+          if (stageFrom === null) continue  // no observable edge — skip (avoid survivorship-by-omission)
+
+          const stageTo = expectedStage(reNums, fps)
+          const outcome = stageTo === null ? 'stalled'
+            : stageTo > stageFrom ? 'transitioned'
+            : stageTo < stageFrom ? 'regressed'
+            : 'stalled'
+
+          rows.push({
+            child_id:           cycle.child_id,
+            cycle_id:           cycleId,
+            skill_family:       skill,
+            stage_from:         stageFrom,
+            stage_to:           stageTo,
+            config_before:      baseNums,   // FULL vector {block:score}; ∅/absent KHÔNG điền 0
+            config_after:       Object.keys(reNums).length ? reNums : null,
+            domains_applied:    domainsApplied,
+            elapsed_days:       elapsedDays,
+            outcome,
+            suggestion_followed: false,     // B6 auto-suggest chưa build → false, KHÔNG bịa
+            covariates: {
+              age_months:          ageMonths,
+              intensity_proxy:     intensityProxy,
+              intensity_is_proxy:  true,     // FAIL LOUD: trường thật chưa có
+              planned_sessions:    plannedSessions,
+              stage_source:        'gate_fallback', // expectedStage = gate-predict, KHÔNG phải observed
+            },
+            reliability_tier:   reliabilityTier,
+            version:            'dmt-v0.5',
+          })
+        }
+
+        if (rows.length) {
+          const { error: txErr } = await supabase.from('transition_record').insert(rows)
+          if (txErr) console.debug('[DMT] transition_record:', txErr.message)
+          else console.debug(`[DMT] transition_record: ${rows.length} rows written`)
+        } else {
+          console.debug('[DMT] transition_record: all skills null stage_from, skip')
+        }
+      } catch { /* shadow — silent */ }
+    })()
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cycle, cycleId, child, sessionCount])
 
   function openNewCycle() {
     if (!cycle?.retest_baseline?.blocks || !child) return
