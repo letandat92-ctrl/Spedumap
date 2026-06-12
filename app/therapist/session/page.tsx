@@ -34,6 +34,7 @@ const BN: Record<string, string> = {
 }
 
 import { B2L, LAYER_IDS, BLOCK_WEIGHTS as BW_ONTO, DEFAULT_SOURCE_TYPE, reliabilityTierFor } from '@/lib/ontology'
+import { recordMilestoneObs } from '@/app/therapist/actions/moat'
 
 // ── DMT types (shadow only) ──────────────────────────────────────────────────
 interface MilestoneRow { id: string; code: string | null; skill_family: string; stage: number; footprint: Record<string, number> }
@@ -239,22 +240,18 @@ export default function SessionPage() {
             if (soErr) console.warn('solution_outcomes save failed:', soErr.message)
           }
 
-          // DMT shadow: insert milestone_obs (fire-and-forget, ∅ = NULL per invariant)
-          const milestoneInserts = Object.entries(dmtObs)
+          // DMT shadow: milestone_obs via server action (fire-and-forget)
+          const milestonePayload = Object.entries(dmtObs)
             .filter(([, obs]) => obs.achievement !== undefined || obs.support_level || obs.time_sec)
             .map(([milestoneId, obs]) => ({
-              child_id:           (cycle?.child as { id?: string })?.id ?? null,
-              cycle_id:           cycleId,
-              milestone_id:       milestoneId,
-              achievement:        obs.achievement,   // NULL when ∅ — KHÔNG set 0
-              support_level:      obs.achievement === null ? null : (obs.support_level || null),
-              time_to_achieve_sec: obs.achievement === null ? null : (obs.time_sec ? parseInt(obs.time_sec) || null : null),
-              reliability_tier:   DEFAULT_SOURCE_TYPE,
-              source_type:        DEFAULT_SOURCE_TYPE,
+              milestone_id: milestoneId,
+              achievement:  obs.achievement ?? null,   // NULL when empty — NEVER 0
+              support_level: obs.achievement === null ? null : (obs.support_level || null),
+              time_sec:      obs.achievement === null ? null : (obs.time_sec ? parseInt(obs.time_sec) || null : null),
             }))
-          if (milestoneInserts.length) {
-            supabase.from('milestone_obs').insert(milestoneInserts)
-              .then(({ error: mErr }) => { if (mErr) console.debug('[DMT] milestone_obs:', mErr.message) })
+          if (milestonePayload.length) {
+            recordMilestoneObs(sessRow.id, cycleId, milestonePayload)
+              .catch(() => { /* shadow — silent */ })
           }
         }
 

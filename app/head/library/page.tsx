@@ -5,7 +5,8 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { useRole } from '@/hooks/useRole'
 import { can } from '@/lib/permissions'
-import { B2L, NEARME_DOMAINS, nearmeMix, type NearmeDomain } from '@/lib/ontology'
+import { B2L, NEARME_DOMAINS } from '@/lib/ontology'
+import { validateSolutionDomains } from './actions'
 
 export const dynamic = 'force-dynamic'
 
@@ -71,16 +72,7 @@ const EMPTY_FORM: FormState = {
   target_blocks: [], nearme_domain: [], is_active: true,
 }
 
-// ── Validation ────────────────────────────────────────────────────────────────
-// For each domain, at least one selected block must have nearmeMix(block)[domain] > 0.
-function invalidDomains(blocks: string[], domains: string[]): string[] {
-  if (!blocks.length || !domains.length) return []
-  return domains.filter(d => {
-    return !blocks.some(b => {
-      try { return (nearmeMix(b)[d as NearmeDomain] ?? 0) > 0 } catch { return false }
-    })
-  })
-}
+// ── Validation (server action — proprietary nearmeMix stays server-only) ─────
 
 // ── Page ──────────────────────────────────────────────────────────────────────
 export default function LibraryPage() {
@@ -158,7 +150,7 @@ export default function LibraryPage() {
       setSaveError('Code và Title là bắt buộc.')
       return
     }
-    const bad = invalidDomains(form.target_blocks, form.nearme_domain)
+    const bad = await validateSolutionDomains(form.target_blocks, form.nearme_domain)
     if (bad.length) {
       setSaveError(`Domain ${bad.join(', ')} không khớp block nào được chọn.`)
       return
@@ -209,7 +201,13 @@ export default function LibraryPage() {
     }))
   }
 
-  const badDomains = invalidDomains(form.target_blocks, form.nearme_domain)
+  const [badDomains, setBadDomains] = useState<string[]>([])
+  useEffect(() => {
+    let cancelled = false
+    validateSolutionDomains(form.target_blocks, form.nearme_domain)
+      .then(bad => { if (!cancelled) setBadDomains(bad) })
+    return () => { cancelled = true }
+  }, [form.target_blocks, form.nearme_domain])
 
   // Blocks grouped by layer for picker
   const blocksByLayer = useMemo(() => {

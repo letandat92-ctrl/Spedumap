@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { useGoal, getScaleOptions, type GoalEntry } from '@/hooks/useGoal'
 import { createClient } from '@/lib/supabase/client'
 import { LS_KEYS, type BlocksMap, type CanonicalBlock } from '@/types/spedumap'
-import { gateForecast } from '@/lib/dmt'
+import { recordGoalForecast } from '@/app/therapist/actions/moat'
 import { GoalKPI } from '@/components/charts/GoalKPI'
 import { GoalChips } from '@/components/charts/GoalKPI'
 import { GoalCharts } from '@/components/charts/GoalCharts'
@@ -31,7 +31,7 @@ const BM: Record<string, { label: string; blocks: Record<string, string> }> = {
   L7:{label:'L7 · Học thuật', blocks:{math:'Math',writing:'Writing',reading:'Reading'}},
 }
 
-import { LAYER_IDS, DMT_K } from '@/lib/ontology'
+import { LAYER_IDS } from '@/lib/ontology'
 
 // Block → layer and block → display-name, derived from BM (single source).
 const B2L: Record<string, string> = {}
@@ -258,44 +258,13 @@ export default function GoalPage() {
         if (sbErr) console.warn('Supabase update failed:', sbErr.message)
       }
 
-      // ── DMT SHADOW (fire-and-forget, không chặn flow, không báo lỗi UI) ──
+      // ── DMT SHADOW (server action — fire-and-forget, không chặn flow) ──
       if (cycleId) {
-        const baselineRaw = typeof window !== 'undefined' ? localStorage.getItem(LS_KEYS.BASELINE) : null
-        const childId = baselineRaw ? (JSON.parse(baselineRaw) as { child_id?: string }).child_id ?? null : null
-
-        // helper: CanonicalBlock → number
-        const toNum = (b: unknown): number => {
-          if (typeof b === 'number') return b
-          if (b && typeof b === 'object' && 'score' in b) return Number((b as { score: number }).score)
-          return 0
-        }
-
-        // assessment_range
-        supabase.from('assessment_range').insert({
-          child_id: childId,
-          cycle_id: cycleId,
-          layer_range: [dmtLayerMin, dmtLayerMax],
-          stage_range: [dmtStageMin, dmtStageMax],
-        }).then(({ error: e }) => { if (e) console.debug('[DMT] assessment_range:', e.message) })
-
-        // forecast_ledger
-        const baseNums: Record<string, number> = {}
-        const tgtNums:  Record<string, number> = {}
-        for (const [k, b] of Object.entries(output.baseline_blocks)) baseNums[k] = toNum(b)
-        for (const [k, b] of Object.entries(output.target_blocks))   tgtNums[k]  = toNum(b)
-        const N = output.cycle_settings.planned_sessions || 24
-        const curve = gateForecast(baseNums, tgtNums, N)
-        supabase.from('forecast_ledger').insert({
-          child_id:                childId,
-          cycle_id:                cycleId,
-          block_target:            output.target_blocks,
-          stage_forecast:          null,
-          cyclepct_forecast_curve: curve,
-          k_used:                  DMT_K,
-          version:                 'dmt-v0.4',
-          baseline_snapshot:       baseNums,   // {block:score} tại goal-lock, dùng replay forecast
-          velocity_snapshot:       null,        // chưa đủ lịch sử; Forecast B set sau
-        }).then(({ error: e }) => { if (e) console.debug('[DMT] forecast_ledger:', e.message) })
+        recordGoalForecast(
+          cycleId,
+          [dmtLayerMin, dmtLayerMax],
+          [dmtStageMin, dmtStageMax],
+        ).catch(() => { /* shadow — silent */ })
       }
       // ── END DMT SHADOW ──
 
