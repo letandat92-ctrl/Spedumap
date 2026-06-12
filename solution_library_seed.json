@@ -1,0 +1,5673 @@
+[
+  {
+    "code": "L1-RSV-01",
+    "title": "Sao biển (Tiêu chuẩn)",
+    "description": null,
+    "category": "L1",
+    "target_blocks": [
+      "reflex_survival"
+    ],
+    "nearme_domain": [
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L1-RSV-02",
+    "title": "Ôm bóng nằm ngửa (mức 1)",
+    "description": null,
+    "category": "L1",
+    "target_blocks": [
+      "reflex_survival"
+    ],
+    "nearme_domain": [
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L1-RSV-03",
+    "title": "Ôm bóng nằm ngửa (mức 2)",
+    "description": null,
+    "category": "L1",
+    "target_blocks": [
+      "reflex_survival"
+    ],
+    "nearme_domain": [
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L1-RSV-04",
+    "title": "Bước ngôi sao",
+    "description": null,
+    "category": "L1",
+    "target_blocks": [
+      "reflex_survival"
+    ],
+    "nearme_domain": [
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L1-RSV-05",
+    "title": "Nhảy ngôi sao",
+    "description": null,
+    "category": "L1",
+    "target_blocks": [
+      "reflex_survival"
+    ],
+    "nearme_domain": [
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L1-RSV-06",
+    "title": "Nằm ngửa đá bóng mức 1",
+    "description": null,
+    "category": "L1",
+    "target_blocks": [
+      "reflex_survival"
+    ],
+    "nearme_domain": [
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L1-RSV-07",
+    "title": "Nằm ngửa đá bóng mức 2",
+    "description": null,
+    "category": "L1",
+    "target_blocks": [
+      "reflex_survival"
+    ],
+    "nearme_domain": [
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L1-RSV-08",
+    "title": "Lắc ở tư thế nằm ngửa",
+    "description": null,
+    "category": "L1",
+    "target_blocks": [
+      "reflex_survival"
+    ],
+    "nearme_domain": [
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L1-RSV-09",
+    "title": "Lăn qua thảm",
+    "description": null,
+    "category": "L1",
+    "target_blocks": [
+      "reflex_survival"
+    ],
+    "nearme_domain": [
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L1-RSV-10",
+    "title": "Nằm ngửa trên bóng",
+    "description": null,
+    "category": "L1",
+    "target_blocks": [
+      "reflex_survival"
+    ],
+    "nearme_domain": [
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L1-RSV-11",
+    "title": "Nằm ngửa trên gối",
+    "description": null,
+    "category": "L1",
+    "target_blocks": [
+      "reflex_survival"
+    ],
+    "nearme_domain": [
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L1-RSV-12",
+    "title": "Nằm sấp - ngửa và nâng đầu",
+    "description": null,
+    "category": "L1",
+    "target_blocks": [
+      "reflex_survival"
+    ],
+    "nearme_domain": [
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L1-RSV-13",
+    "title": "Ôm bóng nằm ngửa mức 3.",
+    "description": null,
+    "category": "L1",
+    "target_blocks": [
+      "reflex_survival"
+    ],
+    "nearme_domain": [
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L1-RSV-14",
+    "title": "Trứng bập bênh",
+    "description": null,
+    "category": "L1",
+    "target_blocks": [
+      "reflex_survival"
+    ],
+    "nearme_domain": [
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L1-RPO-01",
+    "title": "Thằn lằn (Tiêu chuẩn)",
+    "description": null,
+    "category": "L1",
+    "target_blocks": [
+      "reflex_postural"
+    ],
+    "nearme_domain": [
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L1-RPO-02",
+    "title": "Bài tập thị giác nằm ngửa",
+    "description": null,
+    "category": "L1",
+    "target_blocks": [
+      "reflex_postural"
+    ],
+    "nearme_domain": [
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L1-RPO-03",
+    "title": "Cán gỗ",
+    "description": null,
+    "category": "L1",
+    "target_blocks": [
+      "reflex_postural"
+    ],
+    "nearme_domain": [
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L1-RPO-04",
+    "title": "Chéo người",
+    "description": null,
+    "category": "L1",
+    "target_blocks": [
+      "reflex_postural"
+    ],
+    "nearme_domain": [
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L1-RPO-05",
+    "title": "Đẩy tường",
+    "description": null,
+    "category": "L1",
+    "target_blocks": [
+      "reflex_postural"
+    ],
+    "nearme_domain": [
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L1-RPO-06",
+    "title": "Đi vô cực",
+    "description": null,
+    "category": "L1",
+    "target_blocks": [
+      "reflex_postural"
+    ],
+    "nearme_domain": [
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L1-RPO-07",
+    "title": "Nhìn theo ngón cái 1",
+    "description": null,
+    "category": "L1",
+    "target_blocks": [
+      "reflex_postural"
+    ],
+    "nearme_domain": [
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L1-RPO-08",
+    "title": "Nhìn theo ngón cái 2",
+    "description": null,
+    "category": "L1",
+    "target_blocks": [
+      "reflex_postural"
+    ],
+    "nearme_domain": [
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L1-RPO-09",
+    "title": "Plank bóng xoay đầu",
+    "description": null,
+    "category": "L1",
+    "target_blocks": [
+      "reflex_postural"
+    ],
+    "nearme_domain": [
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L1-RPO-10",
+    "title": "Thăng bằng 1 chân",
+    "description": null,
+    "category": "L1",
+    "target_blocks": [
+      "reflex_postural"
+    ],
+    "nearme_domain": [
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L1-RPO-11",
+    "title": "Trượt ván",
+    "description": null,
+    "category": "L1",
+    "target_blocks": [
+      "reflex_postural"
+    ],
+    "nearme_domain": [
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L1-RCO-01",
+    "title": "cào gãi (gốc ngón tay xuống cổ tay) (Tiêu chuẩn)",
+    "description": null,
+    "category": "L1",
+    "target_blocks": [
+      "reflex_cortical"
+    ],
+    "nearme_domain": [
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L1-RCO-02",
+    "title": "Bóp đất nặn bằng ngón tay",
+    "description": null,
+    "category": "L1",
+    "target_blocks": [
+      "reflex_cortical"
+    ],
+    "nearme_domain": [
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L1-RCO-03",
+    "title": "Bóp và thả vật",
+    "description": null,
+    "category": "L1",
+    "target_blocks": [
+      "reflex_cortical"
+    ],
+    "nearme_domain": [
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L1-RCO-04",
+    "title": "Chà tay trên chất liệu",
+    "description": null,
+    "category": "L1",
+    "target_blocks": [
+      "reflex_cortical"
+    ],
+    "nearme_domain": [
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L1-RCO-05",
+    "title": "Lần lượt chạm các ngón tay",
+    "description": null,
+    "category": "L1",
+    "target_blocks": [
+      "reflex_cortical"
+    ],
+    "nearme_domain": [
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L1-NST-01",
+    "title": "Đẩy bánh xe và Kéo bánh xe (25 vòng)",
+    "description": null,
+    "category": "L1",
+    "target_blocks": [
+      "ns_stability"
+    ],
+    "nearme_domain": [
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L1-NST-03",
+    "title": "Đi xe cút kít (tiến - lùi - ngang) hoặc Đi xe cút kít trên vành bạt nhún",
+    "description": null,
+    "category": "L1",
+    "target_blocks": [
+      "ns_stability"
+    ],
+    "nearme_domain": [
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L1-NST-05",
+    "title": "Bò giữ gạch thăng bằng trên lưng + BỊT MẮT",
+    "description": null,
+    "category": "L1",
+    "target_blocks": [
+      "ns_stability"
+    ],
+    "nearme_domain": [
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L1-NST-06",
+    "title": "Đứng / đi thăng bằng trên lốp xe (tiến, lùi, trái, phải).",
+    "description": null,
+    "category": "L1",
+    "target_blocks": [
+      "ns_stability"
+    ],
+    "nearme_domain": [
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L1-NST-07",
+    "title": "Đứng thăng bằng trên ống nước",
+    "description": null,
+    "category": "L1",
+    "target_blocks": [
+      "ns_stability"
+    ],
+    "nearme_domain": [
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L1-NST-08",
+    "title": "Gập người trên bánh xe",
+    "description": null,
+    "category": "L1",
+    "target_blocks": [
+      "ns_stability",
+      "tone"
+    ],
+    "nearme_domain": [
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L1-NST-09",
+    "title": "Lộn mèo trên bánh xe (Nằm ngửa chống tay)",
+    "description": null,
+    "category": "L1",
+    "target_blocks": [
+      "ns_stability",
+      "tone"
+    ],
+    "nearme_domain": [
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L1-NST-10",
+    "title": "Treo ngược người trên xà + đẩy bóng",
+    "description": null,
+    "category": "L1",
+    "target_blocks": [
+      "ns_stability",
+      "tone"
+    ],
+    "nearme_domain": [
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L1-NST-11",
+    "title": "Nhảy trên vành 2 bánh xe + phản xạ tránh bóng/chụp bóng",
+    "description": null,
+    "category": "L1",
+    "target_blocks": [
+      "ns_stability"
+    ],
+    "nearme_domain": [
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L1-NST-12",
+    "title": "Nhảy tránh bóng theo yêu cầu (ví dụ",
+    "description": "tránh bóng màu cam)",
+    "category": "L1",
+    "target_blocks": [
+      "ns_stability"
+    ],
+    "nearme_domain": [
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L1-NST-13",
+    "title": "Bật nhảy chụm chân trong bánh xe/vòng liên tục (50 lượt)",
+    "description": null,
+    "category": "L1",
+    "target_blocks": [
+      "ns_stability"
+    ],
+    "nearme_domain": [
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L1-TON-01",
+    "title": "Đi xe cút kít (đi bằng 2 tay)",
+    "description": null,
+    "category": "L1",
+    "target_blocks": [
+      "tone"
+    ],
+    "nearme_domain": [
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L1-TON-02",
+    "title": "Đi xe cút kít trên vành bạt nhún",
+    "description": null,
+    "category": "L1",
+    "target_blocks": [
+      "tone"
+    ],
+    "nearme_domain": [
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L1-TON-03",
+    "title": "Để chân lên ghế có bánh xe, đi xe cút kít",
+    "description": null,
+    "category": "L1",
+    "target_blocks": [
+      "tone"
+    ],
+    "nearme_domain": [
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L1-TON-04",
+    "title": "Chống người 2 tay + đập đổi tay với cô.",
+    "description": null,
+    "category": "L1",
+    "target_blocks": [
+      "tone",
+      "ns_stability"
+    ],
+    "nearme_domain": [
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L1-TON-05",
+    "title": "Chống tay thăng bằng",
+    "description": "",
+    "category": "L1",
+    "target_blocks": [
+      "tone"
+    ],
+    "nearme_domain": [
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L1-TON-06",
+    "title": "Bò nâng người (Bò tay + chân - không chạm gối)",
+    "description": null,
+    "category": "L1",
+    "target_blocks": [
+      "tone"
+    ],
+    "nearme_domain": [
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L1-TON-07",
+    "title": "Bò giữ vật/gạch thăng bằng trên lưng",
+    "description": null,
+    "category": "L1",
+    "target_blocks": [
+      "tone"
+    ],
+    "nearme_domain": [
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L1-TON-08",
+    "title": "Bò 4 chỉ trên xà kép",
+    "description": null,
+    "category": "L1",
+    "target_blocks": [
+      "tone"
+    ],
+    "nearme_domain": [
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L1-TON-09",
+    "title": "Các bài tập Trườn",
+    "description": "",
+    "category": "L1",
+    "target_blocks": [
+      "tone"
+    ],
+    "nearme_domain": [
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L1-TON-10",
+    "title": "Nằm sấp trên bánh xe/bóng + phản xạ chống tay dưới thảm gai",
+    "description": null,
+    "category": "L1",
+    "target_blocks": [
+      "tone"
+    ],
+    "nearme_domain": [
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L1-TON-11",
+    "title": "Nằm gập bụng hoặc Nằm dùng chân/tay bắt vật nâng đầu.",
+    "description": null,
+    "category": "L1",
+    "target_blocks": [
+      "tone"
+    ],
+    "nearme_domain": [
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L1-TON-12",
+    "title": "Bài tập Thăng bằng điều hòa hệ thần kinh",
+    "description": null,
+    "category": "L1",
+    "target_blocks": [
+      "tone"
+    ],
+    "nearme_domain": [
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L1-TON-13",
+    "title": "Kéo/Đẩy bánh xe (15 vòng)",
+    "description": null,
+    "category": "L1",
+    "target_blocks": [
+      "tone"
+    ],
+    "nearme_domain": [
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L1-TON-14",
+    "title": "Lật bánh xe (15 lần đi về)",
+    "description": null,
+    "category": "L1",
+    "target_blocks": [
+      "tone",
+      "ns_stability"
+    ],
+    "nearme_domain": [
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L1-ARO-01",
+    "title": "Các bài tập Bật nhảy liên tục (Kích thích hệ Tiền đình và Bản thể)",
+    "description": "",
+    "category": "L1",
+    "target_blocks": [
+      "arousal"
+    ],
+    "nearme_domain": [
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L1-ARO-02",
+    "title": "Các bài tập Phản xạ nhanh với Bóng",
+    "description": "",
+    "category": "L1",
+    "target_blocks": [
+      "arousal"
+    ],
+    "nearme_domain": [
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L1-ARO-03",
+    "title": "Các bài tập kháng lực nặng (Heavy Work)",
+    "description": "",
+    "category": "L1",
+    "target_blocks": [
+      "arousal"
+    ],
+    "nearme_domain": [
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L1-ARO-04",
+    "title": "Các bài tập Thăng bằng tĩnh và chậm (Kích thích tiền đình chậm)",
+    "description": "",
+    "category": "L1",
+    "target_blocks": [
+      "arousal"
+    ],
+    "nearme_domain": [
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L1-ARO-05",
+    "title": "Các bài tập Chịu lực và Áp lực sâu (Deep Pressure)",
+    "description": "",
+    "category": "L1",
+    "target_blocks": [
+      "arousal"
+    ],
+    "nearme_domain": [
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L1-ARO-06",
+    "title": "Bài tập kéo giãn và ôm ấp cảm giác",
+    "description": "",
+    "category": "L1",
+    "target_blocks": [
+      "arousal"
+    ],
+    "nearme_domain": [
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L1-RSV-15",
+    "title": "Cào gãi (đường ngang, đường dọc) (Tiêu chuẩn)",
+    "description": null,
+    "category": "L1",
+    "target_blocks": [
+      "reflex_survival"
+    ],
+    "nearme_domain": [
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L1-RSV-16",
+    "title": "Bập môi và lưỡi",
+    "description": null,
+    "category": "L1",
+    "target_blocks": [
+      "reflex_survival"
+    ],
+    "nearme_domain": [
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L1-RSV-17",
+    "title": "Bón bóng nước",
+    "description": null,
+    "category": "L1",
+    "target_blocks": [
+      "reflex_survival"
+    ],
+    "nearme_domain": [
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L1-RSV-18",
+    "title": "Cọ trang điểm",
+    "description": null,
+    "category": "L1",
+    "target_blocks": [
+      "reflex_survival"
+    ],
+    "nearme_domain": [
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L1-RSV-19",
+    "title": "Đẩy khí hai má",
+    "description": null,
+    "category": "L1",
+    "target_blocks": [
+      "reflex_survival"
+    ],
+    "nearme_domain": [
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L1-RSV-20",
+    "title": "Đi bồ câu",
+    "description": null,
+    "category": "L1",
+    "target_blocks": [
+      "reflex_survival"
+    ],
+    "nearme_domain": [
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L1-RSV-21",
+    "title": "Đi vịt",
+    "description": null,
+    "category": "L1",
+    "target_blocks": [
+      "reflex_survival"
+    ],
+    "nearme_domain": [
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L1-RSV-22",
+    "title": "Quả cầu bảo định",
+    "description": null,
+    "category": "L1",
+    "target_blocks": [
+      "reflex_survival"
+    ],
+    "nearme_domain": [
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L1-RSV-23",
+    "title": "Thổi kèn",
+    "description": null,
+    "category": "L1",
+    "target_blocks": [
+      "reflex_survival"
+    ],
+    "nearme_domain": [
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L1-RPO-12",
+    "title": "Bò mèo (Tiêu chuẩn)",
+    "description": null,
+    "category": "L1",
+    "target_blocks": [
+      "reflex_postural"
+    ],
+    "nearme_domain": [
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L1-RPO-13",
+    "title": "Trượt túi đậu",
+    "description": null,
+    "category": "L1",
+    "target_blocks": [
+      "reflex_postural"
+    ],
+    "nearme_domain": [
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L1-RPO-14",
+    "title": "Leo núi 1",
+    "description": null,
+    "category": "L1",
+    "target_blocks": [
+      "reflex_postural"
+    ],
+    "nearme_domain": [
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L1-RPO-15",
+    "title": "leo núi 2",
+    "description": null,
+    "category": "L1",
+    "target_blocks": [
+      "reflex_postural"
+    ],
+    "nearme_domain": [
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L1-RPO-16",
+    "title": "Chạm mục tiêu",
+    "description": null,
+    "category": "L1",
+    "target_blocks": [
+      "reflex_postural"
+    ],
+    "nearme_domain": [
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L1-RPO-17",
+    "title": "Leo cầu trượt",
+    "description": null,
+    "category": "L1",
+    "target_blocks": [
+      "reflex_postural"
+    ],
+    "nearme_domain": [
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L1-RPO-18",
+    "title": "Chuỗi yoga",
+    "description": null,
+    "category": "L1",
+    "target_blocks": [
+      "reflex_postural"
+    ],
+    "nearme_domain": [
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L1-RPO-19",
+    "title": "Chim chó",
+    "description": null,
+    "category": "L1",
+    "target_blocks": [
+      "reflex_postural"
+    ],
+    "nearme_domain": [
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L1-RPO-20",
+    "title": "Đá chân kiểu con lừa và leo tường",
+    "description": null,
+    "category": "L1",
+    "target_blocks": [
+      "reflex_postural"
+    ],
+    "nearme_domain": [
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L1-RPO-21",
+    "title": "Nằm ngửa đá bóng",
+    "description": null,
+    "category": "L1",
+    "target_blocks": [
+      "reflex_postural"
+    ],
+    "nearme_domain": [
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L1-RPO-22",
+    "title": "Bò ủi bóng",
+    "description": null,
+    "category": "L1",
+    "target_blocks": [
+      "reflex_postural"
+    ],
+    "nearme_domain": [
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L1-RPO-23",
+    "title": "Đi gấu và đi cua",
+    "description": null,
+    "category": "L1",
+    "target_blocks": [
+      "reflex_postural"
+    ],
+    "nearme_domain": [
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L1-RPO-24",
+    "title": "Lăn trên bóng",
+    "description": null,
+    "category": "L1",
+    "target_blocks": [
+      "reflex_postural"
+    ],
+    "nearme_domain": [
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L1-RPO-25",
+    "title": "Bò đẩy bóng trong ống",
+    "description": null,
+    "category": "L1",
+    "target_blocks": [
+      "reflex_postural"
+    ],
+    "nearme_domain": [
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L1-RCO-06",
+    "title": "Cào gãi (cạnh ngón út -> gót chân) (Tiêu chuẩn)",
+    "description": null,
+    "category": "L1",
+    "target_blocks": [
+      "reflex_cortical"
+    ],
+    "nearme_domain": [
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L1-RCO-07",
+    "title": "Gắp vật bằng chân",
+    "description": null,
+    "category": "L1",
+    "target_blocks": [
+      "reflex_cortical"
+    ],
+    "nearme_domain": [
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L1-RSV-24",
+    "title": "Cào gãi (dọc 2 bên sống lưng) - Thiên thần tuyết (Tiêu chuẩn)",
+    "description": null,
+    "category": "L1",
+    "target_blocks": [
+      "reflex_survival"
+    ],
+    "nearme_domain": [
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L1-RSV-25",
+    "title": "Bàn chải lưng",
+    "description": null,
+    "category": "L1",
+    "target_blocks": [
+      "reflex_survival"
+    ],
+    "nearme_domain": [
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L1-RSV-26",
+    "title": "Chạm gót chân",
+    "description": null,
+    "category": "L1",
+    "target_blocks": [
+      "reflex_survival"
+    ],
+    "nearme_domain": [
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L1-RSV-27",
+    "title": "Đi lưng",
+    "description": null,
+    "category": "L1",
+    "target_blocks": [
+      "reflex_survival"
+    ],
+    "nearme_domain": [
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L1-RSV-28",
+    "title": "Đi mông",
+    "description": null,
+    "category": "L1",
+    "target_blocks": [
+      "reflex_survival"
+    ],
+    "nearme_domain": [
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L1-RSV-29",
+    "title": "Lăn trên mặt gập ghềnh",
+    "description": null,
+    "category": "L1",
+    "target_blocks": [
+      "reflex_survival"
+    ],
+    "nearme_domain": [
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L1-RSV-30",
+    "title": "Massage lưng",
+    "description": null,
+    "category": "L1",
+    "target_blocks": [
+      "reflex_survival"
+    ],
+    "nearme_domain": [
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L1-RSV-31",
+    "title": "Nửa thiên thần tuyết",
+    "description": null,
+    "category": "L1",
+    "target_blocks": [
+      "reflex_survival"
+    ],
+    "nearme_domain": [
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L1-RSV-32",
+    "title": "Rung trên lưng",
+    "description": null,
+    "category": "L1",
+    "target_blocks": [
+      "reflex_survival"
+    ],
+    "nearme_domain": [
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L1-RSV-33",
+    "title": "Viết thư",
+    "description": null,
+    "category": "L1",
+    "target_blocks": [
+      "reflex_survival"
+    ],
+    "nearme_domain": [
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L1-RSV-34",
+    "title": "Vòi cứu hoả",
+    "description": null,
+    "category": "L1",
+    "target_blocks": [
+      "reflex_survival"
+    ],
+    "nearme_domain": [
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L1-RPO-26",
+    "title": "Siêu nhân/quả chuối (Tiêu chuẩn)",
+    "description": null,
+    "category": "L1",
+    "target_blocks": [
+      "reflex_postural"
+    ],
+    "nearme_domain": [
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L1-RPO-27",
+    "title": "Bóng đôi siêu nhân",
+    "description": null,
+    "category": "L1",
+    "target_blocks": [
+      "reflex_postural"
+    ],
+    "nearme_domain": [
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L1-RPO-28",
+    "title": "Chạm chéo ngón chân",
+    "description": null,
+    "category": "L1",
+    "target_blocks": [
+      "reflex_postural"
+    ],
+    "nearme_domain": [
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L1-RPO-29",
+    "title": "Đập tay",
+    "description": null,
+    "category": "L1",
+    "target_blocks": [
+      "reflex_postural"
+    ],
+    "nearme_domain": [
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L1-RPO-30",
+    "title": "Đi hải cẩu",
+    "description": null,
+    "category": "L1",
+    "target_blocks": [
+      "reflex_postural"
+    ],
+    "nearme_domain": [
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L1-RPO-31",
+    "title": "Đối tác cầu vồng",
+    "description": null,
+    "category": "L1",
+    "target_blocks": [
+      "reflex_postural"
+    ],
+    "nearme_domain": [
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L1-RPO-32",
+    "title": "Gập và duỗi cổ",
+    "description": null,
+    "category": "L1",
+    "target_blocks": [
+      "reflex_postural"
+    ],
+    "nearme_domain": [
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L1-RPO-33",
+    "title": "Giữ bóng nãy",
+    "description": null,
+    "category": "L1",
+    "target_blocks": [
+      "reflex_postural"
+    ],
+    "nearme_domain": [
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L1-RPO-34",
+    "title": "Lăn trên bóng nằm ngửa",
+    "description": null,
+    "category": "L1",
+    "target_blocks": [
+      "reflex_postural"
+    ],
+    "nearme_domain": [
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L1-RPO-35",
+    "title": "Lăn trên bóng nằm sấp",
+    "description": null,
+    "category": "L1",
+    "target_blocks": [
+      "reflex_postural"
+    ],
+    "nearme_domain": [
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L1-RPO-36",
+    "title": "Nằm ngửa lăn bóng trên tường",
+    "description": null,
+    "category": "L1",
+    "target_blocks": [
+      "reflex_postural"
+    ],
+    "nearme_domain": [
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L1-RPO-37",
+    "title": "Nằm sấp ném bóng",
+    "description": null,
+    "category": "L1",
+    "target_blocks": [
+      "reflex_postural"
+    ],
+    "nearme_domain": [
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L1-RPO-38",
+    "title": "Siêu nhân/ bán siêu nhân chuyền bóng",
+    "description": null,
+    "category": "L1",
+    "target_blocks": [
+      "reflex_postural"
+    ],
+    "nearme_domain": [
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L1-RPO-39",
+    "title": "Thời gian nằm sấp",
+    "description": null,
+    "category": "L1",
+    "target_blocks": [
+      "reflex_postural"
+    ],
+    "nearme_domain": [
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L1-RCO-08",
+    "title": "Cắn đũa + bóp bóng (Tiêu chuẩn)",
+    "description": null,
+    "category": "L1",
+    "target_blocks": [
+      "reflex_cortical"
+    ],
+    "nearme_domain": [
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L1-RPO-40",
+    "title": "Bán siêu nhân (Tiêu chuẩn)",
+    "description": null,
+    "category": "L1",
+    "target_blocks": [
+      "reflex_postural"
+    ],
+    "nearme_domain": [
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L2-VES-01",
+    "title": "Đứng bóng thăng bằng - tư thế 4 điểm",
+    "description": null,
+    "category": "L2",
+    "target_blocks": [
+      "vestibular"
+    ],
+    "nearme_domain": [
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L2-VES-02",
+    "title": "Đứng một chân và bắt bóng",
+    "description": null,
+    "category": "L2",
+    "target_blocks": [
+      "vestibular"
+    ],
+    "nearme_domain": [
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L2-VES-03",
+    "title": "Nằm sấp lăn trên bóng",
+    "description": null,
+    "category": "L2",
+    "target_blocks": [
+      "vestibular"
+    ],
+    "nearme_domain": [
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L2-VES-04",
+    "title": "Ngồi bóng trị liệu",
+    "description": null,
+    "category": "L2",
+    "target_blocks": [
+      "vestibular"
+    ],
+    "nearme_domain": [
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L2-VES-05",
+    "title": "Đi trên đường thẳng",
+    "description": null,
+    "category": "L2",
+    "target_blocks": [
+      "vestibular"
+    ],
+    "nearme_domain": [
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L2-VES-06",
+    "title": "Đứng giang 2 tay giữ 1 chân (mỗi bên giữ 20s-30s)",
+    "description": null,
+    "category": "L2",
+    "target_blocks": [
+      "vestibular"
+    ],
+    "nearme_domain": [
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L2-VES-07",
+    "title": "Lăn trên thảm",
+    "description": null,
+    "category": "L2",
+    "target_blocks": [
+      "vestibular"
+    ],
+    "nearme_domain": [
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L2-VES-08",
+    "title": "Nhảy tiến lùi",
+    "description": null,
+    "category": "L2",
+    "target_blocks": [
+      "vestibular"
+    ],
+    "nearme_domain": [
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L2-VES-09",
+    "title": "Bò vượt chướng ngại vật",
+    "description": null,
+    "category": "L2",
+    "target_blocks": [
+      "vestibular"
+    ],
+    "nearme_domain": [
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L2-VES-10",
+    "title": "Theo dõi vật bằng mắt",
+    "description": null,
+    "category": "L2",
+    "target_blocks": [
+      "vestibular"
+    ],
+    "nearme_domain": [
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L2-VES-11",
+    "title": "Mắt nhìn cố định - đầu xoay",
+    "description": null,
+    "category": "L2",
+    "target_blocks": [
+      "vestibular"
+    ],
+    "nearme_domain": [
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L2-VES-12",
+    "title": "Bắt bóng",
+    "description": null,
+    "category": "L2",
+    "target_blocks": [
+      "vestibular"
+    ],
+    "nearme_domain": [
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L2-PRO-01",
+    "title": "Xoay khớp - massage rung khớp",
+    "description": null,
+    "category": "L2",
+    "target_blocks": [
+      "proprioception"
+    ],
+    "nearme_domain": [
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L2-PRO-02",
+    "title": "Ôm siết",
+    "description": null,
+    "category": "L2",
+    "target_blocks": [
+      "proprioception"
+    ],
+    "nearme_domain": [
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L2-PRO-03",
+    "title": "Lăn bóng gai áp lực sâu",
+    "description": null,
+    "category": "L2",
+    "target_blocks": [
+      "proprioception"
+    ],
+    "nearme_domain": [
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L2-PRO-04",
+    "title": "Mặc áo tạ, đeo tạ chân, tạ tay",
+    "description": null,
+    "category": "L2",
+    "target_blocks": [
+      "proprioception"
+    ],
+    "nearme_domain": [
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L2-PRO-05",
+    "title": "Multi Textured Path",
+    "description": "Cảm nhận vị trí chân khi bước đi",
+    "category": "L2",
+    "target_blocks": [
+      "proprioception"
+    ],
+    "nearme_domain": [
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L2-PRO-06",
+    "title": "Rub Textures - Hands - Simultaneously",
+    "description": "Cảm nhận sự di chuyển đồng thời trên hai tay",
+    "category": "L2",
+    "target_blocks": [
+      "proprioception"
+    ],
+    "nearme_domain": [
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L2-PRO-07",
+    "title": "Simultaneous Touch",
+    "description": "Cảm nhận vị trí tay và chân khi được vuốt đồng thời",
+    "category": "L2",
+    "target_blocks": [
+      "proprioception",
+      "tactile"
+    ],
+    "nearme_domain": [
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L2-PRO-08",
+    "title": "Sensory Association - Textures - Foot + Hand",
+    "description": "Kết hợp cảm nhận ở lòng bàn chân và bàn tay",
+    "category": "L2",
+    "target_blocks": [
+      "proprioception"
+    ],
+    "nearme_domain": [
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L2-PRO-09",
+    "title": "Textured Lines - Wrist to Fingertips",
+    "description": "Hình thành bản đồ xúc giác và cảm nhận vị trí ngón tay",
+    "category": "L2",
+    "target_blocks": [
+      "proprioception"
+    ],
+    "nearme_domain": [
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L2-PRO-10",
+    "title": "Tip Pull - Fingertips",
+    "description": "Kích thích cảm nhận bản thể qua việc kéo nhẹ ngón tay",
+    "category": "L2",
+    "target_blocks": [
+      "proprioception"
+    ],
+    "nearme_domain": [
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L2-PRO-11",
+    "title": "Water Game - Hands",
+    "description": "Nhận biết vị trí tay trong môi trường nước",
+    "category": "L2",
+    "target_blocks": [
+      "proprioception",
+      "tactile"
+    ],
+    "nearme_domain": [
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L2-AUD-01",
+    "title": "Eye Scanning - Associate Pictures and Numbers",
+    "description": "Bao gồm yếu tố thính giác trong khi thực hiện",
+    "category": "L2",
+    "target_blocks": [
+      "auditory"
+    ],
+    "nearme_domain": [
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L2-AUD-02",
+    "title": "Multisensory Alphabet",
+    "description": "Học phát âm âm thanh của các chữ cái",
+    "category": "L2",
+    "target_blocks": [
+      "auditory",
+      "smell",
+      "vestibular"
+    ],
+    "nearme_domain": [
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L2-AUD-03",
+    "title": "Sensory Association Music + Pictures",
+    "description": "Phân biệt các bản nhạc khác nhau để ghép với hình",
+    "category": "L2",
+    "target_blocks": [
+      "auditory",
+      "visual"
+    ],
+    "nearme_domain": [
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L2-AUD-04",
+    "title": "Feet on Wall - Push Away",
+    "description": "Thực hiện trên nền nhạc cổ điển",
+    "category": "L2",
+    "target_blocks": [
+      "auditory"
+    ],
+    "nearme_domain": [
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L2-AUD-05",
+    "title": "Nền tảng làm giàu giác quan - trong ngày",
+    "description": "Nghe nhạc giao hưởng trước khi ngủ",
+    "category": "L2",
+    "target_blocks": [
+      "auditory",
+      "smell",
+      "vestibular"
+    ],
+    "nearme_domain": [
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L2-VIS-01",
+    "title": "Copy/Draw Shape Sequence",
+    "description": "Quét mắt theo mẫu hình dạng",
+    "category": "L2",
+    "target_blocks": [
+      "visual"
+    ],
+    "nearme_domain": [
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L2-VIS-02",
+    "title": "Eye Scanning (cả hai phiên bản)",
+    "description": "Rèn luyện khả năng di chuyển mắt độc lập với đầu",
+    "category": "L2",
+    "target_blocks": [
+      "visual"
+    ],
+    "nearme_domain": [
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L2-VIS-03",
+    "title": "Piggy Bank - Mirror",
+    "description": "Sử dụng hình ảnh phản chiếu trong gương để điều khiển vận động",
+    "category": "L2",
+    "target_blocks": [
+      "visual"
+    ],
+    "nearme_domain": [
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L2-VIS-04",
+    "title": "Smell and Point - 3 Pictures",
+    "description": "Nhận diện hình ảnh tương ứng với mùi",
+    "category": "L2",
+    "target_blocks": [
+      "visual",
+      "smell"
+    ],
+    "nearme_domain": [
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L2-VIS-05",
+    "title": "Sort Colors - Then Smell & Rest",
+    "description": "Phân biệt và phân loại màu sắc",
+    "category": "L2",
+    "target_blocks": [
+      "visual",
+      "smell"
+    ],
+    "nearme_domain": [
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L2-VIS-06",
+    "title": "Joint Rotations - Hip Rotation 1",
+    "description": "Có bao gồm yếu tố kích thích thị giác trong quy trình",
+    "category": "L2",
+    "target_blocks": [
+      "visual"
+    ],
+    "nearme_domain": [
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L2-VIS-07",
+    "title": "BT THỊ GIÁC TRONG ATNR",
+    "description": "nhìn ngón cái, nhìn theo bóng các chiều",
+    "category": "L2",
+    "target_blocks": [
+      "visual"
+    ],
+    "nearme_domain": [
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L2-TAC-01",
+    "title": "Draw on Back",
+    "description": null,
+    "category": "L2",
+    "target_blocks": [
+      "tactile"
+    ],
+    "nearme_domain": [
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L2-TAC-02",
+    "title": "Find the Twin 2 - 2 Bags",
+    "description": null,
+    "category": "L2",
+    "target_blocks": [
+      "tactile"
+    ],
+    "nearme_domain": [
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L2-TAC-03",
+    "title": "Finger Gym",
+    "description": null,
+    "category": "L2",
+    "target_blocks": [
+      "tactile"
+    ],
+    "nearme_domain": [
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L2-TAC-04",
+    "title": "Hold & Squeeze",
+    "description": null,
+    "category": "L2",
+    "target_blocks": [
+      "tactile"
+    ],
+    "nearme_domain": [
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L2-TAC-05",
+    "title": "Textured Lines - Face - Cuddles",
+    "description": null,
+    "category": "L2",
+    "target_blocks": [
+      "tactile"
+    ],
+    "nearme_domain": [
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L2-TAC-06",
+    "title": "Tip Pull - Toes",
+    "description": null,
+    "category": "L2",
+    "target_blocks": [
+      "tactile"
+    ],
+    "nearme_domain": [
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L2-TAS-01",
+    "title": "Multisensory Core Protocol",
+    "description": "Sử dụng chất lỏng có hương vị ngọt để kích hoạt chức năng nếm trên môi và lưỡi",
+    "category": "L2",
+    "target_blocks": [
+      "taste",
+      "smell",
+      "vestibular"
+    ],
+    "nearme_domain": [
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L2-TAS-02",
+    "title": "Biến thể",
+    "description": "Công thức chung - Mùi hương trái cây chín - tranh ảnh thức ăn - chất liệu - nếm vị (nước trái cây, muối, đường, mật ong,...).",
+    "category": "L2",
+    "target_blocks": [
+      "taste"
+    ],
+    "nearme_domain": [
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L2-SME-01",
+    "title": "Copy/Draw Shape Sequence - Then Smell & Rest",
+    "description": "Kết hợp vẽ và ngửi",
+    "category": "L2",
+    "target_blocks": [
+      "smell"
+    ],
+    "nearme_domain": [
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L2-SME-02",
+    "title": "Eye Scanning - Red, Blue and Green - Then Smell & Rest",
+    "description": "Kết hợp quét mắt và ngửi",
+    "category": "L2",
+    "target_blocks": [
+      "smell"
+    ],
+    "nearme_domain": [
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L2-SME-03",
+    "title": "Sensory Association - Objects + Scents",
+    "description": "Liên kết mùi hương với đồ vật",
+    "category": "L2",
+    "target_blocks": [
+      "smell"
+    ],
+    "nearme_domain": [
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L2-SME-04",
+    "title": "Smell While Feeling 4 Textures",
+    "description": "Kết hợp ngửi và cảm nhận xúc giác ở lòng bàn tay",
+    "category": "L2",
+    "target_blocks": [
+      "smell"
+    ],
+    "nearme_domain": [
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L3-MPL-01",
+    "title": "Bò nhanh, chậm, dừng theo yêu cầu của cô.",
+    "description": null,
+    "category": "L3",
+    "target_blocks": [
+      "motor_planning"
+    ],
+    "nearme_domain": [
+      "A",
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L3-MPL-02",
+    "title": "Bò hình tròn / Bò hình vuông.",
+    "description": null,
+    "category": "L3",
+    "target_blocks": [
+      "motor_planning"
+    ],
+    "nearme_domain": [
+      "A",
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L3-MPL-03",
+    "title": "Bò/Trườn bịt mắt (đòi hỏi định vị không gian bằng cảm giác cơ thể).",
+    "description": null,
+    "category": "L3",
+    "target_blocks": [
+      "motor_planning"
+    ],
+    "nearme_domain": [
+      "A",
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L3-MPL-04",
+    "title": "Bò theo dây chỉ định.",
+    "description": null,
+    "category": "L3",
+    "target_blocks": [
+      "motor_planning"
+    ],
+    "nearme_domain": [
+      "A",
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L3-MPL-05",
+    "title": "Bò/Trườn vượt chướng ngại vật phức tạp.",
+    "description": null,
+    "category": "L3",
+    "target_blocks": [
+      "motor_planning"
+    ],
+    "nearme_domain": [
+      "A",
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L3-MPL-06",
+    "title": "Bật nhảy chụm chân hình ziczac / hình tròn qua các bánh xe.",
+    "description": null,
+    "category": "L3",
+    "target_blocks": [
+      "motor_planning"
+    ],
+    "nearme_domain": [
+      "A",
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L3-MPL-07",
+    "title": "Bật nhảy chụm chân vòng xen kẽ bánh xe.",
+    "description": null,
+    "category": "L3",
+    "target_blocks": [
+      "motor_planning"
+    ],
+    "nearme_domain": [
+      "A",
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L3-MPL-08",
+    "title": "Nhảy vành lốp xe từ trong ra ngoài (chuỗi liên hoàn từ 1 lốp đến chồng 2 - 3 lốp).",
+    "description": null,
+    "category": "L3",
+    "target_blocks": [
+      "motor_planning"
+    ],
+    "nearme_domain": [
+      "A",
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L3-MPL-09",
+    "title": "Nhảy xoay người đổi hướng trước - sau.",
+    "description": null,
+    "category": "L3",
+    "target_blocks": [
+      "motor_planning"
+    ],
+    "nearme_domain": [
+      "A",
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L3-MPL-10",
+    "title": "Nhảy tránh gậy quơ dưới chân / Nhảy tránh bóng di động.",
+    "description": null,
+    "category": "L3",
+    "target_blocks": [
+      "motor_planning"
+    ],
+    "nearme_domain": [
+      "A",
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L3-MPL-11",
+    "title": "Nằm dùng chân bắt vật theo yêu cầu phân biệt màu sắc (Ví dụ",
+    "description": "Bắt vật màu cam, không bắt vật màu đỏ).",
+    "category": "L3",
+    "target_blocks": [
+      "motor_planning"
+    ],
+    "nearme_domain": [
+      "A",
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L3-MPL-12",
+    "title": "Nhảy tránh bóng có chọn lọc theo màu sắc.",
+    "description": null,
+    "category": "L3",
+    "target_blocks": [
+      "motor_planning"
+    ],
+    "nearme_domain": [
+      "A",
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L3-MPL-13",
+    "title": "Đi xe cút kít hình ziczac chéo tay trên gạch.",
+    "description": null,
+    "category": "L3",
+    "target_blocks": [
+      "motor_planning"
+    ],
+    "nearme_domain": [
+      "A",
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L3-GMO-01",
+    "title": "Lật bánh xe lớn",
+    "description": null,
+    "category": "L3",
+    "target_blocks": [
+      "gross_motor"
+    ],
+    "nearme_domain": [
+      "A",
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L3-GMO-02",
+    "title": "Đẩy bánh xe / Kéo bánh xe (kéo bằng dây, bằng 2 tay hoặc kéo bằng vai/eo).",
+    "description": null,
+    "category": "L3",
+    "target_blocks": [
+      "gross_motor"
+    ],
+    "nearme_domain": [
+      "A",
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L3-GMO-03",
+    "title": "Đi/Chạy nâng bánh xe có gắn quai.",
+    "description": null,
+    "category": "L3",
+    "target_blocks": [
+      "gross_motor"
+    ],
+    "nearme_domain": [
+      "A",
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L3-GMO-04",
+    "title": "Bò tiến - lùi - ngang bằng tay + đầu gối hoặc nâng cao người bằng tay + chân.",
+    "description": null,
+    "category": "L3",
+    "target_blocks": [
+      "gross_motor"
+    ],
+    "nearme_domain": [
+      "A",
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L3-GMO-05",
+    "title": "Bò qua bánh xe / Bò 4 chi trên xà kép.",
+    "description": null,
+    "category": "L3",
+    "target_blocks": [
+      "gross_motor"
+    ],
+    "nearme_domain": [
+      "A",
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L3-GMO-06",
+    "title": "Trườn tiến, trườn lui, trườn trên thảm gai.",
+    "description": null,
+    "category": "L3",
+    "target_blocks": [
+      "gross_motor"
+    ],
+    "nearme_domain": [
+      "A",
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L3-GMO-07",
+    "title": "Nhảy qua xà ngang cao.",
+    "description": null,
+    "category": "L3",
+    "target_blocks": [
+      "gross_motor"
+    ],
+    "nearme_domain": [
+      "A",
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L3-GMO-08",
+    "title": "Bật nhảy thăng bằng liên hoàn.",
+    "description": null,
+    "category": "L3",
+    "target_blocks": [
+      "gross_motor"
+    ],
+    "nearme_domain": [
+      "A",
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L3-GMO-09",
+    "title": "Trồng cây chuối / Treo ngược người trên xà đơn.",
+    "description": null,
+    "category": "L3",
+    "target_blocks": [
+      "gross_motor"
+    ],
+    "nearme_domain": [
+      "A",
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L3-FMO-01",
+    "title": "Chống tay thăng bằng trên bóng gai nhỏ.",
+    "description": null,
+    "category": "L3",
+    "target_blocks": [
+      "fine_motor"
+    ],
+    "nearme_domain": [
+      "A",
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L3-FMO-02",
+    "title": "Treo ngược người trên xà kết hợp đẩy bóng (lực cầm nắm giữ xà của ngón tay).",
+    "description": null,
+    "category": "L3",
+    "target_blocks": [
+      "fine_motor"
+    ],
+    "nearme_domain": [
+      "A",
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L3-FMO-03",
+    "title": "Cầm/Nâng bánh xe quai bằng 5 ngón tay.",
+    "description": null,
+    "category": "L3",
+    "target_blocks": [
+      "fine_motor"
+    ],
+    "nearme_domain": [
+      "A",
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L3-FMO-04",
+    "title": "Cầm bằng 2 - 3 ngón tay chuyên biệt (nhóm ngón cầm viết).",
+    "description": null,
+    "category": "L3",
+    "target_blocks": [
+      "fine_motor"
+    ],
+    "nearme_domain": [
+      "A",
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L3-FMO-05",
+    "title": "Tập nâng tạ nhẹ bằng các đầu ngón tay độc lập.",
+    "description": null,
+    "category": "L3",
+    "target_blocks": [
+      "fine_motor"
+    ],
+    "nearme_domain": [
+      "A",
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L3-FMO-06",
+    "title": "Đi xe cút kít phối hợp tay cầm bóng tennis.",
+    "description": null,
+    "category": "L3",
+    "target_blocks": [
+      "fine_motor"
+    ],
+    "nearme_domain": [
+      "A",
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L3-FMO-07",
+    "title": "Chống tay thăng bằng một tay, một tay cầm giữ bóng tennis.",
+    "description": null,
+    "category": "L3",
+    "target_blocks": [
+      "fine_motor"
+    ],
+    "nearme_domain": [
+      "A",
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L3-FMO-08",
+    "title": "Đứng thăng bằng chụp bóng tennis bằng một tay.",
+    "description": null,
+    "category": "L3",
+    "target_blocks": [
+      "fine_motor"
+    ],
+    "nearme_domain": [
+      "A",
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L3-PCO-01",
+    "title": "Đứng thăng bằng trên ống nước tròn.",
+    "description": null,
+    "category": "L3",
+    "target_blocks": [
+      "postural_control"
+    ],
+    "nearme_domain": [
+      "A",
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L3-PCO-02",
+    "title": "Đứng/Đi thăng bằng trên ván gỗ hoặc đi trên vành lốp xe (tiến, lùi, trái, phải).",
+    "description": null,
+    "category": "L3",
+    "target_blocks": [
+      "postural_control"
+    ],
+    "nearme_domain": [
+      "A",
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L3-PCO-03",
+    "title": "Đứng trên tháp trụ hoặc đứng thăng bằng 1 chân.",
+    "description": null,
+    "category": "L3",
+    "target_blocks": [
+      "postural_control"
+    ],
+    "nearme_domain": [
+      "A",
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L3-PCO-04",
+    "title": "Đi xe cút kít thăng bằng trên vành bánh xe hoặc trên vành bạt nhún.",
+    "description": null,
+    "category": "L3",
+    "target_blocks": [
+      "postural_control"
+    ],
+    "nearme_domain": [
+      "A",
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L3-PCO-05",
+    "title": "Đứng thăng bằng trên đùi chuyên viên.",
+    "description": null,
+    "category": "L3",
+    "target_blocks": [
+      "postural_control"
+    ],
+    "nearme_domain": [
+      "A",
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L3-PCO-06",
+    "title": "Đứng thăng bằng trên ván kết hợp bắt bóng / hứng bóng / đỡ bóng bằng 1 tay.",
+    "description": null,
+    "category": "L3",
+    "target_blocks": [
+      "postural_control"
+    ],
+    "nearme_domain": [
+      "A",
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L3-PCO-07",
+    "title": "Thăng bằng cầm 2 vật trên tay và thực hiện đứng lên ngồi xuống.",
+    "description": null,
+    "category": "L3",
+    "target_blocks": [
+      "postural_control"
+    ],
+    "nearme_domain": [
+      "A",
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L3-PCO-08",
+    "title": "Thăng bằng ném vòng chính xác vào trụ.",
+    "description": null,
+    "category": "L3",
+    "target_blocks": [
+      "postural_control"
+    ],
+    "nearme_domain": [
+      "A",
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L3-PCO-09",
+    "title": "Thăng bằng 4 chi (tay chân) + đẩy ống trên bánh xe.",
+    "description": null,
+    "category": "L3",
+    "target_blocks": [
+      "postural_control"
+    ],
+    "nearme_domain": [
+      "A",
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L3-PCO-10",
+    "title": "Bò giữ vật thăng bằng / giữ gạch trên lưng không để rơi.",
+    "description": null,
+    "category": "L3",
+    "target_blocks": [
+      "postural_control"
+    ],
+    "nearme_domain": [
+      "A",
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L3-PCO-11",
+    "title": "Trườn giữ vật trên lưng.",
+    "description": null,
+    "category": "L3",
+    "target_blocks": [
+      "postural_control"
+    ],
+    "nearme_domain": [
+      "A",
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L3-PCO-12",
+    "title": "Gập người trên bánh xe kết hợp chuyền vòng.",
+    "description": null,
+    "category": "L3",
+    "target_blocks": [
+      "postural_control"
+    ],
+    "nearme_domain": [
+      "A",
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L3-PCO-13",
+    "title": "Chống tay giữ chân cố định trên tường hoặc trên cầu thang.",
+    "description": null,
+    "category": "L3",
+    "target_blocks": [
+      "postural_control"
+    ],
+    "nearme_domain": [
+      "A",
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L3-BIC-01",
+    "title": "Bật nhảy chụm chân kết hợp cầm 2 vật độc lập trên hai tay.",
+    "description": null,
+    "category": "L3",
+    "target_blocks": [
+      "bilateral_coord"
+    ],
+    "nearme_domain": [
+      "A",
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L3-BIC-02",
+    "title": "Bật nhảy 2 tay chống hông / Bật nhảy 2 tay cầm vật đưa ra 2 bên.",
+    "description": null,
+    "category": "L3",
+    "target_blocks": [
+      "bilateral_coord"
+    ],
+    "nearme_domain": [
+      "A",
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L3-BIC-03",
+    "title": "Bò/Trườn kết hợp đẩy bóng về phía trước (hai tay luân phiên phối hợp lực).",
+    "description": null,
+    "category": "L3",
+    "target_blocks": [
+      "bilateral_coord"
+    ],
+    "nearme_domain": [
+      "A",
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L3-BIC-04",
+    "title": "Trườn chuyền bóng về đích.",
+    "description": null,
+    "category": "L3",
+    "target_blocks": [
+      "bilateral_coord"
+    ],
+    "nearme_domain": [
+      "A",
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L3-BIC-05",
+    "title": "Đi xe cút kít (phối hợp luân phiên hai tay gài lực chịu sức nặng cơ thể).",
+    "description": null,
+    "category": "L3",
+    "target_blocks": [
+      "bilateral_coord"
+    ],
+    "nearme_domain": [
+      "A",
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L3-BIC-06",
+    "title": "Lộn mèo dưới sàn",
+    "description": null,
+    "category": "L3",
+    "target_blocks": [
+      "bilateral_coord"
+    ],
+    "nearme_domain": [
+      "A",
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L3-BIC-07",
+    "title": "Lộn mèo nằm ngửa chống tay trên bánh xe.",
+    "description": null,
+    "category": "L3",
+    "target_blocks": [
+      "bilateral_coord"
+    ],
+    "nearme_domain": [
+      "A",
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L3-BIC-08",
+    "title": "Nằm dùng 2 chân bắt vật và chuyền vật vào rổ đặt ở phía trên đầu.",
+    "description": null,
+    "category": "L3",
+    "target_blocks": [
+      "bilateral_coord"
+    ],
+    "nearme_domain": [
+      "A",
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L3-BIC-09",
+    "title": "Chống người bằng 2 tay và thực hiện đập đổi tay liên tục với giáo viên.",
+    "description": null,
+    "category": "L3",
+    "target_blocks": [
+      "bilateral_coord"
+    ],
+    "nearme_domain": [
+      "A",
+      "Me",
+      "R"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L4-ATT-01",
+    "title": "Tìm đồ vật trong tranh",
+    "description": null,
+    "category": "L4",
+    "target_blocks": [
+      "attention",
+      "visual_processing"
+    ],
+    "nearme_domain": [
+      "A",
+      "E",
+      "Me"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L4-ATT-02",
+    "title": "Tìm điểm khác nhau",
+    "description": null,
+    "category": "L4",
+    "target_blocks": [
+      "attention",
+      "visual_processing"
+    ],
+    "nearme_domain": [
+      "A",
+      "E",
+      "Me"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L4-ATT-03",
+    "title": "Tìm hình giống nhau",
+    "description": null,
+    "category": "L4",
+    "target_blocks": [
+      "attention",
+      "visual_processing"
+    ],
+    "nearme_domain": [
+      "A",
+      "E",
+      "Me"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L4-ATT-04",
+    "title": "Ghép hình (Puzzle)",
+    "description": null,
+    "category": "L4",
+    "target_blocks": [
+      "attention"
+    ],
+    "nearme_domain": [
+      "A",
+      "E",
+      "Me"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L4-ATT-05",
+    "title": "Xếp hình theo mẫu",
+    "description": null,
+    "category": "L4",
+    "target_blocks": [
+      "attention"
+    ],
+    "nearme_domain": [
+      "A",
+      "E",
+      "Me"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L4-ATT-06",
+    "title": "Nghe và làm theo yêu cầu",
+    "description": null,
+    "category": "L4",
+    "target_blocks": [
+      "attention"
+    ],
+    "nearme_domain": [
+      "A",
+      "E",
+      "Me"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L4-ATT-07",
+    "title": "Simon nói",
+    "description": null,
+    "category": "L4",
+    "target_blocks": [
+      "attention"
+    ],
+    "nearme_domain": [
+      "A",
+      "E",
+      "Me"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L4-ATT-08",
+    "title": "Đèn xanh - Đèn đỏ",
+    "description": null,
+    "category": "L4",
+    "target_blocks": [
+      "attention"
+    ],
+    "nearme_domain": [
+      "A",
+      "E",
+      "Me"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L4-ATT-09",
+    "title": "Bắt tín hiệu",
+    "description": null,
+    "category": "L4",
+    "target_blocks": [
+      "attention"
+    ],
+    "nearme_domain": [
+      "A",
+      "E",
+      "Me"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L4-ATT-10",
+    "title": "Hoàn thành nhiệm vụ trong thời gian quy định",
+    "description": null,
+    "category": "L4",
+    "target_blocks": [
+      "attention"
+    ],
+    "nearme_domain": [
+      "A",
+      "E",
+      "Me"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L4-APR-01",
+    "title": "Phân biệt âm thanh",
+    "description": null,
+    "category": "L4",
+    "target_blocks": [
+      "auditory_processing"
+    ],
+    "nearme_domain": [
+      "A",
+      "E",
+      "Me"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L4-APR-02",
+    "title": "Nhớ thông tin nghe được",
+    "description": null,
+    "category": "L4",
+    "target_blocks": [
+      "auditory_processing"
+    ],
+    "nearme_domain": [
+      "A",
+      "E",
+      "Me"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L4-APR-03",
+    "title": "Phân biệt âm thanh môi trường",
+    "description": null,
+    "category": "L4",
+    "target_blocks": [
+      "auditory_processing"
+    ],
+    "nearme_domain": [
+      "A",
+      "E",
+      "Me"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L4-APR-04",
+    "title": "Tìm nguồn âm thanh",
+    "description": null,
+    "category": "L4",
+    "target_blocks": [
+      "auditory_processing"
+    ],
+    "nearme_domain": [
+      "A",
+      "E",
+      "Me"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L4-APR-05",
+    "title": "Nghe và làm theo",
+    "description": null,
+    "category": "L4",
+    "target_blocks": [
+      "auditory_processing"
+    ],
+    "nearme_domain": [
+      "A",
+      "E",
+      "Me"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L4-APR-06",
+    "title": "Nghe và chỉ tranh",
+    "description": null,
+    "category": "L4",
+    "target_blocks": [
+      "auditory_processing"
+    ],
+    "nearme_domain": [
+      "A",
+      "E",
+      "Me"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L4-APR-07",
+    "title": "Nghe và thực hiện vận động",
+    "description": null,
+    "category": "L4",
+    "target_blocks": [
+      "auditory_processing"
+    ],
+    "nearme_domain": [
+      "A",
+      "E",
+      "Me"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L4-APR-08",
+    "title": "Nhận biết âm đầu",
+    "description": null,
+    "category": "L4",
+    "target_blocks": [
+      "auditory_processing"
+    ],
+    "nearme_domain": [
+      "A",
+      "E",
+      "Me"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L4-APR-09",
+    "title": "Phân biệt âm giống và khác",
+    "description": null,
+    "category": "L4",
+    "target_blocks": [
+      "auditory_processing"
+    ],
+    "nearme_domain": [
+      "A",
+      "E",
+      "Me"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L4-APR-10",
+    "title": "Nghe chuỗi số rồi lặp lại",
+    "description": null,
+    "category": "L4",
+    "target_blocks": [
+      "auditory_processing"
+    ],
+    "nearme_domain": [
+      "A",
+      "E",
+      "Me"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L4-APR-11",
+    "title": "Nghe chuỗi từ rồi lặp lại",
+    "description": null,
+    "category": "L4",
+    "target_blocks": [
+      "auditory_processing"
+    ],
+    "nearme_domain": [
+      "A",
+      "E",
+      "Me"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L4-APR-12",
+    "title": "Bingo âm thanh",
+    "description": null,
+    "category": "L4",
+    "target_blocks": [
+      "auditory_processing"
+    ],
+    "nearme_domain": [
+      "A",
+      "E",
+      "Me"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L4-VPR-01",
+    "title": "Ghép hình",
+    "description": null,
+    "category": "L4",
+    "target_blocks": [
+      "visual_processing"
+    ],
+    "nearme_domain": [
+      "A",
+      "E",
+      "Me"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L4-VPR-02",
+    "title": "Hoàn thành hình còn thiếu",
+    "description": null,
+    "category": "L4",
+    "target_blocks": [
+      "visual_processing"
+    ],
+    "nearme_domain": [
+      "A",
+      "E",
+      "Me"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L4-VPR-03",
+    "title": "Mê cung",
+    "description": null,
+    "category": "L4",
+    "target_blocks": [
+      "visual_processing"
+    ],
+    "nearme_domain": [
+      "A",
+      "E",
+      "Me"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L4-VPR-04",
+    "title": "Quét mắt tìm vật",
+    "description": null,
+    "category": "L4",
+    "target_blocks": [
+      "visual_processing"
+    ],
+    "nearme_domain": [
+      "A",
+      "E",
+      "Me"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L4-VPR-06",
+    "title": "Sao chép hình",
+    "description": null,
+    "category": "L4",
+    "target_blocks": [
+      "visual_processing"
+    ],
+    "nearme_domain": [
+      "A",
+      "E",
+      "Me"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L4-VPR-07",
+    "title": "Ghép mẫu",
+    "description": null,
+    "category": "L4",
+    "target_blocks": [
+      "visual_processing"
+    ],
+    "nearme_domain": [
+      "A",
+      "E",
+      "Me"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L4-VPR-08",
+    "title": "Tìm bóng của vật",
+    "description": null,
+    "category": "L4",
+    "target_blocks": [
+      "visual_processing"
+    ],
+    "nearme_domain": [
+      "A",
+      "E",
+      "Me"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L4-WML-01",
+    "title": "Sắp xếp tranh theo trình tự",
+    "description": null,
+    "category": "L4",
+    "target_blocks": [
+      "wm_link"
+    ],
+    "nearme_domain": [
+      "A",
+      "E",
+      "Me"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L4-WML-02",
+    "title": "Hoàn thành chuỗi",
+    "description": null,
+    "category": "L4",
+    "target_blocks": [
+      "wm_link"
+    ],
+    "nearme_domain": [
+      "A",
+      "E",
+      "Me"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L4-WML-03",
+    "title": "Giải quyết vấn đề đơn giản",
+    "description": null,
+    "category": "L4",
+    "target_blocks": [
+      "wm_link"
+    ],
+    "nearme_domain": [
+      "A",
+      "E",
+      "Me"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L4-WML-04",
+    "title": "Kể lại các bước thực hiện",
+    "description": null,
+    "category": "L4",
+    "target_blocks": [
+      "wm_link"
+    ],
+    "nearme_domain": [
+      "A",
+      "E",
+      "Me"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L4-WML-05",
+    "title": "Nhớ dãy số",
+    "description": null,
+    "category": "L4",
+    "target_blocks": [
+      "wm_link"
+    ],
+    "nearme_domain": [
+      "A",
+      "E",
+      "Me"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L4-WML-06",
+    "title": "Nhớ dãy hình ảnh",
+    "description": null,
+    "category": "L4",
+    "target_blocks": [
+      "wm_link"
+    ],
+    "nearme_domain": [
+      "A",
+      "E",
+      "Me"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L4-WML-07",
+    "title": "Nhớ vị trí đồ vật",
+    "description": null,
+    "category": "L4",
+    "target_blocks": [
+      "wm_link"
+    ],
+    "nearme_domain": [
+      "A",
+      "E",
+      "Me"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L4-WML-08",
+    "title": "Làm theo 2-3 yêu cầu liên tiếp",
+    "description": null,
+    "category": "L4",
+    "target_blocks": [
+      "wm_link"
+    ],
+    "nearme_domain": [
+      "A",
+      "E",
+      "Me"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L4-WML-09",
+    "title": "Nhớ và kể lại câu ngắn",
+    "description": null,
+    "category": "L4",
+    "target_blocks": [
+      "wm_link"
+    ],
+    "nearme_domain": [
+      "A",
+      "E",
+      "Me"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L4-WML-10",
+    "title": "Nhớ chuỗi màu sắc",
+    "description": null,
+    "category": "L4",
+    "target_blocks": [
+      "wm_link"
+    ],
+    "nearme_domain": [
+      "A",
+      "E",
+      "Me"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L4-WML-11",
+    "title": "Nhớ chuỗi động tác",
+    "description": null,
+    "category": "L4",
+    "target_blocks": [
+      "wm_link"
+    ],
+    "nearme_domain": [
+      "A",
+      "E",
+      "Me"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L4-WML-12",
+    "title": "Tìm cặp thẻ giống nhau",
+    "description": null,
+    "category": "L4",
+    "target_blocks": [
+      "wm_link"
+    ],
+    "nearme_domain": [
+      "A",
+      "E",
+      "Me"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L4-OLA-01",
+    "title": "Gọi tên đồ vật",
+    "description": null,
+    "category": "L4",
+    "target_blocks": [
+      "oral_language"
+    ],
+    "nearme_domain": [
+      "A",
+      "E",
+      "Me"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L4-OLA-02",
+    "title": "Trả lời câu hỏi WH",
+    "description": null,
+    "category": "L4",
+    "target_blocks": [
+      "oral_language"
+    ],
+    "nearme_domain": [
+      "A",
+      "E",
+      "Me"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L4-OLA-03",
+    "title": "Kể chuyện",
+    "description": null,
+    "category": "L4",
+    "target_blocks": [
+      "oral_language"
+    ],
+    "nearme_domain": [
+      "A",
+      "E",
+      "Me"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L4-OLA-04",
+    "title": "hân loại từ vựng",
+    "description": null,
+    "category": "L4",
+    "target_blocks": [
+      "oral_language"
+    ],
+    "nearme_domain": [
+      "A",
+      "E",
+      "Me"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L4-OLA-05",
+    "title": "Mô tả tranh",
+    "description": null,
+    "category": "L4",
+    "target_blocks": [
+      "oral_language"
+    ],
+    "nearme_domain": [
+      "A",
+      "E",
+      "Me"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L4-OLA-06",
+    "title": "Gọi tên hành động",
+    "description": null,
+    "category": "L4",
+    "target_blocks": [
+      "oral_language"
+    ],
+    "nearme_domain": [
+      "A",
+      "E",
+      "Me"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L4-OLA-07",
+    "title": "Trả lời câu hỏi Ai?",
+    "description": null,
+    "category": "L4",
+    "target_blocks": [
+      "oral_language"
+    ],
+    "nearme_domain": [
+      "A",
+      "E",
+      "Me"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L4-OLA-08",
+    "title": "Trả lời câu hỏi Cái gì?",
+    "description": null,
+    "category": "L4",
+    "target_blocks": [
+      "oral_language"
+    ],
+    "nearme_domain": [
+      "A",
+      "E",
+      "Me"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L4-OLA-09",
+    "title": "Trả lời câu hỏi Ở đâu?",
+    "description": null,
+    "category": "L4",
+    "target_blocks": [
+      "oral_language"
+    ],
+    "nearme_domain": [
+      "A",
+      "E",
+      "Me"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L4-OLA-10",
+    "title": "Trả lời câu hỏi Tại sao?",
+    "description": null,
+    "category": "L4",
+    "target_blocks": [
+      "oral_language"
+    ],
+    "nearme_domain": [
+      "A",
+      "E",
+      "Me"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L4-OLA-11",
+    "title": "Kể lại câu chuyện",
+    "description": null,
+    "category": "L4",
+    "target_blocks": [
+      "oral_language"
+    ],
+    "nearme_domain": [
+      "A",
+      "E",
+      "Me"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L4-OLA-12",
+    "title": "Hoàn thành câu",
+    "description": null,
+    "category": "L4",
+    "target_blocks": [
+      "oral_language"
+    ],
+    "nearme_domain": [
+      "A",
+      "E",
+      "Me"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L4-OLA-13",
+    "title": "giai đoạn",
+    "description": null,
+    "category": "L4",
+    "target_blocks": [
+      "oral_language"
+    ],
+    "nearme_domain": [
+      "A",
+      "E",
+      "Me"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L4-WML-13",
+    "title": "Kể chuyện theo trình tự",
+    "description": null,
+    "category": "L4",
+    "target_blocks": [
+      "wm_link"
+    ],
+    "nearme_domain": [
+      "A",
+      "E",
+      "Me"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L4-WML-14",
+    "title": "Xếp quy trình đánh răng",
+    "description": null,
+    "category": "L4",
+    "target_blocks": [
+      "wm_link"
+    ],
+    "nearme_domain": [
+      "A",
+      "E",
+      "Me"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L4-WML-15",
+    "title": "Xếp quy trình mặc quần áo",
+    "description": null,
+    "category": "L4",
+    "target_blocks": [
+      "wm_link"
+    ],
+    "nearme_domain": [
+      "A",
+      "E",
+      "Me"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L4-WML-16",
+    "title": "Hoàn thành chuỗi hình",
+    "description": null,
+    "category": "L4",
+    "target_blocks": [
+      "wm_link"
+    ],
+    "nearme_domain": [
+      "A",
+      "E",
+      "Me"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L4-WML-17",
+    "title": "Hoàn thành chuỗi màu sắc",
+    "description": null,
+    "category": "L4",
+    "target_blocks": [
+      "wm_link"
+    ],
+    "nearme_domain": [
+      "A",
+      "E",
+      "Me"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L4-WML-18",
+    "title": "Hoàn thành chuỗi số",
+    "description": null,
+    "category": "L4",
+    "target_blocks": [
+      "wm_link"
+    ],
+    "nearme_domain": [
+      "A",
+      "E",
+      "Me"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L4-WML-19",
+    "title": "Giải quyết tình huống đơn giản",
+    "description": null,
+    "category": "L4",
+    "target_blocks": [
+      "wm_link"
+    ],
+    "nearme_domain": [
+      "A",
+      "E",
+      "Me"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L4-WML-20",
+    "title": "Tìm bước tiếp theo",
+    "description": null,
+    "category": "L4",
+    "target_blocks": [
+      "wm_link"
+    ],
+    "nearme_domain": [
+      "A",
+      "E",
+      "Me"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L4-WML-21",
+    "title": "Trò chơi lập kế hoạch đơn giản",
+    "description": null,
+    "category": "L4",
+    "target_blocks": [
+      "wm_link"
+    ],
+    "nearme_domain": [
+      "A",
+      "E",
+      "Me"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L5-SCO-01",
+    "title": "Hít thở 4-4-4",
+    "description": null,
+    "category": "L5",
+    "target_blocks": [
+      "self_control"
+    ],
+    "nearme_domain": [
+      "A",
+      "E",
+      "Me"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L5-SCO-02",
+    "title": "Yoga trẻ em",
+    "description": null,
+    "category": "L5",
+    "target_blocks": [
+      "self_control"
+    ],
+    "nearme_domain": [
+      "A",
+      "E",
+      "Me"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L5-SCO-03",
+    "title": "Góc bình tĩnh",
+    "description": null,
+    "category": "L5",
+    "target_blocks": [
+      "self_control"
+    ],
+    "nearme_domain": [
+      "A",
+      "E",
+      "Me"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L5-SCO-04",
+    "title": "Nhận diện cảm xúc qua tranh",
+    "description": null,
+    "category": "L5",
+    "target_blocks": [
+      "self_control"
+    ],
+    "nearme_domain": [
+      "A",
+      "E",
+      "Me"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L5-SCO-05",
+    "title": "Thang đo cảm xúc",
+    "description": null,
+    "category": "L5",
+    "target_blocks": [
+      "self_control"
+    ],
+    "nearme_domain": [
+      "A",
+      "E",
+      "Me"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L5-SCO-06",
+    "title": "Heavy Work",
+    "description": null,
+    "category": "L5",
+    "target_blocks": [
+      "self_control"
+    ],
+    "nearme_domain": [
+      "A",
+      "E",
+      "Me"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L5-SCO-07",
+    "title": "Thiền ngắn cho trẻ",
+    "description": null,
+    "category": "L5",
+    "target_blocks": [
+      "self_control"
+    ],
+    "nearme_domain": [
+      "A",
+      "E",
+      "Me"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L5-SCO-08",
+    "title": "Nhật ký cảm xúc",
+    "description": null,
+    "category": "L5",
+    "target_blocks": [
+      "self_control"
+    ],
+    "nearme_domain": [
+      "A",
+      "E",
+      "Me"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L5-SCO-09",
+    "title": "Chọn chiến lược bình tĩnh phù hợp",
+    "description": null,
+    "category": "L5",
+    "target_blocks": [
+      "self_control"
+    ],
+    "nearme_domain": [
+      "A",
+      "E",
+      "Me"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L5-SCO-10",
+    "title": "Hítt thở bong bóng",
+    "description": null,
+    "category": "L5",
+    "target_blocks": [
+      "self_control"
+    ],
+    "nearme_domain": [
+      "A",
+      "E",
+      "Me"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L5-SSK-01",
+    "title": "Chơi luân phiên",
+    "description": null,
+    "category": "L5",
+    "target_blocks": [
+      "social_skills"
+    ],
+    "nearme_domain": [
+      "A",
+      "E",
+      "Me"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L5-SSK-02",
+    "title": "Chơi hợp tác",
+    "description": null,
+    "category": "L5",
+    "target_blocks": [
+      "social_skills"
+    ],
+    "nearme_domain": [
+      "A",
+      "E",
+      "Me"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L5-SSK-03",
+    "title": "Chờ đến lượt",
+    "description": null,
+    "category": "L5",
+    "target_blocks": [
+      "social_skills"
+    ],
+    "nearme_domain": [
+      "A",
+      "E",
+      "Me"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L5-SSK-04",
+    "title": "Đóng vai tình huống",
+    "description": null,
+    "category": "L5",
+    "target_blocks": [
+      "social_skills"
+    ],
+    "nearme_domain": [
+      "A",
+      "E",
+      "Me"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L5-SSK-05",
+    "title": "Chào hỏi",
+    "description": null,
+    "category": "L5",
+    "target_blocks": [
+      "social_skills"
+    ],
+    "nearme_domain": [
+      "A",
+      "E",
+      "Me"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L5-SSK-06",
+    "title": "Duy trì hội thoại",
+    "description": null,
+    "category": "L5",
+    "target_blocks": [
+      "social_skills"
+    ],
+    "nearme_domain": [
+      "A",
+      "E",
+      "Me"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L5-SSK-07",
+    "title": "Chia sẻ đồ chơi",
+    "description": null,
+    "category": "L5",
+    "target_blocks": [
+      "social_skills"
+    ],
+    "nearme_domain": [
+      "A",
+      "E",
+      "Me"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L5-SSK-08",
+    "title": "Giải quyết xung đột đơn giản",
+    "description": null,
+    "category": "L5",
+    "target_blocks": [
+      "social_skills"
+    ],
+    "nearme_domain": [
+      "A",
+      "E",
+      "Me"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L5-SSK-09",
+    "title": "Đọc cảm xúc người khác",
+    "description": null,
+    "category": "L5",
+    "target_blocks": [
+      "social_skills"
+    ],
+    "nearme_domain": [
+      "A",
+      "E",
+      "Me"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L5-SSK-10",
+    "title": "Trò chơi nhóm có luật",
+    "description": null,
+    "category": "L5",
+    "target_blocks": [
+      "social_skills"
+    ],
+    "nearme_domain": [
+      "A",
+      "E",
+      "Me"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L5-DLI-01",
+    "title": "Mặc áo",
+    "description": null,
+    "category": "L5",
+    "target_blocks": [
+      "daily_living"
+    ],
+    "nearme_domain": [
+      "A",
+      "E",
+      "Me"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L5-DLI-02",
+    "title": "Cởi áo",
+    "description": null,
+    "category": "L5",
+    "target_blocks": [
+      "daily_living"
+    ],
+    "nearme_domain": [
+      "A",
+      "E",
+      "Me"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L5-DLI-03",
+    "title": "Cài nút áo",
+    "description": null,
+    "category": "L5",
+    "target_blocks": [
+      "daily_living"
+    ],
+    "nearme_domain": [
+      "A",
+      "E",
+      "Me"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L5-DLI-04",
+    "title": "Kéo khóa kéo",
+    "description": null,
+    "category": "L5",
+    "target_blocks": [
+      "daily_living"
+    ],
+    "nearme_domain": [
+      "A",
+      "E",
+      "Me"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L5-DLI-05",
+    "title": "Mang giày",
+    "description": null,
+    "category": "L5",
+    "target_blocks": [
+      "daily_living"
+    ],
+    "nearme_domain": [
+      "A",
+      "E",
+      "Me"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L5-DLI-06",
+    "title": "Buộc dây giày",
+    "description": null,
+    "category": "L5",
+    "target_blocks": [
+      "daily_living"
+    ],
+    "nearme_domain": [
+      "A",
+      "E",
+      "Me"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L5-DLI-07",
+    "title": "Đánh răng",
+    "description": null,
+    "category": "L5",
+    "target_blocks": [
+      "daily_living"
+    ],
+    "nearme_domain": [
+      "A",
+      "E",
+      "Me"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L5-DLI-08",
+    "title": "Rửa tay",
+    "description": null,
+    "category": "L5",
+    "target_blocks": [
+      "daily_living"
+    ],
+    "nearme_domain": [
+      "A",
+      "E",
+      "Me"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L5-DLI-09",
+    "title": "Ăn bằng muỗng/nĩa",
+    "description": null,
+    "category": "L5",
+    "target_blocks": [
+      "daily_living"
+    ],
+    "nearme_domain": [
+      "A",
+      "E",
+      "Me"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L5-DLI-10",
+    "title": "Sắp xếp đồ dùng cá nhân",
+    "description": null,
+    "category": "L5",
+    "target_blocks": [
+      "daily_living"
+    ],
+    "nearme_domain": [
+      "A",
+      "E",
+      "Me"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L5-ATT-01",
+    "title": "Hoàn thành mê cung",
+    "description": null,
+    "category": "L5",
+    "target_blocks": [
+      "attention"
+    ],
+    "nearme_domain": [
+      "A",
+      "E",
+      "Me"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L5-ATT-02",
+    "title": "Trò chơi Stop-Go",
+    "description": null,
+    "category": "L5",
+    "target_blocks": [
+      "attention"
+    ],
+    "nearme_domain": [
+      "A",
+      "E",
+      "Me"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L5-ATT-03",
+    "title": "Theo dõi vật chuyển động",
+    "description": null,
+    "category": "L5",
+    "target_blocks": [
+      "attention"
+    ],
+    "nearme_domain": [
+      "A",
+      "E",
+      "Me"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L5-ATT-04",
+    "title": "Hoàn thành nhiệm vụ có thời gian",
+    "description": null,
+    "category": "L5",
+    "target_blocks": [
+      "attention"
+    ],
+    "nearme_domain": [
+      "A",
+      "E",
+      "Me"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L5-ATT-05",
+    "title": "Duy trì hoạt động bàn học 10–15 phút",
+    "description": null,
+    "category": "L5",
+    "target_blocks": [
+      "attention"
+    ],
+    "nearme_domain": [
+      "A",
+      "E",
+      "Me"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L5-BEH-01",
+    "title": "Chuẩn bị cặp sách",
+    "description": null,
+    "category": "L5",
+    "target_blocks": [
+      "behavior"
+    ],
+    "nearme_domain": [
+      "A",
+      "E",
+      "Me"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L5-BEH-02",
+    "title": "Chuẩn bị đồ dùng học tập",
+    "description": null,
+    "category": "L5",
+    "target_blocks": [
+      "behavior"
+    ],
+    "nearme_domain": [
+      "A",
+      "E",
+      "Me"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L5-BEH-03",
+    "title": "Sắp xếp góc học tập",
+    "description": null,
+    "category": "L5",
+    "target_blocks": [
+      "behavior"
+    ],
+    "nearme_domain": [
+      "A",
+      "E",
+      "Me"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L5-BEH-04",
+    "title": "Lập lịch trình bằng hình ảnh",
+    "description": null,
+    "category": "L5",
+    "target_blocks": [
+      "behavior"
+    ],
+    "nearme_domain": [
+      "A",
+      "E",
+      "Me"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L5-BEH-05",
+    "title": "Thực hiện công việc nhiều bước",
+    "description": null,
+    "category": "L5",
+    "target_blocks": [
+      "behavior"
+    ],
+    "nearme_domain": [
+      "A",
+      "E",
+      "Me"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L5-BEH-06",
+    "title": "Lập kế hoạch hoàn thành nhiệm vụ",
+    "description": null,
+    "category": "L5",
+    "target_blocks": [
+      "behavior"
+    ],
+    "nearme_domain": [
+      "A",
+      "E",
+      "Me"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L5-BEH-07",
+    "title": "Kiểm tra lại công việc",
+    "description": null,
+    "category": "L5",
+    "target_blocks": [
+      "behavior"
+    ],
+    "nearme_domain": [
+      "A",
+      "E",
+      "Me"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L5-BEH-08",
+    "title": "Dọn dẹp sau khi chơi",
+    "description": null,
+    "category": "L5",
+    "target_blocks": [
+      "behavior"
+    ],
+    "nearme_domain": [
+      "A",
+      "E",
+      "Me"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L5-BEH-09",
+    "title": "Sắp xếp theo thứ tự ưu tiên",
+    "description": null,
+    "category": "L5",
+    "target_blocks": [
+      "behavior"
+    ],
+    "nearme_domain": [
+      "A",
+      "E",
+      "Me"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L5-BEH-10",
+    "title": "Quản lý thời gian bằng đồng hồ hẹn giờ",
+    "description": null,
+    "category": "L5",
+    "target_blocks": [
+      "behavior"
+    ],
+    "nearme_domain": [
+      "A",
+      "E",
+      "Me"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L6-REA-01",
+    "title": "Đọc từ đơn",
+    "description": null,
+    "category": "L6",
+    "target_blocks": [
+      "reading"
+    ],
+    "nearme_domain": [
+      "A",
+      "E"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L6-REA-02",
+    "title": "Đọc hiểu đoạn ngắn",
+    "description": null,
+    "category": "L6",
+    "target_blocks": [
+      "reading"
+    ],
+    "nearme_domain": [
+      "A",
+      "E"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L6-WRI-01",
+    "title": "Chép bài",
+    "description": null,
+    "category": "L6",
+    "target_blocks": [
+      "writing"
+    ],
+    "nearme_domain": [
+      "A",
+      "E"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L6-WRI-02",
+    "title": "Viết chính tả",
+    "description": null,
+    "category": "L6",
+    "target_blocks": [
+      "writing"
+    ],
+    "nearme_domain": [
+      "A",
+      "E"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L6-WRI-03",
+    "title": "Viết câu",
+    "description": null,
+    "category": "L6",
+    "target_blocks": [
+      "writing"
+    ],
+    "nearme_domain": [
+      "A",
+      "E"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L6-MAT-01",
+    "title": "Làm toán cộng trừ",
+    "description": null,
+    "category": "L6",
+    "target_blocks": [
+      "math"
+    ],
+    "nearme_domain": [
+      "A",
+      "E"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L6-MAT-02",
+    "title": "Giải toán có lời văn",
+    "description": null,
+    "category": "L6",
+    "target_blocks": [
+      "math"
+    ],
+    "nearme_domain": [
+      "A",
+      "E"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L6-REA-03",
+    "title": "Hoàn thành bài tập trên giấy",
+    "description": null,
+    "category": "L6",
+    "target_blocks": [
+      "behavior"
+    ],
+    "nearme_domain": [
+      "A",
+      "E",
+      "Me"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L6-REA-04",
+    "title": "Đọc và trả lời câu hỏi",
+    "description": null,
+    "category": "L6",
+    "target_blocks": [
+      "reading"
+    ],
+    "nearme_domain": [
+      "A",
+      "E"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L6-REA-05",
+    "title": "Làm bài tập theo thời gian quy định",
+    "description": null,
+    "category": "L6",
+    "target_blocks": [
+      "behavior"
+    ],
+    "nearme_domain": [
+      "A",
+      "E",
+      "Me"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L6-BEH-01",
+    "title": "Lập kế hoạch thực hiện nhiệm vụ",
+    "description": null,
+    "category": "L6",
+    "target_blocks": [
+      "behavior",
+      "wm_link"
+    ],
+    "nearme_domain": [
+      "A",
+      "E",
+      "Me"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L6-BEH-02",
+    "title": "Chia nhỏ nhiệm vụ",
+    "description": null,
+    "category": "L6",
+    "target_blocks": [
+      "behavior",
+      "wm_link"
+    ],
+    "nearme_domain": [
+      "A",
+      "E",
+      "Me"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L6-BEH-03",
+    "title": "Sắp xếp thứ tự công việc",
+    "description": null,
+    "category": "L6",
+    "target_blocks": [
+      "behavior",
+      "wm_link"
+    ],
+    "nearme_domain": [
+      "A",
+      "E",
+      "Me"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L6-BEH-04",
+    "title": "Kiểm tra lại bài làm",
+    "description": null,
+    "category": "L6",
+    "target_blocks": [
+      "behavior",
+      "wm_link"
+    ],
+    "nearme_domain": [
+      "A",
+      "E",
+      "Me"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L6-BEH-05",
+    "title": "Giải quyết tình huống",
+    "description": null,
+    "category": "L6",
+    "target_blocks": [
+      "behavior",
+      "wm_link"
+    ],
+    "nearme_domain": [
+      "A",
+      "E",
+      "Me"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L6-BEH-06",
+    "title": "Trò chơi chiến lược đơn giản",
+    "description": null,
+    "category": "L6",
+    "target_blocks": [
+      "behavior",
+      "wm_link"
+    ],
+    "nearme_domain": [
+      "A",
+      "E",
+      "Me"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L6-BEH-07",
+    "title": "Hoàn thành nhiệm vụ nhiều bước",
+    "description": null,
+    "category": "L6",
+    "target_blocks": [
+      "behavior",
+      "wm_link"
+    ],
+    "nearme_domain": [
+      "A",
+      "E",
+      "Me"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L6-BEH-08",
+    "title": "Chuyển đổi giữa các hoạt động",
+    "description": null,
+    "category": "L6",
+    "target_blocks": [
+      "behavior",
+      "wm_link"
+    ],
+    "nearme_domain": [
+      "A",
+      "E",
+      "Me"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L6-BEH-09",
+    "title": "Theo dõi tiến độ công việc",
+    "description": null,
+    "category": "L6",
+    "target_blocks": [
+      "behavior",
+      "wm_link"
+    ],
+    "nearme_domain": [
+      "A",
+      "E",
+      "Me"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L6-DLI-01",
+    "title": "Tự chuẩn bị đồ dùng học tập",
+    "description": null,
+    "category": "L6",
+    "target_blocks": [
+      "daily_living"
+    ],
+    "nearme_domain": [
+      "A",
+      "E",
+      "Me"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L6-DLI-02",
+    "title": "Tự mặc quần áo",
+    "description": null,
+    "category": "L6",
+    "target_blocks": [
+      "daily_living"
+    ],
+    "nearme_domain": [
+      "A",
+      "E",
+      "Me"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L6-DLI-03",
+    "title": "Tự đánh răng",
+    "description": null,
+    "category": "L6",
+    "target_blocks": [
+      "daily_living"
+    ],
+    "nearme_domain": [
+      "A",
+      "E",
+      "Me"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L6-DLI-04",
+    "title": "Tự rửa tay",
+    "description": null,
+    "category": "L6",
+    "target_blocks": [
+      "daily_living"
+    ],
+    "nearme_domain": [
+      "A",
+      "E",
+      "Me"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L6-DLI-05",
+    "title": "Tự chuẩn bị balo",
+    "description": null,
+    "category": "L6",
+    "target_blocks": [
+      "daily_living"
+    ],
+    "nearme_domain": [
+      "A",
+      "E",
+      "Me"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L6-DLI-06",
+    "title": "Tự dọn góc học tập",
+    "description": null,
+    "category": "L6",
+    "target_blocks": [
+      "daily_living"
+    ],
+    "nearme_domain": [
+      "A",
+      "E",
+      "Me"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L6-DLI-07",
+    "title": "Tự ăn uống",
+    "description": null,
+    "category": "L6",
+    "target_blocks": [
+      "daily_living"
+    ],
+    "nearme_domain": [
+      "A",
+      "E",
+      "Me"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L6-DLI-08",
+    "title": "Tự sắp xếp đồ cá nhân",
+    "description": null,
+    "category": "L6",
+    "target_blocks": [
+      "daily_living"
+    ],
+    "nearme_domain": [
+      "A",
+      "E",
+      "Me"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L6-DLI-09",
+    "title": "Tự thực hiện lịch trình hằng ngày",
+    "description": null,
+    "category": "L6",
+    "target_blocks": [
+      "daily_living"
+    ],
+    "nearme_domain": [
+      "A",
+      "E",
+      "Me"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L6-DLI-10",
+    "title": "Tự hoàn thành nhiệm vụ được giao",
+    "description": null,
+    "category": "L6",
+    "target_blocks": [
+      "daily_living"
+    ],
+    "nearme_domain": [
+      "A",
+      "E",
+      "Me"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L6-SSK-01",
+    "title": "Chơi nhóm",
+    "description": null,
+    "category": "L6",
+    "target_blocks": [
+      "social_skills"
+    ],
+    "nearme_domain": [
+      "A",
+      "E",
+      "Me"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L6-SSK-02",
+    "title": "Hoạt động tập thể",
+    "description": null,
+    "category": "L6",
+    "target_blocks": [
+      "social_skills"
+    ],
+    "nearme_domain": [
+      "A",
+      "E",
+      "Me"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L6-SSK-03",
+    "title": "Thảo luận nhóm",
+    "description": null,
+    "category": "L6",
+    "target_blocks": [
+      "social_skills"
+    ],
+    "nearme_domain": [
+      "A",
+      "E",
+      "Me"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L6-SSK-04",
+    "title": "Chia sẻ ý kiến",
+    "description": null,
+    "category": "L6",
+    "target_blocks": [
+      "social_skills"
+    ],
+    "nearme_domain": [
+      "A",
+      "E",
+      "Me"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L6-SSK-05",
+    "title": "Hợp tác thực hiện nhiệm vụ",
+    "description": null,
+    "category": "L6",
+    "target_blocks": [
+      "social_skills"
+    ],
+    "nearme_domain": [
+      "A",
+      "E",
+      "Me"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L6-SSK-06",
+    "title": "Tham gia trò chơi có luật",
+    "description": null,
+    "category": "L6",
+    "target_blocks": [
+      "social_skills"
+    ],
+    "nearme_domain": [
+      "A",
+      "E",
+      "Me"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L6-SSK-07",
+    "title": "Giao tiếp với bạn bè",
+    "description": null,
+    "category": "L6",
+    "target_blocks": [
+      "social_skills"
+    ],
+    "nearme_domain": [
+      "A",
+      "E",
+      "Me"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L6-SSK-08",
+    "title": "Tham gia sinh hoạt lớp",
+    "description": null,
+    "category": "L6",
+    "target_blocks": [
+      "social_skills"
+    ],
+    "nearme_domain": [
+      "A",
+      "E",
+      "Me"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L6-SSK-09",
+    "title": "Tham gia hoạt động cộng đồng",
+    "description": null,
+    "category": "L6",
+    "target_blocks": [
+      "social_skills"
+    ],
+    "nearme_domain": [
+      "A",
+      "E",
+      "Me"
+    ],
+    "is_active": true
+  },
+  {
+    "code": "L6-GEN-01",
+    "title": "Tham gia hoạt động yêu thích",
+    "description": null,
+    "category": "L6",
+    "target_blocks": [],
+    "nearme_domain": [],
+    "is_active": true
+  },
+  {
+    "code": "L6-GEN-02",
+    "title": "Hoạt động cùng gia đình",
+    "description": null,
+    "category": "L6",
+    "target_blocks": [],
+    "nearme_domain": [],
+    "is_active": true
+  },
+  {
+    "code": "L6-GEN-03",
+    "title": "Hoạt động ngoài trời",
+    "description": null,
+    "category": "L6",
+    "target_blocks": [],
+    "nearme_domain": [],
+    "is_active": true
+  },
+  {
+    "code": "L6-GEN-04",
+    "title": "Hoạt động thể thao",
+    "description": null,
+    "category": "L6",
+    "target_blocks": [],
+    "nearme_domain": [],
+    "is_active": true
+  },
+  {
+    "code": "L6-GEN-05",
+    "title": "Hoạt động nghệ thuật",
+    "description": null,
+    "category": "L6",
+    "target_blocks": [],
+    "nearme_domain": [],
+    "is_active": true
+  },
+  {
+    "code": "L6-GEN-06",
+    "title": "Tham gia câu lạc bộ",
+    "description": null,
+    "category": "L6",
+    "target_blocks": [],
+    "nearme_domain": [],
+    "is_active": true
+  },
+  {
+    "code": "L6-GEN-07",
+    "title": "Đi dã ngoại",
+    "description": null,
+    "category": "L6",
+    "target_blocks": [],
+    "nearme_domain": [],
+    "is_active": true
+  },
+  {
+    "code": "L6-GEN-08",
+    "title": "Hoạt động giải trí phù hợp lứa tuổi",
+    "description": null,
+    "category": "L6",
+    "target_blocks": [],
+    "nearme_domain": [],
+    "is_active": true
+  },
+  {
+    "code": "L6-GEN-09",
+    "title": "Tự lựa chọn hoạt động yêu thích",
+    "description": null,
+    "category": "L6",
+    "target_blocks": [],
+    "nearme_domain": [],
+    "is_active": true
+  },
+  {
+    "code": "L7-GEN-01",
+    "title": "Khám phá sở thích cá nhân",
+    "description": null,
+    "category": "L7",
+    "target_blocks": [],
+    "nearme_domain": [],
+    "is_active": true
+  },
+  {
+    "code": "L7-GEN-02",
+    "title": "Thử nhiều loại đồ chơi khác nhau",
+    "description": null,
+    "category": "L7",
+    "target_blocks": [],
+    "nearme_domain": [],
+    "is_active": true
+  },
+  {
+    "code": "L7-GEN-03",
+    "title": "Thử nhiều môn thể thao khác nhau",
+    "description": null,
+    "category": "L7",
+    "target_blocks": [],
+    "nearme_domain": [],
+    "is_active": true
+  },
+  {
+    "code": "L7-GEN-04",
+    "title": "Thử nhiều hoạt động nghệ thuật khác nhau",
+    "description": null,
+    "category": "L7",
+    "target_blocks": [],
+    "nearme_domain": [],
+    "is_active": true
+  },
+  {
+    "code": "L7-GEN-05",
+    "title": "Trò chơi khám phá điểm mạnh",
+    "description": null,
+    "category": "L7",
+    "target_blocks": [],
+    "nearme_domain": [],
+    "is_active": true
+  },
+  {
+    "code": "L7-GEN-06",
+    "title": "Tham gia câu lạc bộ sở thích",
+    "description": null,
+    "category": "L7",
+    "target_blocks": [],
+    "nearme_domain": [],
+    "is_active": true
+  },
+  {
+    "code": "L7-GEN-07",
+    "title": "Hoạt động STEM đơn giản",
+    "description": null,
+    "category": "L7",
+    "target_blocks": [],
+    "nearme_domain": [],
+    "is_active": true
+  },
+  {
+    "code": "L7-GEN-08",
+    "title": "Hoạt động âm nhạc",
+    "description": null,
+    "category": "L7",
+    "target_blocks": [],
+    "nearme_domain": [],
+    "is_active": true
+  },
+  {
+    "code": "L7-GEN-09",
+    "title": "Hoạt động vận động yêu thích",
+    "description": null,
+    "category": "L7",
+    "target_blocks": [],
+    "nearme_domain": [],
+    "is_active": true
+  },
+  {
+    "code": "L7-GEN-10",
+    "title": "Dự án nhỏ theo sở thích của trẻ",
+    "description": null,
+    "category": "L7",
+    "target_blocks": [],
+    "nearme_domain": [],
+    "is_active": true
+  },
+  {
+    "code": "L7-GEN-11",
+    "title": "Hoàn thành nhiệm vụ được giao",
+    "description": null,
+    "category": "L7",
+    "target_blocks": [],
+    "nearme_domain": [],
+    "is_active": true
+  },
+  {
+    "code": "L7-GEN-12",
+    "title": "Bảng khen thưởng cá nhân",
+    "description": null,
+    "category": "L7",
+    "target_blocks": [],
+    "nearme_domain": [],
+    "is_active": true
+  },
+  {
+    "code": "L7-GEN-13",
+    "title": "Tự chọn hoạt động muốn làm",
+    "description": null,
+    "category": "L7",
+    "target_blocks": [],
+    "nearme_domain": [],
+    "is_active": true
+  },
+  {
+    "code": "L7-GEN-14",
+    "title": "Tự hoàn thành bài tập",
+    "description": null,
+    "category": "L7",
+    "target_blocks": [],
+    "nearme_domain": [],
+    "is_active": true
+  },
+  {
+    "code": "L7-GEN-15",
+    "title": "Tự phục vụ trong sinh hoạt",
+    "description": null,
+    "category": "L7",
+    "target_blocks": [],
+    "nearme_domain": [],
+    "is_active": true
+  },
+  {
+    "code": "L7-GEN-16",
+    "title": "Vượt thử thách tăng dần",
+    "description": null,
+    "category": "L7",
+    "target_blocks": [],
+    "nearme_domain": [],
+    "is_active": true
+  },
+  {
+    "code": "L7-GEN-17",
+    "title": "Tự kiểm tra kết quả",
+    "description": null,
+    "category": "L7",
+    "target_blocks": [],
+    "nearme_domain": [],
+    "is_active": true
+  },
+  {
+    "code": "L7-GEN-18",
+    "title": "Trình bày sản phẩm của mình",
+    "description": null,
+    "category": "L7",
+    "target_blocks": [],
+    "nearme_domain": [],
+    "is_active": true
+  },
+  {
+    "code": "L7-GEN-19",
+    "title": "Chia sẻ thành công với nhóm",
+    "description": null,
+    "category": "L7",
+    "target_blocks": [],
+    "nearme_domain": [],
+    "is_active": true
+  },
+  {
+    "code": "L7-GEN-20",
+    "title": "Hoạt động \"Con làm được\"",
+    "description": null,
+    "category": "L7",
+    "target_blocks": [],
+    "nearme_domain": [],
+    "is_active": true
+  },
+  {
+    "code": "L7-GEN-21",
+    "title": "Vẽ tranh tự do",
+    "description": null,
+    "category": "L7",
+    "target_blocks": [],
+    "nearme_domain": [],
+    "is_active": true
+  },
+  {
+    "code": "L7-GEN-22",
+    "title": "Tô màu sáng tạo",
+    "description": null,
+    "category": "L7",
+    "target_blocks": [],
+    "nearme_domain": [],
+    "is_active": true
+  },
+  {
+    "code": "L7-GEN-23",
+    "title": "Kể chuyện sáng tạo",
+    "description": null,
+    "category": "L7",
+    "target_blocks": [],
+    "nearme_domain": [],
+    "is_active": true
+  },
+  {
+    "code": "L7-GEN-24",
+    "title": "Đóng vai nhân vật",
+    "description": null,
+    "category": "L7",
+    "target_blocks": [],
+    "nearme_domain": [],
+    "is_active": true
+  },
+  {
+    "code": "L7-GEN-25",
+    "title": "Xây dựng Lego tự do",
+    "description": null,
+    "category": "L7",
+    "target_blocks": [],
+    "nearme_domain": [],
+    "is_active": true
+  },
+  {
+    "code": "L7-GEN-26",
+    "title": "Nặn đất sét theo ý tưởng",
+    "description": null,
+    "category": "L7",
+    "target_blocks": [],
+    "nearme_domain": [],
+    "is_active": true
+  },
+  {
+    "code": "L7-GEN-27",
+    "title": "Thiết kế đồ vật từ vật liệu tái chế",
+    "description": null,
+    "category": "L7",
+    "target_blocks": [],
+    "nearme_domain": [],
+    "is_active": true
+  },
+  {
+    "code": "L7-GEN-28",
+    "title": "Hoàn thành câu chuyện mở",
+    "description": null,
+    "category": "L7",
+    "target_blocks": [],
+    "nearme_domain": [],
+    "is_active": true
+  },
+  {
+    "code": "L7-GEN-29",
+    "title": "Sáng tạo cách chơi mới",
+    "description": null,
+    "category": "L7",
+    "target_blocks": [],
+    "nearme_domain": [],
+    "is_active": true
+  },
+  {
+    "code": "L7-GEN-30",
+    "title": "Giải quyết thử thách theo nhiều cách khác nhau",
+    "description": null,
+    "category": "L7",
+    "target_blocks": [],
+    "nearme_domain": [],
+    "is_active": true
+  },
+  {
+    "code": "L7-GEN-31",
+    "title": "Chia sẻ điều mình yêu thích",
+    "description": null,
+    "category": "L7",
+    "target_blocks": [],
+    "nearme_domain": [],
+    "is_active": true
+  },
+  {
+    "code": "L7-GEN-32",
+    "title": "Chia sẻ điều mình làm tốt",
+    "description": null,
+    "category": "L7",
+    "target_blocks": [],
+    "nearme_domain": [],
+    "is_active": true
+  },
+  {
+    "code": "L7-GEN-33",
+    "title": "Giúp đỡ bạn bè",
+    "description": null,
+    "category": "L7",
+    "target_blocks": [],
+    "nearme_domain": [],
+    "is_active": true
+  },
+  {
+    "code": "L7-GEN-34",
+    "title": "Giúp đỡ gia đình",
+    "description": null,
+    "category": "L7",
+    "target_blocks": [],
+    "nearme_domain": [],
+    "is_active": true
+  },
+  {
+    "code": "L7-GEN-35",
+    "title": "Hoạt động cảm ơn người khác",
+    "description": null,
+    "category": "L7",
+    "target_blocks": [],
+    "nearme_domain": [],
+    "is_active": true
+  },
+  {
+    "code": "L7-GEN-36",
+    "title": "Hoạt động chia sẻ đồ chơi",
+    "description": null,
+    "category": "L7",
+    "target_blocks": [],
+    "nearme_domain": [],
+    "is_active": true
+  },
+  {
+    "code": "L7-GEN-37",
+    "title": "Thực hiện việc tốt mỗi ngày",
+    "description": null,
+    "category": "L7",
+    "target_blocks": [],
+    "nearme_domain": [],
+    "is_active": true
+  },
+  {
+    "code": "L7-GEN-38",
+    "title": "Tham gia nhiệm vụ nhóm",
+    "description": null,
+    "category": "L7",
+    "target_blocks": [],
+    "nearme_domain": [],
+    "is_active": true
+  },
+  {
+    "code": "L7-GEN-39",
+    "title": "Chăm sóc cây hoặc vật nuôi",
+    "description": null,
+    "category": "L7",
+    "target_blocks": [],
+    "nearme_domain": [],
+    "is_active": true
+  },
+  {
+    "code": "L7-GEN-40",
+    "title": "Hoàn thành trách nhiệm được giao",
+    "description": null,
+    "category": "L7",
+    "target_blocks": [],
+    "nearme_domain": [],
+    "is_active": true
+  }
+]
