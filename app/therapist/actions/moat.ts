@@ -12,7 +12,7 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { cyclePctFromTotals, expectedStage, gateForecast } from '@/lib/dmt'
-import { DMT_K } from '@/lib/ontology'
+import { DMT_K, B2L } from '@/lib/ontology'
 import { runEngine, getScore } from '@/lib/engine'
 
 const VERSION = 'dmt-v0.5'
@@ -285,5 +285,75 @@ export async function recordMilestoneObs(
     }
   } catch (e) {
     console.debug('[DMT] recordMilestoneObs error:', e)
+  }
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// 4. recordBaselineMilestoneObs — t0 anchor: observed_stage per skill
+//    at baseline lock. source_type='baseline' distinguishes from daily session.
+//    observed_stage/skill = stage cao nhất mà MỌI star-milestone đạt (gate).
+//    Ceiling-search dựa trên STAR, KHÔNG non-star. Hiện battery 1 star/stage
+//    → 1 row/skill. Khi >1 milestone/stage: milestone_obs ghi (các) star tại
+//    stage-ranh; non-star không thuộc t0 ceiling-search.
+//    assessment_range: stage_range = [observed, observed] (point = ceiling).
+//    Shadow, fire-and-forget.
+// ══════════════════════════════════════════════════════════════════════════════
+export async function recordBaselineMilestoneObs(
+  cycleId: string,
+  childId: string,
+  observations: Array<{
+    milestone_id: string
+    skill_family: string
+    stage: number
+    achievement: number       // 3 = observed_stage achieved
+    support_level: string | null
+  }>,
+): Promise<void> {
+  try {
+    if (!observations.length) return
+
+    const supabase = await createClient()
+
+    // Validate cycle exists and belongs to this child (integrity)
+    const { data: cyc, error: cycErr } = await supabase
+      .from('cycles')
+      .select('id, child_id, baseline')
+      .eq('id', cycleId)
+      .eq('child_id', childId)
+      .single()
+    if (cycErr || !cyc) { console.debug('[DMT] recordBaselineMilestoneObs: cycle not found or child mismatch'); return }
+
+    const reliabilityTier = (cyc.baseline as { reliability_tier?: string } | null)?.reliability_tier ?? 'in_person'
+
+    // ── milestone_obs: ONE row per skill at observed_stage ──
+    const rows = observations.map(o => ({
+      child_id:            childId,
+      cycle_id:            cycleId,
+      milestone_id:        o.milestone_id,
+      achievement:         o.achievement,       // 0–3 ordinal (same encoding as daily session)
+      support_level:       o.support_level || null,
+      time_to_achieve_sec: null,
+      reliability_tier:    reliabilityTier,
+      source_type:         'baseline',
+    }))
+    await supabase.from('milestone_obs').insert(rows)
+      .then(({ error: e }) => { if (e) console.debug('[DMT] baseline milestone_obs:', e.message) })
+
+    // ── assessment_range per skill: point = [stage, stage] ──
+    const rangeRows = observations.map(o => ({
+      child_id:    childId,
+      cycle_id:    cycleId,
+      layer_range: [0, 7],  // baseline covers all layers
+      stage_range: [o.stage, o.stage],  // point — single observed_stage
+    }))
+
+    if (rangeRows.length) {
+      await supabase.from('assessment_range').insert(rangeRows)
+        .then(({ error: e }) => { if (e) console.debug('[DMT] baseline assessment_range:', e.message) })
+    }
+
+    console.debug(`[DMT] baseline t0: ${rows.length} milestone_obs + ${rangeRows.length} assessment_range (observed_stage)`)
+  } catch (e) {
+    console.debug('[DMT] recordBaselineMilestoneObs error:', e)
   }
 }

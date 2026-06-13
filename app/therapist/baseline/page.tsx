@@ -8,6 +8,7 @@ import { can } from '@/lib/permissions'
 import { createClient } from '@/lib/supabase/client'
 import { getScore } from '@/lib/engine'
 import { ONTOLOGY_VERSION, DEFAULT_SOURCE_TYPE, reliabilityTierFor } from '@/lib/ontology'
+import { recordBaselineMilestoneObs } from '@/app/therapist/actions/moat'
 import { LS_KEYS, type Directionality } from '@/types/spedumap'
 import { LayerSection } from '@/components/blocks/LayerSection'
 import { BaselineKPI } from '@/components/blocks/BaselineKPI'
@@ -76,6 +77,59 @@ export default function BaselinePage() {
 
   // 1d: Pyramid modal
   const [pyramidOpen, setPyramidOpen] = useState(false)
+
+  // ── DMT: Milestone t0 anchor — stage-picker + graded stars (shadow) ──
+  // observed_stage/skill = stage cao nhất mà MỌI star-milestone của stage đó đạt.
+  // Star = gate bắt buộc qua stage. Ceiling-search dựa trên STAR, KHÔNG non-star.
+  // Hiện battery 1 star/stage → 1 row/observed_stage. Khi battery có >1 milestone/stage:
+  // chỉ cần star để xác định ranh; non-star không thuộc t0 ceiling-search.
+  // Flow: chọn stage → grade star(s) tại stage đó (0–3, cùng thang daily session).
+  // Đổi stage → reset grade skill đó. ∅ = not observed. Panel KHÔNG chặn lock.
+  interface MilestoneRow { id: string; code: string | null; skill_family: string; stage: number }
+  const [dmtMilestones, setDmtMilestones] = useState<MilestoneRow[]>([])
+  const [dmtStages, setDmtStages] = useState<Record<string, number | null>>({})  // skill_family → stage | null
+  const [dmtGrades, setDmtGrades] = useState<Record<string, number | null>>({})  // milestone_id → grade 0–3 | null
+  const [dmtExpanded, setDmtExpanded] = useState(false)
+  const GRADE_LABELS = ['0 Không', '1 Phần', '2 Nhiều', '3 Đầy đủ'] as const
+
+  // Load active STAR milestones only (gate milestones that define stage boundary)
+  useEffect(() => {
+    const sb = createClient()
+    sb.from('milestone')
+      .select('id, code, skill_family, stage')
+      .eq('is_active', true)
+      .eq('star', true)
+      .order('skill_family')
+      .order('stage', { ascending: true })
+      .then(({ data }) => { if (data) setDmtMilestones(data as MilestoneRow[]) })
+  }, [])
+
+  // Group milestones by skill_family (sorted by stage ascending)
+  const dmtBySkill = dmtMilestones.reduce<Record<string, MilestoneRow[]>>((acc, m) => {
+    (acc[m.skill_family] ??= []).push(m)
+    return acc
+  }, {})
+  const dmtSkillFamilies = Object.keys(dmtBySkill).sort()
+  const dmtObservedSkills = dmtSkillFamilies.filter(s => dmtStages[s] != null).length
+
+  // Select stage for a skill — reset grades for stars of that skill
+  function selectDmtStage(skill: string, stage: number | null) {
+    setDmtStages(prev => ({ ...prev, [skill]: prev[skill] === stage ? null : stage }))
+    // Reset grades for ALL stars of this skill (clean slate on stage change)
+    const skillStars = dmtBySkill[skill] || []
+    setDmtGrades(prev => {
+      const next = { ...prev }
+      for (const m of skillStars) delete next[m.id]
+      return next
+    })
+  }
+
+  // Stars at the selected stage for a skill
+  function starsAtSelectedStage(skill: string): MilestoneRow[] {
+    const stage = dmtStages[skill]
+    if (stage == null) return []
+    return (dmtBySkill[skill] || []).filter(m => m.stage === stage)
+  }
 
   const supabase = createClient()
 
@@ -306,6 +360,36 @@ export default function BaselinePage() {
         supabase_cycle_id:  cycle.id,
       }
       localStorage.setItem(LS_KEYS.BASELINE, JSON.stringify(finalOutput))
+
+      // ── DMT SHADOW: baseline milestone t0 stage-picker + graded stars (fire-and-forget) ──
+      // Per skill: send star(s) at the FINAL selected stage with their grade (0–3).
+      // Stars at tried-then-changed stages are NOT sent (grade was reset).
+      // ∅ skill (no stage) or ∅ grade (star not graded) → not sent.
+      const milestonePayload: Array<{
+        milestone_id: string; skill_family: string; stage: number;
+        achievement: number; support_level: string | null;
+      }> = []
+      for (const skill of dmtSkillFamilies) {
+        const stage = dmtStages[skill]
+        if (stage == null) continue
+        const stars = starsAtSelectedStage(skill)
+        for (const star of stars) {
+          const grade = dmtGrades[star.id]
+          if (grade == null) continue  // ∅ = not graded = not sent
+          milestonePayload.push({
+            milestone_id: star.id,
+            skill_family: skill,
+            stage,
+            achievement: grade,  // 0–3 ordinal, same encoding as daily session
+            support_level: null,
+          })
+        }
+      }
+      if (milestonePayload.length) {
+        recordBaselineMilestoneObs(cycle.id, resolvedChildId, milestonePayload)
+          .catch(() => { /* shadow — silent */ })
+      }
+      // ── END DMT SHADOW ──
 
       setIsLocked(true)
       setShowLockModal(false)
@@ -618,6 +702,116 @@ export default function BaselinePage() {
           ))}
         </div>
         </fieldset>{/* end X4 block gate */}
+
+        {/* ── DMT: Milestone t0 — stage-picker + graded stars (shadow, không chặn lock) ── */}
+        {dmtMilestones.length > 0 && (
+          <div className="mx-2 mb-2">
+            <button
+              type="button"
+              onClick={() => setDmtExpanded(v => !v)}
+              className="w-full flex items-center justify-between px-3 py-2 rounded-md border border-dashed border-[var(--teal-bd)] bg-[var(--teal-bg)] hover:bg-[#D8EFF2] transition-colors"
+            >
+              <div className="flex items-center gap-2">
+                <span className="text-[9px] font-bold tracking-[0.1em] uppercase text-[var(--teal)]" style={{ fontFamily: "'Oswald', sans-serif" }}>
+                  Milestone t0
+                </span>
+                <span className="text-[10px] text-[var(--teal)]">
+                  {dmtObservedSkills}/{dmtSkillFamilies.length} skill
+                </span>
+              </div>
+              <span className="text-xs text-[var(--teal)]">{dmtExpanded ? '▲' : '▼'}</span>
+            </button>
+
+            {dmtExpanded && (
+              <div className="mt-1 border border-dashed border-[var(--teal-bd)] rounded-md overflow-hidden">
+                <div className="px-3 py-1.5 bg-[var(--teal)] text-white text-[9px] font-bold tracking-[0.08em] uppercase flex justify-between items-center" style={{ fontFamily: "'Oswald', sans-serif" }}>
+                  <span>Stage-Picker — Baseline Anchor</span>
+                  <span className="text-[8px] font-normal opacity-70">shadow · chọn stage → grade star (0–3)</span>
+                </div>
+                {dmtSkillFamilies.map(skill => {
+                  const milestones = dmtBySkill[skill]
+                  const selectedStage = dmtStages[skill] ?? null
+                  const stars = starsAtSelectedStage(skill)
+                  return (
+                    <div key={skill} className="border-b border-[var(--rule-2)] last:border-b-0 px-3 py-2">
+                      {/* Row 1: skill name + stage picker */}
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="text-[10px] font-bold text-[var(--teal)] flex-shrink-0 w-[120px]">
+                          {skill.replace(/_/g, ' ')}
+                        </span>
+                        <div className="flex gap-0 rounded overflow-hidden border border-[var(--rule)]">
+                          <button
+                            type="button"
+                            onClick={() => selectDmtStage(skill, null)}
+                            className="w-7 h-7 text-[10px] font-bold border-r border-[var(--rule)] transition-colors"
+                            style={{
+                              background: selectedStage === null ? 'var(--teal-bg)' : 'transparent',
+                              color: selectedStage === null ? 'var(--teal)' : 'var(--ink-3)',
+                            }}
+                          >∅</button>
+                          {milestones.map(m => {
+                            const sel = selectedStage === m.stage
+                            return (
+                              <button
+                                key={m.stage}
+                                type="button"
+                                onClick={() => selectDmtStage(skill, m.stage)}
+                                className="w-7 h-7 text-[10px] font-bold border-r border-[var(--rule)] last:border-r-0 transition-colors"
+                                style={{
+                                  background: sel ? 'var(--teal)' : 'transparent',
+                                  color: sel ? '#fff' : 'var(--ink-3)',
+                                }}
+                                title={m.code || `Stage ${m.stage}`}
+                              >{m.stage}</button>
+                            )
+                          })}
+                        </div>
+                        {selectedStage !== null && (
+                          <span className="text-[9px] font-bold text-[var(--teal)]">S{selectedStage}</span>
+                        )}
+                      </div>
+                      {/* Row 2: star(s) at selected stage → grade 0–3 */}
+                      {stars.map(star => {
+                        const grade = dmtGrades[star.id] ?? null
+                        return (
+                          <div key={star.id} className="ml-[124px] flex items-center gap-2 mt-1">
+                            <span className="text-[9px] text-[var(--ink-2)] w-[70px] flex-shrink-0 truncate" title={star.code || undefined}>
+                              {star.code || `S${star.stage}`}
+                            </span>
+                            <div className="flex gap-0 rounded overflow-hidden border border-[var(--rule)]">
+                              {[0, 1, 2, 3].map(v => {
+                                const sel = grade === v
+                                return (
+                                  <button
+                                    key={v}
+                                    type="button"
+                                    onClick={() => setDmtGrades(prev => ({
+                                      ...prev,
+                                      [star.id]: prev[star.id] === v ? null : v,
+                                    }))}
+                                    className="w-[50px] h-6 text-[9px] font-semibold border-r border-[var(--rule)] last:border-r-0 transition-colors"
+                                    style={{
+                                      background: sel ? 'var(--teal)' : 'transparent',
+                                      color: sel ? '#fff' : 'var(--ink-3)',
+                                    }}
+                                  >{GRADE_LABELS[v]}</button>
+                                )
+                              })}
+                            </div>
+                          </div>
+                        )
+                      })}
+                      {/* Hint when no stage selected */}
+                      {selectedStage === null && (
+                        <div className="ml-[124px] text-[9px] text-[var(--gold)] italic mt-0.5">chưa chọn stage</div>
+                      )}
+                    </div>
+                  )
+                })}
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Lock button + validation */}
         <div className="sticky bottom-0 p-4 bg-[var(--card)] border-t border-[var(--border)]">
