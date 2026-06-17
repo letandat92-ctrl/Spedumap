@@ -356,8 +356,8 @@ export async function recordBaselineMilestoneObs(
       reliability_tier:    reliabilityTier,
       source_type:         'baseline',
     }))
-    await supabase.from('milestone_obs').insert(rows)
-      .then(({ error: e }) => { if (e) console.debug('[DMT] baseline milestone_obs:', e.message) })
+    const { error: obsErr } = await supabase.from('milestone_obs').insert(rows)
+    if (obsErr) throw new Error(`[DMT] baseline milestone_obs: ${obsErr.message}`)
 
     // ── assessment_range per skill: point = [stage, stage] ──
     const rangeRows = observations.map(o => ({
@@ -368,8 +368,8 @@ export async function recordBaselineMilestoneObs(
     }))
 
     if (rangeRows.length) {
-      await supabase.from('assessment_range').insert(rangeRows)
-        .then(({ error: e }) => { if (e) console.debug('[DMT] baseline assessment_range:', e.message) })
+      const { error: rangeErr } = await supabase.from('assessment_range').insert(rangeRows)
+      if (rangeErr) throw new Error(`[DMT] baseline assessment_range: ${rangeErr.message}`)
     }
 
     console.debug(`[DMT] baseline t0: ${rows.length} milestone_obs + ${rangeRows.length} assessment_range (observed_stage)`)

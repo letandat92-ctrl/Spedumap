@@ -35,15 +35,20 @@ export async function POST(request: Request) {
   try {
     const { caseKey } = await request.json() as { caseKey?: string }
     const cases = caseKey && C[caseKey] ? { [caseKey]: C[caseKey] } : C
-    const results: Array<{case:string,rows:number}> = []
+    const results: Array<{case:string,rows:number,error?:string}> = []
     for (const [k, c] of Object.entries(cases)) {
       const obs = c.a.map(x => ({
         milestone_id: M[x.s]?.[x.st] ?? '', skill_family: x.s,
         stage: x.st, achievement: x.g, support_level: null,
       })).filter(o => o.milestone_id)
-      await recordBaselineMilestoneObs(c.cid, c.kid, obs)
-      results.push({ case: k, rows: obs.length })
+      try {
+        await recordBaselineMilestoneObs(c.cid, c.kid, obs)
+        results.push({ case: k, rows: obs.length })
+      } catch (e) {
+        results.push({ case: k, rows: 0, error: String(e) })
+      }
     }
-    return NextResponse.json({ ok: true, results })
+    const allOk = results.every(r => !r.error)
+    return NextResponse.json({ ok: allOk, results })
   } catch (e) { return NextResponse.json({ error: String(e) }, { status: 500 }) }
 }
