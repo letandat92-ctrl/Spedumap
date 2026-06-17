@@ -52,7 +52,8 @@ export function SignalStrip({ blocks }: SignalStripProps) {
       {signals.map(s => {
         const pct = Math.min(100, Math.round(s.val / T * 100))
         return (
-          <div key={s.label} className="bg-white border border-[var(--rule)] rounded-lg p-3">
+          <div key={s.label} className="bg-white border border-[var(--rule)] rounded-lg p-3"
+            title={s.val === 0 ? `${s.label}: 0 = khu vực mạnh, không thiếu hụt` : `${s.label}: ${s.val.toFixed(2)} = mức thiếu hụt (max 2.5)`}>
             <div className="text-[10px] text-[var(--ink-3)] mb-1">{s.label}</div>
             <div className="flex items-center justify-between mb-1">
               <span className="font-mono font-bold text-sm" style={{ color: s.val > 0 ? s.color : 'var(--green)' }}>

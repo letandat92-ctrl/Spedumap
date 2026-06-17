@@ -193,6 +193,7 @@ body {
 @media print {
   body {
     background: #fff;
+    font-size: 11pt;
   }
   .no-print {
     display: none !important;
@@ -214,6 +215,44 @@ body {
   }
   /* Prevent panel content from being cut across page breaks */
   .print-panel {
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+
+  /* ── Report print layout — hide chrome, linearize ── */
+  /* Hide nav, hub bar, logout, sticky controls, close-cycle form */
+  nav, header, .hub-bar,
+  [class*="HubBar"],
+  button:not(.print-keep),
+  select, textarea, input,
+  [class*="sticky"] {
+    display: none !important;
+  }
+  /* Linearize two-column layouts → single column */
+  .flex, [style*="grid-template-columns"] {
+    display: block !important;
+    width: 100% !important;
+  }
+  /* Each block row avoids page break */
+  .grid.grid-cols-12 {
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+  /* Target rows: ensure layer-badge + value don't overlap */
+  .grid.grid-cols-12 > * {
+    display: inline-block !important;
+    vertical-align: middle;
+    margin-right: 4px;
+  }
+  /* Readable margins for print */
+  .p-6, .p-5, .px-6, .px-5 {
+    padding: 4mm !important;
+  }
+  .max-w-5xl {
+    max-width: 100% !important;
+  }
+  /* Chart containers — ensure they render, allow page break after */
+  .recharts-wrapper {
     page-break-inside: avoid;
     break-inside: avoid;
   }

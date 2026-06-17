@@ -237,8 +237,11 @@ export default function GoalPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
+  // Guard: at least one goal must have delta > 0 (target must change something)
+  const hasPositiveDelta = Object.values(goals).some(g => g.delta > 0)
+
   async function handleConfirm() {
-    if (!goalCount) return
+    if (!goalCount || !hasPositiveDelta) return
     setSaving(true)
     setError(null)
     try {
@@ -351,17 +354,18 @@ export default function GoalPage() {
           </button>
           <button
             onClick={handleConfirm}
-            disabled={!goalCount || saving}
+            disabled={!goalCount || !hasPositiveDelta || saving}
+            title={goalCount && !hasPositiveDelta ? 'Ít nhất 1 goal phải có delta > 0 (target phải thay đổi)' : undefined}
             className="h-8 px-[18px] rounded text-white transition-colors"
             style={{
               border: 'none',
               background: 'var(--red)',
               fontFamily: OSWALD, fontSize: 11, fontWeight: 700, letterSpacing: '.06em',
-              opacity: goalCount && !saving ? 1 : 0.35,
-              cursor: goalCount && !saving ? 'pointer' : 'not-allowed',
+              opacity: goalCount && hasPositiveDelta && !saving ? 1 : 0.35,
+              cursor: goalCount && hasPositiveDelta && !saving ? 'pointer' : 'not-allowed',
             }}
           >
-            {saving ? 'Đang lưu...' : 'Bắt đầu Cycle →'}
+            {saving ? 'Đang lưu...' : goalCount && !hasPositiveDelta ? 'Target phải có thay đổi' : 'Bắt đầu Cycle →'}
           </button>
         </div>
       </header>

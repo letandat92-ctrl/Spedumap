@@ -15,6 +15,14 @@ export const dynamic = 'force-dynamic'
 
 import { LAYER_IDS, B2L } from '@/lib/ontology'
 
+// Milestone anchor display names
+const SKILL_NAMES: Record<string, string> = {
+  gross_motor: 'Gross Motor', fine_motor: 'Fine Motor', daily_living: 'Daily Living',
+  cognition: 'Cognition', interaction_duration: 'Interaction Duration',
+  language: 'Language', eyecontact_nonverbal: 'Eye Contact & Nonverbal',
+  flexibility: 'Flexibility',
+}
+
 const LAYER_COLORS: Record<string,string> = {
   L0:'#8B1A1A', L1:'#A02020', L2:'#B83030', L3:'#C55030',
   L4:'#C87020', L5:'#4A8A60', L6:'#2A6A9A', L7:'#3A5AAA',
@@ -84,6 +92,32 @@ export default function ReportPage() {
   // Per-session layer evaluation — sourced from Supabase (not localStorage) so
   // it stays consistent with solution_outcomes written server-side per session.
   const [evalSessions, setEvalSessions] = useState<Array<{session_index:number; layer_eval?:Record<string,number|null>; date?:string}>>([])
+  // Milestone t0 anchor — baseline observed_stage per skill
+  const [milestoneAnchors, setMilestoneAnchors] = useState<Array<{skill_family: string; achievement: number; source_type: string}>>([])
+  useEffect(() => {
+    const cycleId = cycle?.supabase_cycle_id as string | undefined
+    if (!cycleId || !cycleId.includes('-')) return
+    const sb = createClient()
+    let active = true
+    sb.from('milestone_obs')
+      .select('achievement, source_type, milestone!inner(skill_family)')
+      .eq('cycle_id', cycleId)
+      .eq('source_type', 'baseline')
+      .then(({ data }) => {
+        if (active && data) {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const rows = (data as any[])
+            .map((r: { milestone: { skill_family: string } | null; achievement: number; source_type: string }) => ({
+              skill_family: r.milestone?.skill_family ?? '',
+              achievement: r.achievement,
+              source_type: r.source_type,
+            }))
+            .filter(r => r.skill_family)
+          setMilestoneAnchors(rows)
+        }
+      })
+    return () => { active = false }
+  }, [cycle])
 
   useEffect(() => {
     try {
@@ -278,6 +312,22 @@ export default function ReportPage() {
           })}
         </div>
       </div>
+
+      {/* Milestone t0 anchor (shadow — read-only display) */}
+      {milestoneAnchors.length > 0 && (
+        <div className="bg-white border border-dashed border-[var(--teal-bd)] rounded-xl p-5 mb-6">
+          <h3 className="text-sm font-semibold text-[var(--teal)] mb-1">Milestone Anchor (Baseline t0)</h3>
+          <p className="text-[11px] text-[var(--ink-3)] mb-3">Observed stage ghi tại baseline lock — shadow, không ảnh hưởng điểm v1.3</p>
+          <div className="grid grid-cols-2 gap-2">
+            {milestoneAnchors.map((m, i) => (
+              <div key={i} className="flex items-center gap-2 px-3 py-1.5 bg-[var(--teal-bg)] rounded border border-[var(--teal-bd)]">
+                <span className="text-[11px] font-semibold text-[var(--teal)]">{SKILL_NAMES[m.skill_family] ?? m.skill_family}</span>
+                <span className="ml-auto font-mono text-[12px] font-bold text-[var(--teal)]">{m.achievement}/3</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Close cycle form */}
       <div className="bg-white border border-[var(--rule)] rounded-xl p-5">
