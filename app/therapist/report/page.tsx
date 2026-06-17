@@ -322,7 +322,7 @@ export default function ReportPage() {
             {milestoneAnchors.map((m, i) => (
               <div key={i} className="flex items-center gap-2 px-3 py-1.5 bg-[var(--teal-bg)] rounded border border-[var(--teal-bd)]">
                 <span className="text-[11px] font-semibold text-[var(--teal)]">{SKILL_NAMES[m.skill_family] ?? m.skill_family}</span>
-                <span className="ml-auto font-mono text-[12px] font-bold text-[var(--teal)]">{m.achievement}/3</span>
+                <span className="ml-auto font-mono text-[12px] font-bold text-[var(--teal)]">{m.achievement}%</span>
               </div>
             ))}
           </div>

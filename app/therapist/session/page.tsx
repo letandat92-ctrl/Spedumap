@@ -875,7 +875,7 @@ export default function SessionPage() {
                     <thead>
                       <tr>
                         <th style={{ ...thStyle, width: '25%' }}>Milestone</th>
-                        <th style={{ ...thStyle, textAlign: 'center' }}>Achievement (∅ = chưa quan sát)</th>
+                        <th style={{ ...thStyle, textAlign: 'center' }}>Achievement % (∅ = chưa quan sát)</th>
                         <th style={thStyle}>Mức hỗ trợ</th>
                         <th style={thStyle}>Thời gian (giây)</th>
                       </tr>
@@ -903,8 +903,8 @@ export default function SessionPage() {
                                     color: isNull ? 'var(--teal)' : 'var(--ink-3)', fontWeight: 700, fontSize: 11, cursor: 'pointer',
                                   }}
                                 >∅</button>
-                                {/* 0, 1, 2, 3 buttons */}
-                                {[0,1,2,3].map(v => {
+                                {/* 25/50/75 percent buttons */}
+                                {[25,50,75].map(v => {
                                   const sel = !isNull && !isUndef && obs.achievement === v
                                   return (
                                     <button
@@ -913,12 +913,12 @@ export default function SessionPage() {
                                       disabled={isNull}
                                       onClick={() => setDmtObs(prev => ({ ...prev, [m.id]: { ...(prev[m.id] ?? { support_level: null, time_sec: '' }), achievement: v } }))}
                                       style={{
-                                        width: 28, height: 26, borderRadius: 3, border: `1.5px solid ${sel ? 'var(--teal)' : 'var(--rule)'}`,
+                                        width: 34, height: 26, borderRadius: 3, border: `1.5px solid ${sel ? 'var(--teal)' : 'var(--rule)'}`,
                                         background: sel ? 'var(--teal-bg)' : 'transparent',
                                         color: sel ? 'var(--teal)' : isNull ? 'var(--rule)' : 'var(--ink-3)',
-                                        fontWeight: 700, fontSize: 11, cursor: isNull ? 'not-allowed' : 'pointer',
+                                        fontWeight: 700, fontSize: 10, cursor: isNull ? 'not-allowed' : 'pointer',
                                       }}
-                                    >{v}</button>
+                                    >{v}%</button>
                                   )
                                 })}
                               </div>

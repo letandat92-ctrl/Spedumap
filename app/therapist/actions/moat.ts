@@ -247,7 +247,7 @@ export async function recordMilestoneObs(
   cycleId: string,
   observations: Array<{
     milestone_id: string
-    achievement: number | null   // NULL when empty — NEVER 0
+    achievement: number | null   // 25/50/75 percent. NULL when ∅ — not observed.
     support_level: string | null
     time_sec: number | null
   }>,
@@ -305,7 +305,7 @@ export async function recordBaselineMilestoneObs(
     milestone_id: string
     skill_family: string
     stage: number
-    achievement: number       // 3 = observed_stage achieved
+    achievement: number       // 25/50/75 percent
     support_level: string | null
   }>,
 ): Promise<void> {
@@ -330,7 +330,7 @@ export async function recordBaselineMilestoneObs(
       child_id:            childId,
       cycle_id:            cycleId,
       milestone_id:        o.milestone_id,
-      achievement:         o.achievement,       // 0–3 ordinal (same encoding as daily session)
+      achievement:         o.achievement,       // 25/50/75 percent
       support_level:       o.support_level || null,
       time_to_achieve_sec: null,
       reliability_tier:    reliabilityTier,

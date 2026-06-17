@@ -88,9 +88,10 @@ export default function BaselinePage() {
   interface MilestoneRow { id: string; code: string | null; skill_family: string; stage: number }
   const [dmtMilestones, setDmtMilestones] = useState<MilestoneRow[]>([])
   const [dmtStages, setDmtStages] = useState<Record<string, number | null>>({})  // skill_family → stage | null
-  const [dmtGrades, setDmtGrades] = useState<Record<string, number | null>>({})  // milestone_id → grade 0–3 | null
+  const [dmtGrades, setDmtGrades] = useState<Record<string, number | null>>({})  // milestone_id → grade 25/50/75 | null
   const [dmtExpanded, setDmtExpanded] = useState(false)
-  const GRADE_LABELS = ['0 Không', '1 Phần', '2 Nhiều', '3 Đầy đủ'] as const
+  const GRADE_OPTIONS = [25, 50, 75] as const
+  const GRADE_LABEL: Record<number, string> = { 25: '25%', 50: '50%', 75: '75%' }
 
   // Load active STAR milestones only (gate milestones that define stage boundary)
   useEffect(() => {
@@ -380,7 +381,7 @@ export default function BaselinePage() {
             milestone_id: star.id,
             skill_family: skill,
             stage,
-            achievement: grade,  // 0–3 ordinal, same encoding as daily session
+            achievement: grade,  // 25/50/75 percent
             support_level: null,
           })
         }
@@ -726,7 +727,7 @@ export default function BaselinePage() {
               <div className="mt-1 border border-dashed border-[var(--teal-bd)] rounded-md overflow-hidden">
                 <div className="px-3 py-1.5 bg-[var(--teal)] text-white text-[9px] font-bold tracking-[0.08em] uppercase flex justify-between items-center" style={{ fontFamily: "'Oswald', sans-serif" }}>
                   <span>Stage-Picker — Baseline Anchor</span>
-                  <span className="text-[8px] font-normal opacity-70">shadow · chọn stage → grade star (0–3)</span>
+                  <span className="text-[8px] font-normal opacity-70">shadow · chọn stage → grade star (25/50/75%)</span>
                 </div>
                 {dmtSkillFamilies.map(skill => {
                   const milestones = dmtBySkill[skill]
@@ -770,7 +771,7 @@ export default function BaselinePage() {
                           <span className="text-[9px] font-bold text-[var(--teal)]">S{selectedStage}</span>
                         )}
                       </div>
-                      {/* Row 2: star(s) at selected stage → grade 0–3 */}
+                      {/* Row 2: star(s) at selected stage → grade 25/50/75 (%) */}
                       {stars.map(star => {
                         const grade = dmtGrades[star.id] ?? null
                         return (
@@ -779,7 +780,7 @@ export default function BaselinePage() {
                               {star.code || `S${star.stage}`}
                             </span>
                             <div className="flex gap-0 rounded overflow-hidden border border-[var(--rule)]">
-                              {[0, 1, 2, 3].map(v => {
+                              {GRADE_OPTIONS.map(v => {
                                 const sel = grade === v
                                 return (
                                   <button
@@ -794,7 +795,7 @@ export default function BaselinePage() {
                                       background: sel ? 'var(--teal)' : 'transparent',
                                       color: sel ? '#fff' : 'var(--ink-3)',
                                     }}
-                                  >{GRADE_LABELS[v]}</button>
+                                  >{GRADE_LABEL[v]}</button>
                                 )
                               })}
                             </div>
