@@ -16,6 +16,14 @@ import { DMT_K, B2L } from '@/lib/ontology'
 import { runEngine, getScore } from '@/lib/engine'
 
 const VERSION = 'dmt-v0.5'
+const VALID_ACHIEVEMENT = new Set([25, 50, 75])
+
+/** Validate achievement is 25/50/75. Throws if invalid — fail loud at write layer. */
+function assertAchievement(value: number, context: string): void {
+  if (!VALID_ACHIEVEMENT.has(value)) {
+    throw new Error(`[DMT] invalid achievement ${value} in ${context} — must be 25, 50, or 75`)
+  }
+}
 
 const BATTERY_SKILLS = [
   'gross_motor', 'fine_motor', 'daily_living', 'cognition',
@@ -266,13 +274,20 @@ export async function recordMilestoneObs(
       .single()
     if (sessErr || !sess) { console.debug('[DMT] recordMilestoneObs: session not found or cycle mismatch'); return }
 
+    // Validate achievement encoding at write layer — fail loud
+    for (const o of observations) {
+      if (o.achievement !== null && o.achievement !== undefined) {
+        assertAchievement(o.achievement, `recordMilestoneObs session=${sessionId}`)
+      }
+    }
+
     const rows = observations
       .filter(o => o.achievement !== undefined || o.support_level || o.time_sec)
       .map(o => ({
         child_id:            sess.child_id,
         cycle_id:            cycleId,
         milestone_id:        o.milestone_id,
-        achievement:         o.achievement,        // NULL when empty — invariant
+        achievement:         o.achievement,        // 25/50/75 or NULL
         support_level:       o.achievement === null ? null : o.support_level,
         time_to_achieve_sec: o.achievement === null ? null : o.time_sec,
         reliability_tier:    sess.source_type ?? 'in_person',
@@ -311,6 +326,11 @@ export async function recordBaselineMilestoneObs(
 ): Promise<void> {
   try {
     if (!observations.length) return
+
+    // Validate achievement encoding at write layer — fail loud
+    for (const o of observations) {
+      assertAchievement(o.achievement, `recordBaselineMilestoneObs cycle=${cycleId}`)
+    }
 
     const supabase = await createClient()
 
