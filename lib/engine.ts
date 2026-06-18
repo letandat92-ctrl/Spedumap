@@ -12,7 +12,13 @@ import {
 
 // Re-export for existing consumers that import from engine
 export { LAYER_IDS, LAYER_WEIGHTS }
-export const THRESHOLD = 2.5
+// Deficit signal threshold — unchanged from v3. Deficit = max(0, threshold - weighted_avg).
+export const DEFICIT_THRESHOLD = 2.5
+/** @deprecated Use DEFICIT_THRESHOLD. Kept for close-summary signal bar import. */
+export const THRESHOLD = DEFICIT_THRESHOLD
+
+// Stage gate threshold — "đúng tuổi". Layer must reach this to count as "achieved".
+export const STAGE_THRESHOLD = 3.0
 
 export interface EngineSignals {
   sensorimotor: number
@@ -51,9 +57,9 @@ function normalizeWeights(w: Record<string, number>): Record<string, number> {
 
 // ── Step 2: deficit signals (v3 core) ──
 function computeSignals(rough: Record<string, number>): EngineSignals {
-  const sensorimotor = Math.max(0, THRESHOLD - ((rough.L2 || 0) * 0.55 + (rough.L3 || 0) * 0.45))
-  const regulation   = Math.max(0, THRESHOLD - ((rough.L1 || 0) * 0.70 + (rough.L0 || 0) * 0.30))
-  const cognitive    = Math.max(0, THRESHOLD - ((rough.L4 || 0) * 0.60 + (rough.L5 || 0) * 0.40))
+  const sensorimotor = Math.max(0, DEFICIT_THRESHOLD - ((rough.L2 || 0) * 0.55 + (rough.L3 || 0) * 0.45))
+  const regulation   = Math.max(0, DEFICIT_THRESHOLD - ((rough.L1 || 0) * 0.70 + (rough.L0 || 0) * 0.30))
+  const cognitive    = Math.max(0, DEFICIT_THRESHOLD - ((rough.L4 || 0) * 0.60 + (rough.L5 || 0) * 0.40))
   return {
     sensorimotor: Math.round(sensorimotor * 1000) / 1000,
     regulation:   Math.round(regulation   * 1000) / 1000,
@@ -132,11 +138,17 @@ export function runEngine(blocks: Record<string, number>): EngineResult {
   let total = 0
   LAYER_IDS.forEach(lid => { total += (adj[lid] / 4.0) * LAYER_WEIGHTS[lid] })
 
-  // Step 6: stage
+  // Step 6: stage — full chain on RAW (rough) scores, NOT adj/lock-adjusted.
+  // Raw = per-layer capability before lock cascade. Using raw avoids double-count:
+  // lock already penalizes weak foundations in total; chain on raw doesn't penalize again.
+  // Highest L where ALL layers L0..L have rough[j] >= STAGE_THRESHOLD (3.0).
+  // L0 raw < 3.0 → stage stays 'L0' (chưa đạt L0 — giữ nhãn L0, không tạo nhãn mới).
+  // Round to 6 decimals before compare — floating-point artifact only (not clinical tolerance).
   let stage = 'L0'
-  LAYER_IDS.forEach((lid, i) => {
-    if (adj[lid] >= 2.5 && (i === 0 || adj[LAYER_IDS[i - 1]] >= 2.0)) stage = lid
-  })
+  for (let i = 0; i < LAYER_IDS.length; i++) {
+    if (Math.round(rough[LAYER_IDS[i]] * 1e6) / 1e6 < STAGE_THRESHOLD) break
+    stage = LAYER_IDS[i]
+  }
 
   // Lock active?
   let lockActive = false
