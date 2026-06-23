@@ -550,8 +550,8 @@
   },
   {
     "code": "L1-NST-12",
-    "title": "Nhảy tránh bóng theo yêu cầu (ví dụ",
-    "description": "tránh bóng màu cam)",
+    "title": "Nhảy tránh bóng theo yêu cầu (ví dụ: tránh bóng màu cam)",
+    "description": null,
     "category": "L1",
     "target_blocks": [
       "ns_stability"
@@ -636,7 +636,7 @@
   {
     "code": "L1-TON-05",
     "title": "Chống tay thăng bằng",
-    "description": "",
+    "description": null,
     "category": "L1",
     "target_blocks": [
       "tone"
@@ -692,7 +692,7 @@
   {
     "code": "L1-TON-09",
     "title": "Các bài tập Trườn",
-    "description": "",
+    "description": null,
     "category": "L1",
     "target_blocks": [
       "tone"
@@ -777,7 +777,7 @@
   {
     "code": "L1-ARO-01",
     "title": "Các bài tập Bật nhảy liên tục (Kích thích hệ Tiền đình và Bản thể)",
-    "description": "",
+    "description": null,
     "category": "L1",
     "target_blocks": [
       "arousal"
@@ -791,7 +791,7 @@
   {
     "code": "L1-ARO-02",
     "title": "Các bài tập Phản xạ nhanh với Bóng",
-    "description": "",
+    "description": null,
     "category": "L1",
     "target_blocks": [
       "arousal"
@@ -805,7 +805,7 @@
   {
     "code": "L1-ARO-03",
     "title": "Các bài tập kháng lực nặng (Heavy Work)",
-    "description": "",
+    "description": null,
     "category": "L1",
     "target_blocks": [
       "arousal"
@@ -819,7 +819,7 @@
   {
     "code": "L1-ARO-04",
     "title": "Các bài tập Thăng bằng tĩnh và chậm (Kích thích tiền đình chậm)",
-    "description": "",
+    "description": null,
     "category": "L1",
     "target_blocks": [
       "arousal"
@@ -833,7 +833,7 @@
   {
     "code": "L1-ARO-05",
     "title": "Các bài tập Chịu lực và Áp lực sâu (Deep Pressure)",
-    "description": "",
+    "description": null,
     "category": "L1",
     "target_blocks": [
       "arousal"
@@ -847,7 +847,7 @@
   {
     "code": "L1-ARO-06",
     "title": "Bài tập kéo giãn và ôm ấp cảm giác",
-    "description": "",
+    "description": null,
     "category": "L1",
     "target_blocks": [
       "arousal"
@@ -2407,8 +2407,8 @@
   },
   {
     "code": "L3-MPL-11",
-    "title": "Nằm dùng chân bắt vật theo yêu cầu phân biệt màu sắc (Ví dụ",
-    "description": "Bắt vật màu cam, không bắt vật màu đỏ).",
+    "title": "Nằm dùng chân bắt vật theo yêu cầu phân biệt màu sắc (Ví dụ: Bắt vật màu cam, không bắt vật màu đỏ)",
+    "description": null,
     "category": "L3",
     "target_blocks": [
       "motor_planning"
