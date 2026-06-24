@@ -75,14 +75,14 @@ export async function recordCycleClose(cycleId: string): Promise<void> {
     const curve = (ledger?.[0] as { cyclepct_forecast_curve?: Array<{ session: number; cyclepct: number }> } | undefined)?.cyclepct_forecast_curve ?? []
     const forecastAtGoal = curve.length ? curve[curve.length - 1].cyclepct : null
 
-    await supabase.from('cycle_error').insert({
+    await supabase.from('cycle_error').upsert({
       child_id:         cyc.child_id,
       cycle_id:         cycleId,
       actual_retest:    { blocks: cyc.retest_baseline?.blocks, total: runEngine(reNums).total },
       forecast_at_goal: forecastAtGoal,
       error:            forecastAtGoal !== null ? actual - forecastAtGoal : null,
       version:          VERSION,
-    }).then(({ error: e }) => { if (e) console.debug('[DMT] cycle_error:', e.message) })
+    }, { onConflict: 'cycle_id,version' }).then(({ error: e }) => { if (e) console.debug('[DMT] cycle_error:', e.message) })
 
     // ── transition_record ──
     const { data: milestones } = await supabase
