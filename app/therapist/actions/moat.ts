@@ -221,7 +221,8 @@ export async function recordGoalForecast(
       cycle_id:    cycleId,
       layer_range: layerRange,
       stage_range: stageRange,
-    }, { onConflict: 'cycle_id' }).then(({ error: e }) => { if (e) console.debug('[DMT] assessment_range:', e.message) })
+      phase:       'goal',
+    }, { onConflict: 'cycle_id,phase' }).then(({ error: e }) => { if (e) console.debug('[DMT] assessment_range:', e.message) })
 
     // forecast_ledger
     const baseNums: Record<string, number> = {}
@@ -388,10 +389,11 @@ export async function recordBaselineMilestoneObs(
       cycle_id:    cycleId,
       layer_range: [0, 7],  // baseline covers all layers
       stage_range: [o.stage, o.stage],  // point — single observed_stage
+      phase:       'baseline',
     }))
 
     if (rangeRows.length) {
-      const { error: rangeErr } = await supabase.from('assessment_range').insert(rangeRows)
+      const { error: rangeErr } = await supabase.from('assessment_range').upsert(rangeRows, { onConflict: 'cycle_id,phase' })
       if (rangeErr) throw new Error(`[DMT] baseline assessment_range: ${rangeErr.message}`)
     }
 
