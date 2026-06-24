@@ -272,6 +272,34 @@ export async function readFrozenGoal(
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
+// 2c. recordSolutionOutcomes — solution_outcomes (moved from client-side)
+// ══════════════════════════════════════════════════════════════════════════════
+export async function recordSolutionOutcomes(
+  sessionId: string,
+  outcomes: Array<{
+    solution_id: string
+    solution_title: string | null
+    block: string
+    layer: string | null
+    block_delta: number
+    layer_eval_score: number | null
+    cycle_id: string | null
+    child_id: string | null
+    session_index: number
+  }>,
+): Promise<void> {
+  try {
+    if (!outcomes.length) return
+    const supabase = await createClient()
+    const rows = outcomes.map(o => ({ ...o, session_id: sessionId }))
+    const { error } = await supabase.from('solution_outcomes').upsert(rows, { onConflict: 'session_id,solution_id,block' })
+    if (error) console.debug('[DMT] solution_outcomes:', error.message)
+  } catch (e) {
+    console.debug('[DMT] recordSolutionOutcomes error:', e)
+  }
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
 // 3. recordMilestoneObs — milestone_obs
 // ══════════════════════════════════════════════════════════════════════════════
 export async function recordMilestoneObs(

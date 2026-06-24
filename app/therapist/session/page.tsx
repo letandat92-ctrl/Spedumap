@@ -34,7 +34,7 @@ const BN: Record<string, string> = {
 }
 
 import { B2L, LAYER_IDS, BLOCK_WEIGHTS as BW_ONTO, DEFAULT_SOURCE_TYPE, reliabilityTierFor } from '@/lib/ontology'
-import { recordMilestoneObs } from '@/app/therapist/actions/moat'
+import { recordMilestoneObs, recordSolutionOutcomes } from '@/app/therapist/actions/moat'
 
 // ── DMT types (shadow only) ──────────────────────────────────────────────────
 interface MilestoneRow { id: string; code: string | null; skill_family: string; stage: number; footprint: Record<string, number> }
@@ -232,12 +232,12 @@ export default function SessionPage() {
         if (sbErr) console.warn('Supabase save failed:', sbErr.message)
 
         // Engine data pipeline: record each library-linked activity into
-        // solution_outcomes, keyed to the persisted session id.
+        // solution_outcomes via server action (moat table, anon revoked).
         if (sessRow?.id) {
           const outcomes = buildSolutionOutcomes(sessRow.id)
           if (outcomes.length) {
-            const { error: soErr } = await supabase.from('solution_outcomes').insert(outcomes)
-            if (soErr) console.warn('solution_outcomes save failed:', soErr.message)
+            recordSolutionOutcomes(sessRow.id, outcomes)
+              .catch(() => { /* shadow — silent */ })
           }
 
           // DMT shadow: milestone_obs via server action (fire-and-forget)
