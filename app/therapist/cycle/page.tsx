@@ -43,12 +43,35 @@ export default function CyclePage() {
   const [targetLayer] = useState<number>(4)
   const [topSolutions, setTopSolutions] = useState<TopSolution[]>([])
 
+  // Frozen baseline/target from forecast_ledger (DB truth for locked cycles)
+  const [frozenBaseline, setFrozenBaseline] = useState<Record<string, number> | null>(null)
+  const [frozenTarget, setFrozenTarget]     = useState<Record<string, unknown> | null>(null)
+
   // ── Hypothesis picker state ──
   const [hypLibrary, setHypLibrary]   = useState<HypItem[]>([])
   const [selectedHyp, setSelectedHyp] = useState<SelectedHyp[]>([])
   const [savingHyp, setSavingHyp]     = useState(false)
   const [hypSaved, setHypSaved]       = useState(false)
   const [hypError, setHypError]       = useState<string | null>(null)
+
+  // Fetch frozen baseline/target from forecast_ledger for locked cycles
+  useEffect(() => {
+    if (!data?.supabase_cycle_id) return
+    let active = true
+    supabase
+      .from('forecast_ledger')
+      .select('baseline_snapshot, block_target')
+      .eq('cycle_id', data.supabase_cycle_id)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .then(({ data: rows }) => {
+        if (!active || !rows?.length) return
+        const row = rows[0] as { baseline_snapshot: Record<string, number> | null; block_target: Record<string, unknown> | null }
+        if (row.baseline_snapshot) setFrozenBaseline(row.baseline_snapshot)
+        if (row.block_target) setFrozenTarget(row.block_target)
+      })
+    return () => { active = false }
+  }, [data?.supabase_cycle_id, supabase])
 
   // Fetch hypothesis_library on mount (active only, ordered by code)
   useEffect(() => {
@@ -312,7 +335,7 @@ export default function CyclePage() {
         </div>
 
         {/* Signal strip */}
-        <SignalStrip blocks={data.baseline_blocks} />
+        <SignalStrip blocks={frozenBaseline ?? data.baseline_blocks} />
 
         {isOpened ? (
           /* Locked banner + Hypothesis + Layer Progression */
@@ -532,12 +555,12 @@ export default function CyclePage() {
                 </div>
               </div>
 
-              {/* Right: baseline + target readonly */}
+              {/* Right: baseline + target readonly — frozen from forecast_ledger when available */}
               <div className="space-y-3.5">
-                <BaselineReadonly blocks={data.baseline_blocks} />
+                <BaselineReadonly blocks={frozenBaseline ?? data.baseline_blocks} />
                 <TargetReadonly
-                  baselineBlocks={data.baseline_blocks}
-                  targetBlocks={data.target_blocks || {}}
+                  baselineBlocks={frozenBaseline ?? data.baseline_blocks}
+                  targetBlocks={(frozenTarget ?? data.target_blocks ?? {}) as Record<string, number>}
                   goalDetail={data.goal_detail || {}}
                 />
               </div>
