@@ -185,7 +185,7 @@ export async function recordCycleClose(cycleId: string): Promise<void> {
     }
 
     if (rows.length) {
-      const { error: txErr } = await supabase.from('transition_record').insert(rows)
+      const { error: txErr } = await supabase.from('transition_record').upsert(rows, { onConflict: 'cycle_id,skill_family,version' })
       if (txErr) console.debug('[DMT] transition_record:', txErr.message)
       else console.debug(`[DMT] transition_record: ${rows.length} rows written`)
     }
