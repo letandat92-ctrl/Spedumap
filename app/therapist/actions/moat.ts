@@ -318,7 +318,7 @@ export async function recordMilestoneObs(
       }))
 
     if (rows.length) {
-      await supabase.from('milestone_obs').insert(rows)
+      await supabase.from('milestone_obs').upsert(rows, { onConflict: 'cycle_id,milestone_id,source_type' })
         .then(({ error: e }) => { if (e) console.debug('[DMT] milestone_obs:', e.message) })
     }
   } catch (e) {
@@ -379,7 +379,7 @@ export async function recordBaselineMilestoneObs(
       reliability_tier:    reliabilityTier,
       source_type:         'baseline',
     }))
-    const { error: obsErr } = await supabase.from('milestone_obs').insert(rows)
+    const { error: obsErr } = await supabase.from('milestone_obs').upsert(rows, { onConflict: 'cycle_id,milestone_id,source_type' })
     if (obsErr) throw new Error(`[DMT] baseline milestone_obs: ${obsErr.message}`)
 
     // ── assessment_range per skill: point = [stage, stage] ──
