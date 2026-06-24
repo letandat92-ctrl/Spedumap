@@ -216,12 +216,12 @@ export async function recordGoalForecast(
     const childId = cyc.child_id
 
     // assessment_range
-    await supabase.from('assessment_range').insert({
+    await supabase.from('assessment_range').upsert({
       child_id:    childId,
       cycle_id:    cycleId,
       layer_range: layerRange,
       stage_range: stageRange,
-    }).then(({ error: e }) => { if (e) console.debug('[DMT] assessment_range:', e.message) })
+    }, { onConflict: 'cycle_id' }).then(({ error: e }) => { if (e) console.debug('[DMT] assessment_range:', e.message) })
 
     // forecast_ledger
     const baseNums: Record<string, number> = {}
@@ -231,7 +231,7 @@ export async function recordGoalForecast(
     const N = cyc.governance_meta?.planned_sessions || 24
     const curve = gateForecast(baseNums, tgtNums, N)
 
-    await supabase.from('forecast_ledger').insert({
+    await supabase.from('forecast_ledger').upsert({
       child_id:                childId,
       cycle_id:                cycleId,
       block_target:            cyc.target?.blocks ?? {},
@@ -241,7 +241,7 @@ export async function recordGoalForecast(
       version:                 VERSION,
       baseline_snapshot:       baseNums,
       velocity_snapshot:       null,
-    }).then(({ error: e }) => { if (e) console.debug('[DMT] forecast_ledger:', e.message) })
+    }, { onConflict: 'cycle_id,version' }).then(({ error: e }) => { if (e) console.debug('[DMT] forecast_ledger:', e.message) })
   } catch (e) {
     console.debug('[DMT] recordGoalForecast error:', e)
   }
