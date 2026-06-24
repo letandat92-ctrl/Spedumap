@@ -248,6 +248,29 @@ export async function recordGoalForecast(
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
+// 2b. readFrozenGoal — read baseline_snapshot + block_target from forecast_ledger
+// ══════════════════════════════════════════════════════════════════════════════
+export async function readFrozenGoal(
+  cycleId: string,
+): Promise<{ baseline_snapshot: Record<string, number>; block_target: Record<string, unknown> } | null> {
+  try {
+    const supabase = await createClient()
+    const { data, error } = await supabase
+      .from('forecast_ledger')
+      .select('baseline_snapshot, block_target')
+      .eq('cycle_id', cycleId)
+      .order('created_at', { ascending: false })
+      .limit(1)
+    if (error || !data?.length) return null
+    const row = data[0] as { baseline_snapshot: Record<string, number> | null; block_target: Record<string, unknown> | null }
+    if (!row.baseline_snapshot) return null
+    return { baseline_snapshot: row.baseline_snapshot, block_target: row.block_target ?? {} }
+  } catch {
+    return null
+  }
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
 // 3. recordMilestoneObs — milestone_obs
 // ══════════════════════════════════════════════════════════════════════════════
 export async function recordMilestoneObs(

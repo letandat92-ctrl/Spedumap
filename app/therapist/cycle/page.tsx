@@ -8,6 +8,7 @@ import { can } from '@/lib/permissions'
 import { createClient } from '@/lib/supabase/client'
 import { LS_KEYS } from '@/types/spedumap'
 import { SignalStrip, BaselineReadonly, TargetReadonly } from '@/components/charts/CycleComponents'
+import { readFrozenGoal } from '@/app/therapist/actions/moat'
 import { LogoSVG } from '@/components/LogoSVG'
 import LayerProgressionChart from '@/components/charts/LayerProgressionChart'
 import { getLayerProgressionByCycle, getLatestAssessment } from '@/lib/supabase/migrations'
@@ -54,24 +55,17 @@ export default function CyclePage() {
   const [hypSaved, setHypSaved]       = useState(false)
   const [hypError, setHypError]       = useState<string | null>(null)
 
-  // Fetch frozen baseline/target from forecast_ledger for locked cycles
+  // Fetch frozen baseline/target from forecast_ledger via server action
   useEffect(() => {
     if (!data?.supabase_cycle_id) return
     let active = true
-    supabase
-      .from('forecast_ledger')
-      .select('baseline_snapshot, block_target')
-      .eq('cycle_id', data.supabase_cycle_id)
-      .order('created_at', { ascending: false })
-      .limit(1)
-      .then(({ data: rows }) => {
-        if (!active || !rows?.length) return
-        const row = rows[0] as { baseline_snapshot: Record<string, number> | null; block_target: Record<string, unknown> | null }
-        if (row.baseline_snapshot) setFrozenBaseline(row.baseline_snapshot)
-        if (row.block_target) setFrozenTarget(row.block_target)
-      })
+    readFrozenGoal(data.supabase_cycle_id).then(result => {
+      if (!active || !result) return
+      setFrozenBaseline(result.baseline_snapshot)
+      setFrozenTarget(result.block_target)
+    })
     return () => { active = false }
-  }, [data?.supabase_cycle_id, supabase])
+  }, [data?.supabase_cycle_id])
 
   // Fetch hypothesis_library on mount (active only, ordered by code)
   useEffect(() => {
@@ -560,7 +554,7 @@ export default function CyclePage() {
                 <BaselineReadonly blocks={frozenBaseline ?? data.baseline_blocks} />
                 <TargetReadonly
                   baselineBlocks={frozenBaseline ?? data.baseline_blocks}
-                  targetBlocks={(frozenTarget ?? data.target_blocks ?? {}) as Record<string, number>}
+                  targetBlocks={(frozenTarget ?? data.target_blocks ?? {}) as import('@/types/spedumap').BlocksMap}
                   goalDetail={data.goal_detail || {}}
                 />
               </div>
