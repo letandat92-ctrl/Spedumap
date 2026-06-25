@@ -1,10 +1,11 @@
 import React from 'react'
-import { Document, Page, Text, View, StyleSheet, Font, Svg, Polygon, Line, Circle } from '@react-pdf/renderer'
+import { Document, Page, Text, View, StyleSheet, Font, Svg, Polygon, Line, Circle, Image } from '@react-pdf/renderer'
 import type { PdfData } from '@/app/therapist/actions/pdf-data'
 import path from 'path'
 
 // ── Font registration (Vietnamese glyphs) ───────────────────────────────────
 const fontsDir = path.join(process.cwd(), 'public', 'fonts')
+const logoPath = path.join(process.cwd(), 'public', 'logo_header.png')
 Font.register({ family: 'NotoSans', fonts: [
   { src: path.join(fontsDir, 'NotoSans-Regular.ttf'), fontWeight: 'normal' },
   { src: path.join(fontsDir, 'NotoSans-Medium.ttf'), fontWeight: 500 },
@@ -165,9 +166,12 @@ export function CyclePdfDocument({ data }: { data: PdfData }) {
       <Page size="A4" style={s.page}>
         {/* ① Header */}
         <View style={s.header}>
-          <View>
-            <Text style={s.headerText}>SPEDUMAP</Text>
-            <Text style={s.headerSub}>Developmental Mapping System</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+            <Image src={logoPath} style={{ width: 36, height: 36 }} />
+            <View>
+              <Text style={s.headerText}>SPEDUMAP</Text>
+              <Text style={s.headerSub}>Developmental Mapping System</Text>
+            </View>
           </View>
           <Text style={s.headerSub}>Báo cáo đánh giá phát triển</Text>
         </View>
@@ -237,7 +241,10 @@ export function CyclePdfDocument({ data }: { data: PdfData }) {
       {/* ═══ TRANG 2 — Chi tiết ═══ */}
       <Page size="A4" style={s.page}>
         <View style={s.header}>
-          <Text style={s.headerText}>SPEDUMAP</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+            <Image src={logoPath} style={{ width: 28, height: 28 }} />
+            <Text style={s.headerText}>SPEDUMAP</Text>
+          </View>
           <Text style={s.headerSub}>Chi tiết đánh giá</Text>
         </View>
 
@@ -305,7 +312,10 @@ export function CyclePdfDocument({ data }: { data: PdfData }) {
       {/* ═══ TRANG 3 — Kế hoạch ═══ */}
       <Page size="A4" style={s.page}>
         <View style={s.header}>
-          <Text style={s.headerText}>SPEDUMAP</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+            <Image src={logoPath} style={{ width: 28, height: 28 }} />
+            <Text style={s.headerText}>SPEDUMAP</Text>
+          </View>
           <Text style={s.headerSub}>Kế hoạch can thiệp</Text>
         </View>
 
