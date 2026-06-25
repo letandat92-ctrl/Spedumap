@@ -12,6 +12,7 @@ import { useRetest } from '@/hooks/useRetest'
 import { useRole } from '@/hooks/useRole'
 import { can } from '@/lib/permissions'
 import { LayerSection } from '@/components/blocks/LayerSection'
+import { recordAssessmentBlockNotes } from '@/app/therapist/actions/moat'
 
 export const dynamic = 'force-dynamic'
 
@@ -89,6 +90,16 @@ function RetestInner() {
   LAYER_IDS.forEach(lid => { layerOffsets[lid] = offset; offset += Object.keys(BM[lid].blocks).length })
 
   async function doLock() {
+    // Persist clinical notes before lock (primary data — errors surface)
+    if (cycleId && meta?.childId) {
+      const notePayload = Object.entries(blocks)
+        .filter(([, b]) => b.note && b.note.trim())
+        .map(([k, b]) => ({ block: k, note: b.note.trim() }))
+      if (notePayload.length) {
+        await recordAssessmentBlockNotes(cycleId, meta.childId, notePayload, 'retest')
+      }
+    }
+
     const ok = await lock()
     setShowModal(false)
     if (ok && cycleId) router.push('/therapist/close-summary?cycle_id=' + cycleId)

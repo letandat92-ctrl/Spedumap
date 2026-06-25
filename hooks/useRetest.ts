@@ -25,6 +25,7 @@ export interface RetestBlockState {
 export interface RetestMeta {
   childName: string
   childDob:  string
+  childId:   string
   cycleId:   string
   startedAt: string
 }
@@ -78,6 +79,7 @@ export function useRetest(cycleId: string | null) {
           setMeta({
             childName: child.name ?? '',
             childDob:  child.dob ?? '',
+            childId:   cyc.child_id,
             cycleId:   cyc.id,
             startedAt: cyc.started_at ?? '',
           })
