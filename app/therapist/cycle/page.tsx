@@ -185,6 +185,7 @@ export default function CyclePage() {
             status:     'active',
             cycle_name: form.cycleName,
             started_at: form.startDate,
+            expires_at: form.endDate || null,
             governance_meta: activeCycle.governance_meta,
           }).eq('id', cycleId)
           if (error) throw error
