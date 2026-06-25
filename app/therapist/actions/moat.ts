@@ -300,6 +300,55 @@ export async function recordSolutionOutcomes(
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
+// 2d. recordAssessmentBlockNotes — clinical notes per block
+//     NOT fire-and-forget: these are primary clinical data, errors THROW.
+// ══════════════════════════════════════════════════════════════════════════════
+export async function recordAssessmentBlockNotes(
+  cycleId: string,
+  childId: string,
+  notes: Array<{ block: string; note: string }>,
+  sourceType: string = 'baseline',
+): Promise<void> {
+  const rows = notes
+    .filter(n => n.note.trim())
+    .map(n => ({
+      cycle_id:    cycleId,
+      child_id:    childId,
+      block:       n.block,
+      note:        n.note.trim(),
+      source_type: sourceType,
+    }))
+  if (!rows.length) return
+
+  const supabase = await createClient()
+  const { error } = await supabase
+    .from('assessment_block_notes')
+    .upsert(rows, { onConflict: 'cycle_id,block,source_type' })
+  if (error) throw new Error(`[DMT] assessment_block_notes: ${error.message}`)
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// 2e. readAssessmentBlockNotes — read notes back for locked baseline view
+// ══════════════════════════════════════════════════════════════════════════════
+export async function readAssessmentBlockNotes(
+  cycleId: string,
+  sourceType: string = 'baseline',
+): Promise<Array<{ block: string; note: string }>> {
+  try {
+    const supabase = await createClient()
+    const { data, error } = await supabase
+      .from('assessment_block_notes')
+      .select('block, note')
+      .eq('cycle_id', cycleId)
+      .eq('source_type', sourceType)
+    if (error || !data) return []
+    return data as Array<{ block: string; note: string }>
+  } catch {
+    return []
+  }
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
 // 3. recordMilestoneObs — milestone_obs
 // ══════════════════════════════════════════════════════════════════════════════
 export async function recordMilestoneObs(
