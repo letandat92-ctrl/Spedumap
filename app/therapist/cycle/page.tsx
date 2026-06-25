@@ -589,7 +589,11 @@ export default function CyclePage() {
               </div>
               <div className="flex gap-2 flex-shrink-0">
                 <button
-                  onClick={() => window.print()}
+                  onClick={() => {
+                    const cid = data?.supabase_cycle_id
+                    if (cid) window.open(`/therapist/cycle/${cid}/pdf`, '_blank')
+                    else window.print()
+                  }}
                   style={{
                     height: 40, padding: '0 16px', border: '1px solid rgba(255,255,255,.3)',
                     borderRadius: 5, background: 'transparent', color: 'rgba(255,255,255,.8)',
