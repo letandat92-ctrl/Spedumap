@@ -8,7 +8,7 @@ import { can } from '@/lib/permissions'
 import { createClient } from '@/lib/supabase/client'
 import { getScore } from '@/lib/engine'
 import { ONTOLOGY_VERSION, DEFAULT_SOURCE_TYPE, reliabilityTierFor } from '@/lib/ontology'
-import { recordBaselineMilestoneObs } from '@/app/therapist/actions/moat'
+import { recordBaselineMilestoneObs, recordAssessmentBlockNotes } from '@/app/therapist/actions/moat'
 import { LS_KEYS, type Directionality } from '@/types/spedumap'
 import { LayerSection } from '@/components/blocks/LayerSection'
 import { BaselineKPI } from '@/components/blocks/BaselineKPI'
@@ -361,6 +361,14 @@ export default function BaselinePage() {
         supabase_cycle_id:  cycle.id,
       }
       localStorage.setItem(LS_KEYS.BASELINE, JSON.stringify(finalOutput))
+
+      // ── Persist per-block clinical notes (primary data — errors surface) ──
+      const notePayload = Object.entries(blocks)
+        .filter(([, b]) => b.note && b.note.trim())
+        .map(([k, b]) => ({ block: k, note: b.note.trim() }))
+      if (notePayload.length) {
+        await recordAssessmentBlockNotes(cycle.id, resolvedChildId, notePayload, 'baseline')
+      }
 
       // ── DMT SHADOW: baseline milestone t0 stage-picker + graded stars (fire-and-forget) ──
       // Per skill: send star(s) at the FINAL selected stage with their grade (0–3).
