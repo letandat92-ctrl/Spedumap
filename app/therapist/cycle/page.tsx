@@ -8,7 +8,7 @@ import { can } from '@/lib/permissions'
 import { createClient } from '@/lib/supabase/client'
 import { LS_KEYS } from '@/types/spedumap'
 import { SignalStrip, BaselineReadonly, TargetReadonly } from '@/components/charts/CycleComponents'
-import { readFrozenGoal } from '@/app/therapist/actions/moat'
+import { readFrozenGoal, readAssessmentBlockNotes } from '@/app/therapist/actions/moat'
 import { LogoSVG } from '@/components/LogoSVG'
 import LayerProgressionChart from '@/components/charts/LayerProgressionChart'
 import { getLayerProgressionByCycle, getLatestAssessment } from '@/lib/supabase/migrations'
@@ -47,6 +47,7 @@ export default function CyclePage() {
   // Frozen baseline/target from forecast_ledger (DB truth for locked cycles)
   const [frozenBaseline, setFrozenBaseline] = useState<Record<string, number> | null>(null)
   const [frozenTarget, setFrozenTarget]     = useState<Record<string, unknown> | null>(null)
+  const [blockNotes, setBlockNotes]         = useState<Record<string, string>>({})
 
   // ── Hypothesis picker state ──
   const [hypLibrary, setHypLibrary]   = useState<HypItem[]>([])
@@ -55,7 +56,7 @@ export default function CyclePage() {
   const [hypSaved, setHypSaved]       = useState(false)
   const [hypError, setHypError]       = useState<string | null>(null)
 
-  // Fetch frozen baseline/target from forecast_ledger via server action
+  // Fetch frozen baseline/target + clinical notes via server actions
   useEffect(() => {
     if (!data?.supabase_cycle_id) return
     let active = true
@@ -63,6 +64,12 @@ export default function CyclePage() {
       if (!active || !result) return
       setFrozenBaseline(result.baseline_snapshot)
       setFrozenTarget(result.block_target)
+    })
+    readAssessmentBlockNotes(data.supabase_cycle_id, 'baseline').then(rows => {
+      if (!active) return
+      const map: Record<string, string> = {}
+      for (const r of rows) map[r.block] = r.note
+      setBlockNotes(map)
     })
     return () => { active = false }
   }, [data?.supabase_cycle_id])
@@ -551,7 +558,7 @@ export default function CyclePage() {
 
               {/* Right: baseline + target readonly — frozen from forecast_ledger when available */}
               <div className="space-y-3.5">
-                <BaselineReadonly blocks={frozenBaseline ?? data.baseline_blocks} />
+                <BaselineReadonly blocks={frozenBaseline ?? data.baseline_blocks} notes={blockNotes} />
                 <TargetReadonly
                   baselineBlocks={frozenBaseline ?? data.baseline_blocks}
                   targetBlocks={(frozenTarget ?? data.target_blocks ?? {}) as import('@/types/spedumap').BlocksMap}

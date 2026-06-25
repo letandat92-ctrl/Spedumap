@@ -73,9 +73,12 @@ export function SignalStrip({ blocks }: SignalStripProps) {
 
 // ── Baseline Readonly ─────────────────────────────────────────
 
-interface BaselineReadonlyProps { blocks: Record<string, unknown> }
+interface BaselineReadonlyProps {
+  blocks: Record<string, unknown>
+  notes?: Record<string, string>
+}
 
-export function BaselineReadonly({ blocks }: BaselineReadonlyProps) {
+export function BaselineReadonly({ blocks, notes }: BaselineReadonlyProps) {
   // Group by layer
   const grouped: Record<string, Array<[string, number]>> = {}
   for (const [k, v] of Object.entries(blocks)) {
@@ -95,10 +98,14 @@ export function BaselineReadonly({ blocks }: BaselineReadonlyProps) {
           if (!items.length) return null
           return items.map(([k, v]) => {
             const sc = v >= 3 ? 'text-[var(--green)]' : v >= 2 ? 'text-[var(--gold)]' : v >= 1 ? '#C07010' : 'text-[var(--red)]'
+            const note = notes?.[k]
             return (
               <div key={k} className="flex items-center gap-2 px-4 py-1.5">
                 <div className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: LAYER_COLORS[lid] }} />
                 <span className="text-xs text-[var(--ink-2)] flex-1">{BN[k] ?? k}</span>
+                {note && (
+                  <span className="text-[10px] text-[var(--ink-3)] cursor-help" title={note}>&#9998;</span>
+                )}
                 <span className="text-[10px] text-[var(--ink-3)]">{lid}</span>
                 <span className="text-xs font-mono font-bold" style={{ color: sc }}>{v.toFixed(1)}</span>
               </div>
