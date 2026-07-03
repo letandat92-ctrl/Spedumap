@@ -41,6 +41,7 @@ export function BlockRow({
   const [inputVal, setInputVal]     = useState(score !== null ? String(score) : '')
   const [isFocused, setIsFocused]   = useState(false)
   const [showNote, setShowNote]     = useState(false)
+  const [noteCommitted, setNoteCommitted] = useState(false)
   const [showAnchor, setShowAnchor] = useState(false)
   const inputRef  = useRef<HTMLInputElement>(null)
   const anchorRef = useRef<HTMLButtonElement>(null!)
@@ -196,10 +197,14 @@ export function BlockRow({
         <input
           type="text"
           value={state.note}
-          onChange={e => onNote(e.target.value)}
+          onChange={e => { onNote(e.target.value); setNoteCommitted(false) }}
+          onBlur={() => { if (state.note.trim()) setNoteCommitted(true) }}
+          onFocus={() => setNoteCommitted(false)}
           placeholder={hasNoteError ? 'Bắt buộc nhập lý do...' : 'Ghi chú...'}
           className={`mt-1.5 w-full h-7 px-2 text-xs border rounded focus:outline-none focus:border-[var(--navy)] ${
-            hasNoteError ? 'border-[var(--red)] bg-[var(--red-bg)]' : 'border-[var(--rule)]'
+            hasNoteError ? 'border-[var(--red)] bg-[var(--red-bg)]'
+            : noteCommitted ? 'border-[var(--rule)] bg-[var(--rule-2)] text-[var(--ink-3)] opacity-60'
+            : 'border-[var(--rule)]'
           }`}
         />
       )}

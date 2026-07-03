@@ -100,14 +100,16 @@ export function BaselineReadonly({ blocks, notes }: BaselineReadonlyProps) {
             const sc = v >= 3 ? 'text-[var(--green)]' : v >= 2 ? 'text-[var(--gold)]' : v >= 1 ? '#C07010' : 'text-[var(--red)]'
             const note = notes?.[k]
             return (
-              <div key={k} className="flex items-center gap-2 px-4 py-1.5">
-                <div className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: LAYER_COLORS[lid] }} />
-                <span className="text-xs text-[var(--ink-2)] flex-1">{BN[k] ?? k}</span>
+              <div key={k} className="px-4 py-1.5">
+                <div className="flex items-center gap-2">
+                  <div className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: LAYER_COLORS[lid] }} />
+                  <span className="text-xs text-[var(--ink-2)] flex-1">{BN[k] ?? k}</span>
+                  <span className="text-[10px] text-[var(--ink-3)]">{lid}</span>
+                  <span className="text-xs font-mono font-bold" style={{ color: sc }}>{v.toFixed(1)}</span>
+                </div>
                 {note && (
-                  <span className="text-[10px] text-[var(--ink-3)] cursor-help" title={note}>&#9998;</span>
+                  <div className="text-[10px] italic text-[var(--ink-3)] pl-4 mt-0.5">✏ {note}</div>
                 )}
-                <span className="text-[10px] text-[var(--ink-3)]">{lid}</span>
-                <span className="text-xs font-mono font-bold" style={{ color: sc }}>{v.toFixed(1)}</span>
               </div>
             )
           })
