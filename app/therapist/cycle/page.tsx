@@ -12,6 +12,7 @@ import { readFrozenGoal, readAssessmentBlockNotes } from '@/app/therapist/action
 import { LogoSVG } from '@/components/LogoSVG'
 import LayerProgressionChart from '@/components/charts/LayerProgressionChart'
 import { getLayerProgressionByCycle, getLatestAssessment } from '@/lib/supabase/migrations'
+import { runEngine, getScore } from '@/lib/engine'
 
 export const dynamic = 'force-dynamic'
 
@@ -275,6 +276,16 @@ export default function CyclePage() {
   const source = data.baseline_source || 'behavioral'
   const isClinical = source === 'clinical'
 
+  // Goal badge — same pattern as report/page.tsx:169
+  const toNum = (blocks: Record<string, unknown>): Record<string, number> =>
+    Object.fromEntries(Object.entries(blocks).map(([k, v]) => [k, getScore(v)]))
+  const bBlocks = frozenBaseline ?? data.baseline_blocks ?? {}
+  const tBlocks = frozenTarget ?? data.target_blocks ?? {}
+  const hasTarget = Object.keys(tBlocks).length > 0
+  const goalEngine = hasTarget ? runEngine({ ...toNum(bBlocks), ...toNum(tBlocks) }) : null
+  const goalTotal = goalEngine?.total ?? null
+  const goalStage = goalEngine?.stage ?? null
+
   const ready = form.cycleName.trim().length > 0 && form.startDate.length > 0
 
   return (
@@ -332,8 +343,21 @@ export default function CyclePage() {
             style={{ background: 'var(--navy)', borderRadius: 4, padding: '4px 10px', marginLeft: 8 }}
           >
             <div style={{ fontSize: 8, fontWeight: 700, letterSpacing: '.1em', textTransform: 'uppercase', color: 'rgba(255,255,255,.5)' }}>Stage</div>
-            <div style={{ fontFamily: MONO, fontSize: 16, fontWeight: 700, color: '#fff', lineHeight: 1 }}>{baselineStage}</div>
+            <div style={{ fontFamily: MONO, fontSize: 16, fontWeight: 700, color: '#fff', lineHeight: 1 }}>
+              {goalStage && goalStage !== baselineStage ? `${baselineStage}→${goalStage}` : baselineStage}
+            </div>
           </div>
+
+          {/* Goal badge */}
+          {goalTotal !== null && (
+            <div
+              className="flex flex-col items-center"
+              style={{ background: 'var(--gold-bg)', border: '1px solid var(--gold-bd)', borderRadius: 4, padding: '4px 10px', marginLeft: 8 }}
+            >
+              <div style={{ fontSize: 8, fontWeight: 700, letterSpacing: '.1em', textTransform: 'uppercase', color: 'var(--gold)' }}>Goal</div>
+              <div style={{ fontFamily: MONO, fontSize: 16, fontWeight: 700, color: 'var(--gold)', lineHeight: 1 }}>{goalTotal.toFixed(1)}</div>
+            </div>
+          )}
         </div>
 
         {/* Signal strip */}
