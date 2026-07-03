@@ -47,7 +47,7 @@ export async function POST(request: NextRequest) {
     const allowed: Record<string, unknown> = {}
 
     if (patch.full_name !== undefined) allowed.full_name = String(patch.full_name).trim()
-    if (patch.phone !== undefined) allowed.phone = String(patch.phone).trim() || null
+    if (patch.phone !== undefined) allowed.phone = String(patch.phone).trim().replace(/[\s\-\.]/g, '') || null
     if (patch.status !== undefined) {
       if (!['active', 'inactive'].includes(patch.status)) {
         return NextResponse.json({ error: 'status phải là active hoặc inactive' }, { status: 400 })

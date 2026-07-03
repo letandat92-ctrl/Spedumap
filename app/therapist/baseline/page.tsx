@@ -74,6 +74,8 @@ export default function BaselinePage() {
 
   // Parent lookup state (X1)
   const [parentLookupStatus, setParentLookupStatus] = useState<'idle' | 'loading' | 'found' | 'not_found'>('idle')
+  const [matchedEmail, setMatchedEmail] = useState('')
+  const [matchedPhone, setMatchedPhone] = useState('')
 
   // 1d: Pyramid modal
   const [pyramidOpen, setPyramidOpen] = useState(false)
@@ -155,8 +157,8 @@ export default function BaselinePage() {
 
   // X1: Lookup parent on Enter — query user_profiles by email OR phone (1 field đủ)
   async function lookupParent() {
-    const email = meta.parentEmail.trim()
-    const phone = meta.parentPhone.trim()
+    const email = meta.parentEmail.trim().toLowerCase()
+    const phone = meta.parentPhone.trim().replace(/[\s\-\.]/g, '')
     if (!email && !phone) return          // cả 2 rỗng mới bỏ qua
     setParentLookupStatus('loading')
     // Build OR filter — chỉ push field nào có giá trị
@@ -175,9 +177,13 @@ export default function BaselinePage() {
       setMetaField('parentName', data.full_name ?? '')
       if (data.email) setMetaField('parentEmail', data.email)
       if (data.phone) setMetaField('parentPhone', data.phone)
+      setMatchedEmail(data.email ?? '')
+      setMatchedPhone(data.phone ?? '')
       setParentLookupStatus('found')
     } else {
       setMetaField('parentId', null)
+      setMatchedEmail('')
+      setMatchedPhone('')
       setParentLookupStatus('not_found')
     }
   }
@@ -193,6 +199,8 @@ export default function BaselinePage() {
     // If child already linked to a parent user, pre-fill parentId (skip lookup wait)
     if (c.parent_id) {
       setMetaField('parentId', c.parent_id)
+      setMatchedEmail(c.parent_email ?? '')
+      setMatchedPhone(c.parent_phone ?? '')
       setParentLookupStatus('found')
     }
     setChildDropdownOpen(false)
@@ -563,9 +571,11 @@ export default function BaselinePage() {
                 value={meta.parentPhone}
                 onChange={e => {
                   setMetaField('parentPhone', e.target.value)
-                  setMetaField('parentId', null)
-                  setMetaField('parentName', '')
-                  setParentLookupStatus('idle')
+                  if (parentLookupStatus === 'found' && e.target.value !== matchedPhone) {
+                    setMetaField('parentId', null)
+                    setMetaField('parentName', '')
+                    setParentLookupStatus('idle')
+                  }
                 }}
                 onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); lookupParent() } }}
                 className="w-full h-8 px-2 text-sm border border-[var(--rule)] rounded focus:outline-none focus:border-[var(--navy)]"
@@ -624,9 +634,11 @@ export default function BaselinePage() {
               value={meta.parentEmail}
               onChange={e => {
                 setMetaField('parentEmail', e.target.value)
-                setMetaField('parentId', null)
-                setMetaField('parentName', '')
-                setParentLookupStatus('idle')
+                if (parentLookupStatus === 'found' && e.target.value !== matchedEmail) {
+                  setMetaField('parentId', null)
+                  setMetaField('parentName', '')
+                  setParentLookupStatus('idle')
+                }
               }}
               onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); lookupParent() } }}
               className={`w-full h-8 px-2 text-sm border rounded focus:outline-none ${

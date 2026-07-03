@@ -24,8 +24,8 @@ export async function POST(request: NextRequest) {
 
     const body = await request.json()
     const action = String(body?.action ?? '')
-    const email  = (body?.email ?? '').trim()
-    const phone  = (body?.phone ?? '').trim()
+    const email  = String(body?.email ?? '').trim().toLowerCase()
+    const phone  = String(body?.phone ?? '').trim().replace(/[\s\-\.]/g, '')
 
     const admin = createAdminClient()
 

@@ -27,8 +27,11 @@ export async function POST(request: NextRequest) {
 
     const callerRole = profile?.role ?? ''
 
-    // Parse request body
-    const { email, role, full_name, phone } = await request.json()
+    // Parse request body + normalize identity fields
+    const body = await request.json()
+    const { role, full_name } = body
+    const email = String(body.email ?? '').trim().toLowerCase()
+    const phone = String(body.phone ?? '').replace(/[\s\-\.]/g, '') || null
 
     if (!email || !role) {
       return NextResponse.json({ error: 'email và role là bắt buộc' }, { status: 400 })
@@ -43,7 +46,7 @@ export async function POST(request: NextRequest) {
       if (!can(callerRole, 'create_parent')) {
         return NextResponse.json({ error: 'Forbidden — create_parent required' }, { status: 403 })
       }
-      if (!String(phone ?? '').trim()) {
+      if (!phone) {
         return NextResponse.json({ error: 'SĐT bắt buộc cho phụ huynh' }, { status: 400 })
       }
       const adminClient = createAdminClient()
