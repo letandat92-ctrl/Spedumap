@@ -253,7 +253,7 @@ export async function recordGoalForecast(
 // ══════════════════════════════════════════════════════════════════════════════
 export async function readFrozenGoal(
   cycleId: string,
-): Promise<{ baseline_snapshot: Record<string, number>; block_target: Record<string, unknown> } | null> {
+): Promise<{ baseline_snapshot: Record<string, number>; block_target: Record<string, unknown> | null } | null> {
   try {
     const supabase = await createClient()
     const { data, error } = await supabase
@@ -265,7 +265,8 @@ export async function readFrozenGoal(
     if (error || !data?.length) return null
     const row = data[0] as { baseline_snapshot: Record<string, number> | null; block_target: Record<string, unknown> | null }
     if (!row.baseline_snapshot) return null
-    return { baseline_snapshot: row.baseline_snapshot, block_target: row.block_target ?? {} }
+    const bt = row.block_target && Object.keys(row.block_target).length ? row.block_target : null
+    return { baseline_snapshot: row.baseline_snapshot, block_target: bt }
   } catch {
     return null
   }
