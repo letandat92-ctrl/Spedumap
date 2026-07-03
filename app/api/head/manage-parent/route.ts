@@ -35,13 +35,17 @@ export async function POST(request: NextRequest) {
       const filters: string[] = []
       if (email) filters.push(`email.eq.${email}`)
       if (phone) filters.push(`phone.eq.${phone}`)
-      const { data: rows } = await admin
+      const { data: rows, error: lookupErr } = await admin
         .from('user_profiles')
         .select('id, email, full_name, phone, role')
         .or(filters.join(','))
         .eq('role', 'parent')
         .eq('status', 'active')
         .limit(1)
+      if (lookupErr) {
+        console.error('[manage-parent lookup]', lookupErr)
+        return NextResponse.json({ error: 'Lỗi tra cứu phụ huynh' }, { status: 500 })
+      }
       const parent = rows?.[0] ?? null
       return NextResponse.json({ found: !!parent, parent })
     }

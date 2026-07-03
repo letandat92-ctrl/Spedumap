@@ -73,7 +73,7 @@ export default function BaselinePage() {
   const [childLocked, setChildLocked] = useState(false)  // true when pre-selected via retest seed
 
   // Parent lookup state (X1)
-  const [parentLookupStatus, setParentLookupStatus] = useState<'idle' | 'loading' | 'found' | 'not_found'>('idle')
+  const [parentLookupStatus, setParentLookupStatus] = useState<'idle' | 'loading' | 'found' | 'not_found' | 'error'>('idle')
   const [matchedEmail, setMatchedEmail] = useState('')
   const [matchedPhone, setMatchedPhone] = useState('')
 
@@ -165,13 +165,18 @@ export default function BaselinePage() {
     const conditions: string[] = []
     if (email) conditions.push(`email.eq.${email}`)
     if (phone) conditions.push(`phone.eq.${phone}`)
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from('user_profiles')
       .select('id, full_name, email, phone')
       .eq('role', 'parent')
       .eq('status', 'active')
       .or(conditions.join(','))
-      .maybeSingle()                      // trả null (không lỗi) khi 0 rows
+      .maybeSingle()
+    if (error) {
+      console.error('[lookup]', error)
+      setParentLookupStatus('error')
+      return
+    }
     if (data) {
       setMetaField('parentId', data.id)
       setMetaField('parentName', data.full_name ?? '')
@@ -578,7 +583,11 @@ export default function BaselinePage() {
                   }
                 }}
                 onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); lookupParent() } }}
-                className="w-full h-8 px-2 text-sm border border-[var(--rule)] rounded focus:outline-none focus:border-[var(--navy)]"
+                className={`w-full h-8 px-2 text-sm border rounded focus:outline-none ${
+                  parentLookupStatus === 'error'
+                    ? 'border-[var(--red)] focus:border-[var(--red)]'
+                    : 'border-[var(--rule)] focus:border-[var(--navy)]'
+                }`}
                 placeholder="0909... rồi Enter"
               />
             </div>
@@ -642,11 +651,13 @@ export default function BaselinePage() {
               }}
               onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); lookupParent() } }}
               className={`w-full h-8 px-2 text-sm border rounded focus:outline-none ${
-                parentLookupStatus === 'found'
-                  ? 'border-[var(--green)] focus:border-[var(--green)]'
-                  : parentLookupStatus === 'not_found' && (meta.parentEmail.trim() || meta.parentPhone.trim())
-                    ? 'border-[var(--gold)] focus:border-[var(--gold)]'
-                    : 'border-[var(--rule)] focus:border-[var(--navy)]'
+                parentLookupStatus === 'error'
+                  ? 'border-[var(--red)] focus:border-[var(--red)]'
+                  : parentLookupStatus === 'found'
+                    ? 'border-[var(--green)] focus:border-[var(--green)]'
+                    : parentLookupStatus === 'not_found' && (meta.parentEmail.trim() || meta.parentPhone.trim())
+                      ? 'border-[var(--gold)] focus:border-[var(--gold)]'
+                      : 'border-[var(--rule)] focus:border-[var(--navy)]'
               }`}
               placeholder="parent@email.com rồi Enter"
             />
@@ -658,6 +669,9 @@ export default function BaselinePage() {
             )}
             {parentLookupStatus === 'not_found' && (meta.parentEmail.trim() || meta.parentPhone.trim()) && (
               <div className="mt-1 text-[11px] text-[var(--gold)]">Phụ huynh chưa có hồ sơ — tạo ở Lễ tân/Admin trước</div>
+            )}
+            {parentLookupStatus === 'error' && (
+              <div className="mt-1 text-[11px] text-[var(--red)]">Lỗi tra cứu — thử lại</div>
             )}
           </div>
 
