@@ -1,0 +1,733 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Báo Cáo — Development Pyramid Scoring Engine v2</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Source+Serif+4:ital,wght@0,300;0,400;0,600;1,300&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --ink:      #1A1410;
+  --red:      #9B1B1B;
+  --red-lt:   #C0392B;
+  --gold:     #B8860B;
+  --bg:       #FAF8F4;
+  --paper:    #FFFFFF;
+  --rule:     #E4DDD4;
+  --sub:      #7A7268;
+  --warn-bg:  #FFF8EE;
+  --warn-bdr: #D4A020;
+  --good-bg:  #F0FBF4;
+  --good-bdr: #2A7A50;
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: 'Source Serif 4', Georgia, serif;
+  background: var(--bg);
+  color: var(--ink);
+  font-size: 14px;
+  line-height: 1.8;
+}
+
+/* ── PAGE ── */
+.page {
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 48px 40px 80px;
+}
+
+/* ── HEADER ── */
+.doc-header {
+  border-top: 4px solid var(--red);
+  border-bottom: 1px solid var(--rule);
+  padding: 32px 0 24px;
+  margin-bottom: 40px;
+}
+
+.doc-meta {
+  display: flex; justify-content: space-between; align-items: flex-start;
+  margin-bottom: 16px;
+}
+
+.doc-label {
+  font-size: 10px; font-weight: 600; letter-spacing: .18em;
+  text-transform: uppercase; color: var(--red);
+  font-family: 'Source Serif 4', serif;
+}
+
+.doc-date {
+  font-size: 11px; color: var(--sub); letter-spacing: .04em;
+}
+
+.doc-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 38px; font-weight: 900;
+  line-height: 1.1; color: var(--ink);
+  margin-bottom: 10px;
+}
+
+.doc-title em {
+  font-style: italic; color: var(--red);
+}
+
+.doc-subtitle {
+  font-size: 13px; color: var(--sub);
+  font-style: italic; letter-spacing: .02em;
+}
+
+/* ── SECTION ── */
+.section {
+  margin-bottom: 44px;
+}
+
+.section-label {
+  display: flex; align-items: center; gap: 12px;
+  margin-bottom: 18px;
+}
+
+.section-num {
+  font-family: 'Playfair Display', serif;
+  font-size: 11px; font-weight: 700;
+  color: var(--paper); background: var(--red);
+  border-radius: 50%; width: 24px; height: 24px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; letter-spacing: 0;
+}
+
+.section-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 20px; font-weight: 700;
+  color: var(--ink); letter-spacing: .01em;
+}
+
+/* ── PROSE ── */
+p { margin-bottom: 12px; color: #2A2420; }
+p:last-child { margin-bottom: 0; }
+
+strong { font-weight: 600; color: var(--ink); }
+
+/* ── LAYER TABLE ── */
+.layer-table {
+  width: 100%; border-collapse: collapse;
+  margin: 16px 0 8px;
+  font-size: 12.5px;
+}
+
+.layer-table th {
+  font-size: 9.5px; font-weight: 600; letter-spacing: .1em;
+  text-transform: uppercase; color: var(--sub);
+  border-bottom: 2px solid var(--rule);
+  padding: 6px 10px 8px; text-align: left;
+  font-family: 'Source Serif 4', serif;
+}
+
+.layer-table td {
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--rule);
+  vertical-align: top;
+  line-height: 1.5;
+}
+
+.layer-table tr:last-child td { border-bottom: none; }
+.layer-table tr:hover td { background: #F5F1EB; }
+
+.layer-code {
+  font-family: 'Courier New', monospace;
+  font-size: 11px; font-weight: 700;
+  color: var(--red);
+  background: #FDF0EE;
+  border: 1px solid #EDD0CC;
+  border-radius: 3px;
+  padding: 1px 5px;
+  white-space: nowrap;
+}
+
+.weight-bar {
+  display: inline-block;
+  height: 6px; border-radius: 3px;
+  background: var(--red); opacity: .7;
+  vertical-align: middle; margin-right: 6px;
+}
+
+/* ── FLOW DIAGRAM ── */
+.flow {
+  display: flex; flex-direction: column; gap: 0;
+  margin: 16px 0;
+  border: 1px solid var(--rule);
+  border-radius: 8px; overflow: hidden;
+}
+
+.flow-step {
+  display: grid;
+  grid-template-columns: 36px 1fr;
+  border-bottom: 1px solid var(--rule);
+}
+.flow-step:last-child { border-bottom: none; }
+
+.flow-num {
+  background: var(--ink); color: #fff;
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Playfair Display', serif;
+  font-size: 13px; font-weight: 700;
+}
+
+.flow-content {
+  padding: 12px 16px;
+  background: var(--paper);
+}
+
+.flow-title {
+  font-weight: 600; font-size: 13px;
+  color: var(--ink); margin-bottom: 3px;
+}
+
+.flow-desc {
+  font-size: 12px; color: var(--sub);
+  line-height: 1.5;
+}
+
+.flow-formula {
+  font-family: 'Courier New', monospace;
+  font-size: 11px;
+  background: #F5F1EB;
+  border-left: 3px solid var(--gold);
+  padding: 4px 10px;
+  margin-top: 6px;
+  color: #4A3A20;
+  border-radius: 0 3px 3px 0;
+}
+
+/* ── PROFILE CARDS ── */
+.profile-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin: 16px 0;
+}
+
+.profile-card {
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+  padding: 12px 14px;
+  background: var(--paper);
+}
+
+.profile-name {
+  font-family: 'Courier New', monospace;
+  font-size: 10.5px; font-weight: 700;
+  color: var(--red); margin-bottom: 4px;
+  letter-spacing: .03em;
+}
+
+.profile-cond {
+  font-size: 11px; color: var(--sub);
+  border-top: 1px solid var(--rule);
+  margin-top: 6px; padding-top: 6px;
+  line-height: 1.5;
+}
+
+/* ── CALLOUT ── */
+.callout {
+  border-radius: 6px; padding: 14px 18px;
+  margin: 14px 0; line-height: 1.7;
+  font-size: 13px;
+}
+
+.callout.warn {
+  background: var(--warn-bg);
+  border-left: 3px solid var(--warn-bdr);
+}
+
+.callout.good {
+  background: var(--good-bg);
+  border-left: 3px solid var(--good-bdr);
+}
+
+.callout.note {
+  background: #F5F1EB;
+  border-left: 3px solid var(--gold);
+}
+
+.callout-title {
+  font-size: 10px; font-weight: 600; letter-spacing: .12em;
+  text-transform: uppercase; margin-bottom: 5px;
+}
+
+.callout.warn .callout-title { color: var(--warn-bdr); }
+.callout.good .callout-title { color: var(--good-bdr); }
+.callout.note .callout-title { color: var(--gold); }
+
+/* ── QUESTIONS ── */
+.q-list { display: flex; flex-direction: column; gap: 14px; margin-top: 4px; }
+
+.q-item {
+  background: var(--paper);
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+  padding: 14px 18px;
+  position: relative;
+}
+
+.q-item::before {
+  content: "?";
+  position: absolute; top: 14px; right: 16px;
+  font-family: 'Playfair Display', serif;
+  font-size: 28px; font-weight: 900;
+  color: var(--rule); line-height: 1;
+}
+
+.q-tag {
+  font-size: 9.5px; font-weight: 600; letter-spacing: .12em;
+  text-transform: uppercase; color: var(--red);
+  margin-bottom: 5px;
+  font-family: 'Source Serif 4', serif;
+}
+
+.q-text {
+  font-size: 13px; color: var(--ink);
+  font-weight: 600; line-height: 1.5;
+  margin-bottom: 4px;
+}
+
+.q-context {
+  font-size: 11.5px; color: var(--sub);
+  line-height: 1.5;
+}
+
+.q-answer-box {
+  margin-top: 10px; padding-top: 10px;
+  border-top: 1px dashed var(--rule);
+  min-height: 28px;
+  font-size: 12px; color: #aaa; font-style: italic;
+}
+
+/* ── STAGE BOX ── */
+.stage-diagram {
+  display: flex; flex-direction: column-reverse;
+  gap: 4px; margin: 16px 0;
+}
+
+.stage-row {
+  display: flex; align-items: center; gap: 10px;
+}
+
+.stage-bar {
+  height: 28px; border-radius: 3px;
+  display: flex; align-items: center; padding: 0 12px;
+  font-size: 11px; font-weight: 600; letter-spacing: .04em;
+  color: #fff; white-space: nowrap;
+  transition: width .3s;
+}
+
+.stage-label {
+  font-size: 11px; color: var(--sub); width: 160px; flex-shrink: 0;
+  line-height: 1.3;
+}
+
+.stage-rule {
+  font-size: 10.5px; color: var(--sub);
+  font-style: italic; flex: 1;
+}
+
+/* ── FOOTER ── */
+.doc-footer {
+  border-top: 1px solid var(--rule);
+  margin-top: 48px; padding-top: 20px;
+  display: flex; justify-content: space-between; align-items: center;
+}
+
+.footer-note {
+  font-size: 10.5px; color: var(--sub);
+  font-style: italic;
+}
+
+.footer-badge {
+  font-size: 9px; font-weight: 600; letter-spacing: .12em;
+  text-transform: uppercase; color: var(--red);
+  border: 1px solid var(--red); border-radius: 2px;
+  padding: 3px 8px;
+}
+
+@media print {
+  body { background: white; }
+  .page { padding: 20px; }
+}
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- ── HEADER ── -->
+  <div class="doc-header">
+    <div class="doc-meta">
+      <div class="doc-label">Tài liệu nội bộ · Để xét duyệt</div>
+      <div class="doc-date">Ngày: _____ / _____ / 2025</div>
+    </div>
+    <div class="doc-title">Development Pyramid<br><em>Scoring Engine v2</em></div>
+    <div class="doc-subtitle">Tóm tắt logic hệ thống · Câu hỏi cần xác nhận từ cấp quản lý</div>
+  </div>
+
+  <!-- ── SECTION 1: TỔNG QUAN ── -->
+  <div class="section">
+    <div class="section-label">
+      <div class="section-num">1</div>
+      <div class="section-title">Tổng quan hệ thống</div>
+    </div>
+
+    <p>
+      Scoring Engine là một hệ thống tính điểm cho <strong>Kim Tự Tháp Phát Triển</strong> gồm 8 tầng (L0–L7),
+      từ nền tảng sinh học đến kỹ năng học thuật. Mỗi tầng chứa nhiều <em>block</em> nhỏ, mỗi block được nhập điểm từ <strong>0 đến 4</strong>.
+    </p>
+    <p>
+      Hệ thống <strong>không chỉ cộng điểm đơn giản</strong> — nó tự điều chỉnh trọng số dựa vào điểm yếu cụ thể
+      của từng trường hợp (Dynamic Weighting), và áp dụng cơ chế <em>Layer Lock</em> để phản ánh thực tế:
+      nếu nền tảng yếu thì các tầng trên dù cao cũng bị ảnh hưởng.
+    </p>
+
+    <div class="callout good">
+      <div class="callout-title">✦ Mục tiêu của engine</div>
+      Tạo ra điểm số <strong>cá nhân hóa</strong> — không so sánh người này với người khác theo thang cố định,
+      mà phản ánh đúng <em>bottleneck thực sự</em> của từng hồ sơ phát triển.
+    </div>
+  </div>
+
+  <!-- ── SECTION 2: CẤU TRÚC 8 TẦNG ── -->
+  <div class="section">
+    <div class="section-label">
+      <div class="section-num">2</div>
+      <div class="section-title">Cấu trúc 8 tầng & trọng số</div>
+    </div>
+
+    <p>Mỗi tầng có <strong>trọng số điểm tối đa</strong> khác nhau — tổng cộng là <strong>100 điểm</strong>. Tầng nền tảng (L0) có giá trị cao nhất vì ảnh hưởng đến toàn bộ tháp.</p>
+
+    <table class="layer-table">
+      <thead>
+        <tr>
+          <th>Tầng</th>
+          <th>Tên tầng</th>
+          <th>Điểm tối đa</th>
+          <th>Trọng số</th>
+          <th>Các block chính</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="layer-code">L0</span></td>
+          <td>Prenatal &amp; Nutritional</td>
+          <td>18 pts</td>
+          <td><span class="weight-bar" style="width:72px"></span>18%</td>
+          <td>Sleep, Gut, Nutrition, Immune, Metabolic</td>
+        </tr>
+        <tr>
+          <td><span class="layer-code">L1</span></td>
+          <td>Neuro Reflexes &amp; Regulation</td>
+          <td>16 pts</td>
+          <td><span class="weight-bar" style="width:64px"></span>16%</td>
+          <td>Arousal, Primitive Reflex, Muscle Tone, NS Stability</td>
+        </tr>
+        <tr>
+          <td><span class="layer-code">L2</span></td>
+          <td>Sensory Systems</td>
+          <td>14 pts</td>
+          <td><span class="weight-bar" style="width:56px"></span>14%</td>
+          <td>Vestibular, Proprioception, Auditory, Visual, Tactile, Interoception, Taste/Smell</td>
+        </tr>
+        <tr>
+          <td><span class="layer-code">L3</span></td>
+          <td>Motor</td>
+          <td>12 pts</td>
+          <td><span class="weight-bar" style="width:48px"></span>12%</td>
+          <td>Motor Planning, Gross Motor, Fine Motor, Postural Control, Bilateral Coord.</td>
+        </tr>
+        <tr>
+          <td><span class="layer-code">L4</span></td>
+          <td>Sensory Processing / Perceptual Motor</td>
+          <td>12 pts</td>
+          <td><span class="weight-bar" style="width:48px"></span>12%</td>
+          <td>Attention Focus (35%), Auditory Processing (30%), Visual Processing (30%), WM Link (5%)</td>
+        </tr>
+        <tr>
+          <td><span class="layer-code">L5</span></td>
+          <td>Communication Skills</td>
+          <td>10 pts</td>
+          <td><span class="weight-bar" style="width:40px"></span>10%</td>
+          <td>Oral Language, Word Finding, Phonemic Awareness, Auditory Memory, Visual Memory</td>
+        </tr>
+        <tr>
+          <td><span class="layer-code">L6</span></td>
+          <td>Life Management</td>
+          <td>10 pts</td>
+          <td><span class="weight-bar" style="width:40px"></span>10%</td>
+          <td>Self-Control, Behavior, Social Skills, Daily Living</td>
+        </tr>
+        <tr>
+          <td><span class="layer-code">L7</span></td>
+          <td>Academics</td>
+          <td>8 pts</td>
+          <td><span class="weight-bar" style="width:32px"></span>8%</td>
+          <td>Math, Writing, Reading</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="callout note">
+      <div class="callout-title">⚠ Lưu ý hiện tại</div>
+      L3, L5, L6, L7 chưa có trọng số riêng từng block — đang dùng <strong>equal weights tạm thời</strong>
+      (mỗi block chia đều). Cần xác nhận từ chuyên gia để có trọng số chính xác.
+    </div>
+  </div>
+
+  <!-- ── SECTION 3: QUY TRÌNH TÍNH ĐIỂM ── -->
+  <div class="section">
+    <div class="section-label">
+      <div class="section-num">3</div>
+      <div class="section-title">Quy trình tính điểm (5 bước)</div>
+    </div>
+
+    <div class="flow">
+      <div class="flow-step">
+        <div class="flow-num">1</div>
+        <div class="flow-content">
+          <div class="flow-title">Tính điểm thô từng tầng</div>
+          <div class="flow-desc">Nhân điểm từng block với trọng số của nó, cộng lại → ra điểm tầng (0–4).</div>
+          <div class="flow-formula">Layer Score = Σ (block_score × block_weight)</div>
+        </div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-num">2</div>
+        <div class="flow-content">
+          <div class="flow-title">Xác định Profile</div>
+          <div class="flow-desc">
+            Dựa vào điểm thô, hệ thống xếp người dùng vào 1 trong 4 nhóm profile để chuẩn bị điều chỉnh trọng số.
+            (Chi tiết xem Mục 4)
+          </div>
+        </div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-num">3</div>
+        <div class="flow-content">
+          <div class="flow-title">Dynamic Weighting — Điều chỉnh trọng số theo profile</div>
+          <div class="flow-desc">
+            Trọng số một số block được tăng/giảm tùy profile, sau đó tính lại điểm tầng. 
+            Đây là điểm khác biệt lớn nhất so với hệ thống tính điểm thông thường.
+          </div>
+          <div class="flow-formula">
+            Ví dụ: profile = sensorimotor_dominant → reflex weight ×1.3, vestibular weight ×1.2
+          </div>
+        </div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-num">4</div>
+        <div class="flow-content">
+          <div class="flow-title">Layer Lock — Khóa tầng khi nền yếu</div>
+          <div class="flow-desc">
+            Nếu tầng bên dưới điểm thấp, tầng phía trên bị nhân hệ số giảm — phản ánh thực tế nền tảng ảnh hưởng đến toàn bộ tháp.
+          </div>
+          <div class="flow-formula">
+            Tầng dưới &lt; 1.5 → tầng trên × 0.4 &nbsp;|&nbsp; Tầng dưới &lt; 2.0 → tầng trên × 0.7
+          </div>
+        </div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-num">5</div>
+        <div class="flow-content">
+          <div class="flow-title">Tổng điểm & Stage</div>
+          <div class="flow-desc">Quy đổi điểm từng tầng về thang 100 điểm. Stage là tầng cao nhất đạt ngưỡng ổn định.</div>
+          <div class="flow-formula">
+            Total = Σ (layer_score / 4.0) × layer_weight &nbsp;|&nbsp; Stage = tầng cao nhất ≥ 2.5 và tầng dưới ≥ 2.0
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── SECTION 4: PROFILE ── -->
+  <div class="section">
+    <div class="section-label">
+      <div class="section-num">4</div>
+      <div class="section-title">4 loại Profile</div>
+    </div>
+
+    <p>Hệ thống tự phân loại hồ sơ để điều chỉnh trọng số cho phù hợp. <strong>Không phải nhãn chẩn đoán</strong> — chỉ là cơ chế kỹ thuật để cá nhân hóa tính điểm.</p>
+
+    <div class="profile-grid">
+      <div class="profile-card">
+        <div class="profile-name">sensorimotor_dominant</div>
+        <p style="font-size:12px;color:#333;margin-bottom:0">Nền tảng cảm giác/vận động yếu — các tầng trên bị ảnh hưởng đáng kể.</p>
+        <div class="profile-cond">Điều kiện: L2 &lt; 2.0 <em>hoặc</em> L3 &lt; 2.0<br>→ Tăng trọng số: Reflex, Vestibular, Proprioception</div>
+      </div>
+      <div class="profile-card">
+        <div class="profile-name">cognitive_dominant</div>
+        <p style="font-size:12px;color:#333;margin-bottom:0">Chức năng nhận thức cao, nền tảng tương đối ổn định.</p>
+        <div class="profile-cond">Điều kiện: L4 ≥ 2.5 <em>và</em> L5 ≥ 2.5<br>→ Giảm nhẹ trọng số sensory, tăng nhẹ Attention</div>
+      </div>
+      <div class="profile-card">
+        <div class="profile-name">regulation_dominant</div>
+        <p style="font-size:12px;color:#333;margin-bottom:0">Hệ thần kinh mất ổn định là bottleneck chính.</p>
+        <div class="profile-cond">Điều kiện: L1 &lt; 2.0<br>→ Tăng trọng số: Arousal, Sleep, Attention</div>
+      </div>
+      <div class="profile-card">
+        <div class="profile-name">mixed</div>
+        <p style="font-size:12px;color:#333;margin-bottom:0">Không có bottleneck rõ ràng — hồ sơ hỗn hợp.</p>
+        <div class="profile-cond">Điều kiện: Không rơi vào 3 loại trên<br>→ Giữ nguyên trọng số gốc</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── SECTION 5: STAGE ── -->
+  <div class="section">
+    <div class="section-label">
+      <div class="section-num">5</div>
+      <div class="section-title">Cách tính Stage</div>
+    </div>
+
+    <p>
+      Stage <strong>không phải</strong> tầng có điểm cao nhất. Stage là <strong>tầng cao nhất mà toàn bộ nền bên dưới đủ vững</strong> — giống như leo thang, không thể bỏ bậc.
+    </p>
+
+    <div class="stage-diagram">
+      <div class="stage-row">
+        <div class="stage-bar" style="width:260px;background:#3A5AAA">L7 — Academics</div>
+        <div class="stage-rule">Cần L6 ≥ 2.0 <em>và</em> bản thân ≥ 2.5</div>
+      </div>
+      <div class="stage-row">
+        <div class="stage-bar" style="width:240px;background:#2A6A9A">L6 — Life Management</div>
+        <div class="stage-rule">Cần L5 ≥ 2.0 <em>và</em> bản thân ≥ 2.5</div>
+      </div>
+      <div class="stage-row">
+        <div class="stage-bar" style="width:220px;background:#4A8A60">L5 — Communication</div>
+        <div class="stage-rule">Cần L4 ≥ 2.0 <em>và</em> bản thân ≥ 2.5</div>
+      </div>
+      <div class="stage-row">
+        <div class="stage-bar" style="width:200px;background:#C87020">L4 — Processing</div>
+        <div class="stage-rule">Cần L3 ≥ 2.0 <em>và</em> bản thân ≥ 2.5</div>
+      </div>
+      <div class="stage-row">
+        <div class="stage-bar" style="width:180px;background:#C55030">L3 — Motor</div>
+        <div class="stage-rule">Cần L2 ≥ 2.0 <em>và</em> bản thân ≥ 2.5</div>
+      </div>
+      <div class="stage-row">
+        <div class="stage-bar" style="width:160px;background:#B83030">L2 — Sensory</div>
+        <div class="stage-rule">Cần L1 ≥ 2.0 <em>và</em> bản thân ≥ 2.5</div>
+      </div>
+      <div class="stage-row">
+        <div class="stage-bar" style="width:140px;background:#A02020">L1 — Reflexes</div>
+        <div class="stage-rule">Cần L0 ≥ 2.0 <em>và</em> bản thân ≥ 2.5</div>
+      </div>
+      <div class="stage-row">
+        <div class="stage-bar" style="width:120px;background:#8B1A1A">L0 — Prenatal</div>
+        <div class="stage-rule">Tầng gốc — không cần điều kiện tầng dưới</div>
+      </div>
+    </div>
+
+    <div class="callout warn">
+      <div class="callout-title">⚠ Điểm cần lưu ý</div>
+      Logic hiện tại chỉ kiểm tra tầng <em>ngay bên dưới</em> (không kiểm tra toàn chuỗi).
+      Layer Lock đã bù đắp một phần — nhưng cần xác nhận đây có đúng với ý định thiết kế không.
+    </div>
+  </div>
+
+  <!-- ── SECTION 6: QUESTIONS ── -->
+  <div class="section">
+    <div class="section-label">
+      <div class="section-num">6</div>
+      <div class="section-title">Câu hỏi cần xác nhận từ chuyên gia / quản lý</div>
+    </div>
+
+    <p style="margin-bottom:16px">Các câu hỏi dưới đây ảnh hưởng trực tiếp đến độ chính xác của hệ thống. Cần có quyết định trước khi đưa vào sử dụng thực tế.</p>
+
+    <div class="q-list">
+
+      <div class="q-item">
+        <div class="q-tag">Câu hỏi 1 · Block Weights</div>
+        <div class="q-text">L3, L5, L6, L7 hiện đang dùng equal weights tạm thời — có số liệu chuyên môn để xác định trọng số cụ thể không?</div>
+        <div class="q-context">
+          Ví dụ: trong L3 (Motor), Motor Planning có quan trọng hơn Gross Motor không?
+          Trong L7 (Academics), Reading có nên chiếm trọng số cao hơn Math không?
+          Trọng số này ảnh hưởng trực tiếp đến điểm số cuối.
+        </div>
+        <div class="q-answer-box">Trả lời: _______________________________________________</div>
+      </div>
+
+      <div class="q-item">
+        <div class="q-tag">Câu hỏi 2 · Ngưỡng Layer Lock</div>
+        <div class="q-text">Ngưỡng Layer Lock (1.5 và 2.0) được xác định dựa trên cơ sở nào?</div>
+        <div class="q-context">
+          Hiện tại: tầng dưới &lt; 1.5 → tầng trên ×0.4 (giảm 60%) / tầng dưới &lt; 2.0 → tầng trên ×0.7 (giảm 30%).
+          Đây là heuristic hay có nghiên cứu lâm sàng hỗ trợ?
+          Nếu thay đổi ngưỡng này sẽ ảnh hưởng lớn đến điểm tổng.
+        </div>
+        <div class="q-answer-box">Trả lời: _______________________________________________</div>
+      </div>
+
+      <div class="q-item">
+        <div class="q-tag">Câu hỏi 3 · Thang điểm nhập liệu</div>
+        <div class="q-text">Điểm 0–4 từng block được định nghĩa như thế nào trong thực tế lâm sàng?</div>
+        <div class="q-context">
+          Ví dụ: 0 = không có / 4 = hoàn toàn bình thường?
+          Hay 0 = bình thường / 4 = rất nghiêm trọng?
+          Hướng của thang điểm ảnh hưởng đến cách đọc kết quả.
+          Cần có rubric chuẩn để người nhập liệu hiểu đúng.
+        </div>
+        <div class="q-answer-box">Trả lời: _______________________________________________</div>
+      </div>
+
+      <div class="q-item">
+        <div class="q-tag">Câu hỏi 4 · Ngưỡng Stage</div>
+        <div class="q-text">Ngưỡng Stage (≥ 2.5 để "đạt" tầng, tầng dưới ≥ 2.0) có hợp lý không?</div>
+        <div class="q-context">
+          Stage logic hiện tại chỉ check tầng ngay bên dưới — không kiểm tra toàn bộ chuỗi.
+          Có cần thắt chặt điều kiện (check tất cả tầng bên dưới) hay giữ nguyên?
+          Ngoài ra: ý nghĩa thực tế của từng Stage là gì để báo cáo với phụ huynh / giáo viên?
+        </div>
+        <div class="q-answer-box">Trả lời: _______________________________________________</div>
+      </div>
+
+      <div class="q-item">
+        <div class="q-tag">Câu hỏi 5 · Dynamic Weighting</div>
+        <div class="q-text">Hệ số điều chỉnh dynamic (×1.3, ×1.2, ×0.7…) được xác định từ đâu?</div>
+        <div class="q-context">
+          Ví dụ: profile sensorimotor_dominant → reflex weight ×1.3, vestibular ×1.2.
+          Đây là ước lượng ban đầu hay có dữ liệu thực nghiệm?
+          Nếu có dataset case thực, có thể calibrate lại các hệ số này chính xác hơn.
+        </div>
+        <div class="q-answer-box">Trả lời: _______________________________________________</div>
+      </div>
+
+      <div class="q-item">
+        <div class="q-tag">Câu hỏi 6 · Phân loại Profile</div>
+        <div class="q-text">4 profile hiện tại (sensorimotor, cognitive, regulation, mixed) có đủ bao quát các trường hợp thực tế chưa?</div>
+        <div class="q-context">
+          Các profile này dựa trên heuristic lâm sàng hay phân loại đã được kiểm chứng?
+          Có trường hợp nào rơi vào nhiều profile cùng lúc không?
+          Nếu có, hệ thống nên ưu tiên profile nào?
+        </div>
+        <div class="q-answer-box">Trả lời: _______________________________________________</div>
+      </div>
+
+      <div class="q-item">
+        <div class="q-tag">Câu hỏi 7 · Đầu ra & Ứng dụng</div>
+        <div class="q-text">Kết quả (Total Score, Stage, Profile) sẽ được sử dụng như thế nào trong thực tế?</div>
+        <div class="q-context">
+          Dùng để lập kế hoạch can thiệp? Theo dõi tiến triển theo thời gian? Báo cáo cho phụ huynh?
+          Trả lời câu này giúp xác định cần bổ sung tính năng gì vào UI (ví dụ: lưu lịch sử, in báo cáo, so sánh kỳ trước/sau).
+        </div>
+        <div class="q-answer-box">Trả lời: _______________________________________________</div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ── FOOTER ── -->
+  <div class="doc-footer">
+    <div class="footer-note">Tài liệu này được tạo tự động từ source code Scoring Engine v2 · Chỉ dùng nội bộ</div>
+    <div class="footer-badge">Để xét duyệt</div>
+  </div>
+
+</div>
+</body>
+</html>

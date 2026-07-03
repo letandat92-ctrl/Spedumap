@@ -1,0 +1,1481 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SPEDUMAP — Daily Session</title>
+<link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Source+Sans+3:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* ── VARIABLES ── */
+:root {
+  --navy:   #0D2240;
+  --navy-2: #1A3A6A;
+  --navy-3: #2A5A9A;
+  --red:    #B52020;
+  --red-bg: #FDF2F0;
+  --gold:   #8A6200;
+  --gold-bg:#FDF8EC;
+  --green:  #1A6A3A;
+  --green-bg:#EEF8F2;
+  --teal:   #0A6060;
+  --teal-bg:#EEF8F8;
+  --ink:    #111827;
+  --ink-2:  #374151;
+  --ink-3:  #6B7280;
+  --rule:   #E5E7EB;
+  --rule-2: #F3F4F6;
+  --paper:  #FFFFFF;
+  --bg:     #F9FAFB;
+
+  --s0:#C0392B;--s1:#C07010;--s2:#B08800;--s3:#2A7A4A;--s4:#1A6A3A;--s5:#0F5C30;--s6:#0A4A28;
+}
+
+/* ── RESET ── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+/* ── SCREEN BASE ── */
+body {
+  font-family: 'Source Sans 3', sans-serif;
+  font-size: 13px;
+  line-height: 1.5;
+  background: var(--bg);
+  color: var(--ink);
+}
+
+/* ── PAGE WRAPPER ── */
+.page {
+  width: 210mm;
+  min-height: 297mm;
+  margin: 12px auto;
+  background: var(--paper);
+  box-shadow: 0 2px 20px rgba(0,0,0,.12);
+  padding: 0;
+  position: relative;
+}
+
+/* ── HEADER ── */
+.doc-header {
+  background: var(--navy);
+  padding: 14px 20px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.doc-header-left h1 {
+  font-family: 'Libre Baskerville', serif;
+  font-size: 17px;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: .02em;
+}
+.doc-header-left .doc-sub {
+  font-size: 10px;
+  color: rgba(255,255,255,.6);
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  margin-top: 2px;
+}
+.doc-header-right {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.date-field {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: rgba(255,255,255,.8);
+}
+.date-val {
+  font-family: 'DM Mono', monospace;
+  font-size: 12px;
+  font-weight: 500;
+  color: #fff;
+  background: rgba(255,255,255,.15);
+  border: 1px solid rgba(255,255,255,.25);
+  border-radius: 4px;
+  padding: 3px 10px;
+}
+
+/* ── BODY ── */
+.doc-body { padding: 14px 20px 20px; }
+
+/* ── TWO-COL GRID ── */
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 10px; }
+.three-col { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+
+/* ── SECTION CARD ── */
+.card {
+  border: 1px solid var(--rule);
+  border-radius: 5px;
+  overflow: hidden;
+}
+.card-head {
+  background: var(--navy);
+  padding: 5px 11px;
+  font-family: 'Source Sans 3', sans-serif;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: #fff;
+}
+.card-body { padding: 10px 11px; }
+
+/* ── INFO GRID ── */
+.info-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px 14px;
+}
+.info-row {
+  display: flex;
+  align-items: baseline;
+  gap: 5px;
+  padding: 2px 0;
+  border-bottom: 1px solid var(--rule-2);
+  font-size: 11.5px;
+}
+.info-row:last-child { border-bottom: none; }
+.info-label {
+  color: var(--ink-3);
+  font-size: 10.5px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.info-label::after { content: ':'; }
+.info-val {
+  font-weight: 600;
+  color: var(--ink);
+  font-size: 11.5px;
+}
+
+/* ── SUMMARY PANEL ── */
+.summary-panel { background: var(--navy); border-radius: 5px; padding: 10px 12px; }
+.sp-row { display: flex; gap: 10px; align-items: flex-start; }
+.sp-kpi {
+  flex: 1;
+  background: rgba(255,255,255,.1);
+  border-radius: 4px;
+  padding: 8px 10px;
+  text-align: center;
+}
+.sp-kpi-label {
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,.6);
+  margin-bottom: 3px;
+}
+.sp-kpi-val {
+  font-family: 'Libre Baskerville', serif;
+  font-size: 22px;
+  font-weight: 700;
+  color: #fff;
+  line-height: 1;
+}
+.sp-kpi-sub { font-size: 10px; color: rgba(255,255,255,.5); margin-top: 2px; }
+
+/* Donut */
+.donut-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 70px;
+}
+.donut-svg { width: 60px; height: 60px; }
+.donut-pct {
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  font-weight: 700;
+  color: #fff;
+  margin-top: 3px;
+  text-align: center;
+}
+
+/* Baseline/target/delta chips */
+.sp-chips { display: flex; gap: 6px; margin-top: 8px; }
+.sp-chip {
+  flex: 1;
+  background: rgba(255,255,255,.08);
+  border: 1px solid rgba(255,255,255,.15);
+  border-radius: 4px;
+  padding: 6px 8px;
+  text-align: center;
+}
+.sp-chip-label { font-size: 9px; color: rgba(255,255,255,.55); letter-spacing: .06em; text-transform: uppercase; margin-bottom: 3px; }
+.sp-chip-val { font-family: 'DM Mono', monospace; font-size: 14px; font-weight: 700; color: #fff; }
+.sp-chip-val.delta { color: #6EE7A0; }
+
+/* ── LAYER TABLE ── */
+.layer-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 11px;
+}
+.layer-table th {
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: .07em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  border-bottom: 2px solid var(--rule);
+  padding: 5px 8px 6px;
+  text-align: left;
+  background: var(--rule-2);
+}
+.layer-table td {
+  padding: 5px 8px;
+  border-bottom: 1px solid var(--rule-2);
+  vertical-align: middle;
+}
+.layer-table tr:last-child td { border-bottom: none; }
+.layer-table tr:hover td { background: #FAFAFA; }
+
+.layer-dot {
+  display: inline-block;
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  margin-right: 5px;
+  vertical-align: middle;
+  flex-shrink: 0;
+}
+.layer-name { font-weight: 600; color: var(--ink); }
+
+.progress-cell { min-width: 80px; }
+.progress-bar-wrap { display: flex; align-items: center; gap: 5px; }
+.progress-bar {
+  flex: 1;
+  height: 7px;
+  background: var(--rule);
+  border-radius: 4px;
+  overflow: hidden;
+}
+.progress-fill { height: 100%; border-radius: 4px; }
+.progress-pct { font-family: 'DM Mono', monospace; font-size: 10px; font-weight: 700; width: 30px; text-align: right; }
+
+.num-cell { font-family: 'DM Mono', monospace; font-size: 11px; text-align: right; }
+.delta-pos { color: var(--green); font-weight: 700; }
+.delta-neg { color: var(--red); font-weight: 700; }
+
+/* ── REFERENCE ── */
+.ref-timeline { display: flex; flex-direction: column; gap: 4px; margin-top: 6px; }
+.ref-tl-item { display: flex; align-items: center; gap: 7px; font-size: 11px; padding: 3px 0; border-bottom: 1px solid var(--rule-2); }
+.ref-tl-item:last-child { border-bottom: none; font-weight: 600; color: var(--navy); }
+.ref-tl-date { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--ink-3); white-space: nowrap; width: 80px; }
+.ref-tl-label { flex: 1; color: var(--ink-2); }
+.ref-tl-score { font-family: 'DM Mono', monospace; font-size: 11px; font-weight: 700; color: var(--navy); }
+
+/* ── ACTIVITIES TABLE ── */
+.act-table { width: 100%; border-collapse: collapse; font-size: 11px; }
+.act-table th {
+  font-size: 9.5px; font-weight: 700; letter-spacing: .07em; text-transform: uppercase;
+  color: var(--ink-3); border-bottom: 2px solid var(--rule); padding: 5px 8px 6px; text-align: left;
+  background: var(--rule-2);
+}
+.act-table td { padding: 6px 8px; border-bottom: 1px solid var(--rule-2); vertical-align: top; }
+.act-table tr:last-child td { border-bottom: none; }
+.act-stt { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--ink-3); text-align: center; width: 24px; }
+.act-name { font-weight: 600; color: var(--ink); font-size: 11.5px; }
+.act-sub { font-size: 10px; color: var(--ink-3); margin-top: 1px; font-style: italic; }
+.layer-chip {
+  display: inline-flex; align-items: center; gap: 3px;
+  border-radius: 3px; padding: 2px 6px; font-size: 10px; font-weight: 600;
+  white-space: nowrap;
+}
+.act-delta { font-family: 'DM Mono', monospace; font-size: 12px; font-weight: 700; color: var(--green); text-align: center; }
+.act-focus { font-size: 11px; color: var(--ink-2); }
+.act-note { font-size: 10.5px; color: var(--ink-2); line-height: 1.5; }
+.act-note-highlight { font-style: italic; }
+
+/* Total row */
+.act-total td { background: var(--rule-2); font-weight: 700; border-top: 2px solid var(--rule); }
+
+/* Rating stars */
+.stars { display: flex; gap: 2px; }
+.star { font-size: 14px; }
+.star.on { color: #F59E0B; }
+.star.off { color: var(--rule); }
+
+/* ── EVALUATION TABLE ── */
+.eval-scale-header {
+  display: flex; gap: 0; margin-bottom: 6px;
+  border: 1px solid var(--rule); border-radius: 4px; overflow: hidden;
+}
+.esh-item {
+  flex: 1; text-align: center; padding: 4px 2px;
+  font-size: 9px; font-weight: 600; color: var(--ink-3);
+  border-right: 1px solid var(--rule); line-height: 1.3;
+}
+.esh-item:last-child { border-right: none; }
+.esh-item span { display: block; font-size: 8px; font-weight: 400; color: var(--ink-3); opacity: .7; }
+
+.eval-table { width: 100%; border-collapse: collapse; font-size: 11px; }
+.eval-table th {
+  font-size: 9.5px; font-weight: 700; letter-spacing: .07em; text-transform: uppercase;
+  color: var(--ink-3); border-bottom: 2px solid var(--rule); padding: 5px 8px 6px;
+  text-align: left; background: var(--rule-2);
+}
+.eval-table td { padding: 5px 8px; border-bottom: 1px solid var(--rule-2); vertical-align: middle; }
+.eval-table tr:last-child td { border-bottom: none; }
+.eval-goal { font-weight: 600; color: var(--navy-2); font-size: 11px; }
+.eval-desc { font-size: 10.5px; color: var(--ink-2); }
+.radio-row { display: flex; gap: 0; }
+.radio-cell {
+  flex: 1; height: 24px; display: flex; align-items: center; justify-content: center;
+  border: 1px solid var(--rule); margin-right: -1px; cursor: pointer;
+  font-family: 'DM Mono', monospace; font-size: 10px; font-weight: 600; color: var(--ink-3);
+  transition: all .1s;
+}
+.radio-cell.selected {
+  background: var(--navy);
+  color: #fff;
+  border-color: var(--navy);
+  z-index: 1;
+  border-radius: 3px;
+}
+
+/* ── NOTES ── */
+.notes-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.notes-box {
+  border: 1px solid var(--rule);
+  border-radius: 4px;
+  padding: 8px 10px;
+  min-height: 70px;
+  font-size: 11px;
+  color: var(--ink-2);
+  line-height: 1.6;
+}
+.notes-box-label {
+  font-size: 9.5px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase;
+  color: var(--navy-2); margin-bottom: 5px;
+}
+
+/* ── SIGNATURE ── */
+.sig-row {
+  display: flex; gap: 20px; margin-top: 12px;
+  padding-top: 12px; border-top: 1.5px solid var(--rule);
+}
+.sig-field { flex: 1; }
+.sig-label { font-size: 10px; color: var(--ink-3); margin-bottom: 20px; }
+.sig-line { border-bottom: 1px solid var(--ink); }
+.sig-name { font-size: 10px; color: var(--ink-3); margin-top: 3px; }
+
+/* ── OBSERVED BLOCK BADGE ── */
+.obs-section { margin-top: 8px; }
+.obs-badge-row { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 4px; }
+.obs-badge {
+  display: flex; align-items: center; gap: 4px;
+  background: var(--teal-bg); border: 1px solid #A0D0D0;
+  border-radius: 3px; padding: 2px 8px; font-size: 10px; font-weight: 600; color: var(--teal);
+}
+.obs-arrow { font-size: 9px; color: var(--ink-3); }
+
+/* ── PRINT ── */
+@media print {
+  body { background: white; margin: 0; }
+  .page { margin: 0; box-shadow: none; width: 100%; min-height: 100%; }
+  .no-print { display: none !important; }
+  .card { break-inside: avoid; }
+  @page { margin: 8mm 10mm; size: A4; }
+}
+
+/* ── PRINT BUTTON ── */
+.print-bar {
+  display: flex; justify-content: flex-end; gap: 8px;
+  padding: 8px 12px; background: #fff; border-bottom: 1px solid var(--rule);
+  position: sticky; top: 0; z-index: 100;
+}
+.btn-print {
+  height: 30px; padding: 0 16px; border: none; border-radius: 4px;
+  background: var(--navy); color: #fff; font-family: 'Source Sans 3', sans-serif;
+  font-size: 12px; font-weight: 600; cursor: pointer; transition: background .15s;
+}
+.btn-print:hover { background: var(--navy-2); }
+.btn-close { height: 30px; padding: 0 14px; border: 1.5px solid var(--rule); border-radius: 4px; background: transparent; font-size: 12px; font-weight: 600; color: var(--ink-3); cursor: pointer; }
+
+/* ── SECTION GAP ── */
+.sec { margin-bottom: 10px; }
+
+/* ── INPUT OVERRIDES ── */
+.info-val input, .info-val select { font-weight:600; }
+.ls-row { display:flex; gap:0; }
+.ls-btn {
+  flex:1; height:32px; border:1px solid var(--rule); margin-right:-1px;
+  background:var(--paper); cursor:pointer; transition:all .1s;
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  gap:1px; font-family:'Source Sans 3',sans-serif;
+}
+.ls-btn:first-child { border-radius:4px 0 0 4px; }
+.ls-btn:last-child  { border-radius:0 4px 4px 0; margin-right:0; }
+.ls-btn:hover { background:var(--rule-2); z-index:1; }
+.ls-num { font-family:'DM Mono',monospace; font-size:12px; font-weight:700; color:var(--ink-3); line-height:1; }
+.ls-lbl { font-size:8px; color:var(--ink-3); text-align:center; }
+.ls-btn.sel-w  { background:var(--red-bg);   border-color:var(--red);   z-index:1; }
+.ls-btn.sel-w  .ls-num, .ls-btn.sel-w  .ls-lbl { color:var(--red); }
+.ls-btn.sel-0  { background:var(--rule-2);   border-color:var(--ink-3); z-index:1; }
+.ls-btn.sel-0  .ls-num, .ls-btn.sel-0  .ls-lbl { color:var(--ink-2); }
+.ls-btn.sel-p1 { background:var(--green-bg); border-color:#70B090;     z-index:1; }
+.ls-btn.sel-p1 .ls-num, .ls-btn.sel-p1 .ls-lbl { color:var(--green); }
+.ls-btn.sel-p2 { background:#D8F0E4;          border-color:#1A6A3A;     z-index:1; }
+.ls-btn.sel-p2 .ls-num, .ls-btn.sel-p2 .ls-lbl { color:#0F5C30; }
+.inline-input {
+  border:none; border-bottom:1px solid var(--rule); background:transparent;
+  font-family:'Source Sans 3',sans-serif; font-size:11px; color:var(--ink-2);
+  outline:none; width:100%; padding:1px 2px;
+}
+.inline-input::placeholder { color:#C8C8C8; font-style:italic; }
+.obs-row-tr td { background:#EEF8F8; }
+
+/* ── SOLUTION AUTOCOMPLETE ── */
+.sol-wrap { position:relative; width:100%; }
+.sol-input {
+  border:none; border-bottom:1px solid var(--rule); background:transparent;
+  font-family:'Source Sans 3',sans-serif; font-size:11.5px; font-weight:600; color:var(--ink);
+  outline:none; width:100%; padding:1px 2px;
+}
+.sol-input::placeholder { color:#C8C8C8; font-style:italic; font-weight:400; }
+.sol-input.linked { color:var(--navy-2); border-bottom-color:var(--navy-3); }
+.sol-dropdown {
+  display:none; position:absolute; top:100%; left:0; right:0;
+  background:var(--paper); border:1px solid var(--rule);
+  border-radius:0 0 4px 4px; box-shadow:0 4px 12px rgba(0,0,0,.1);
+  max-height:180px; overflow-y:auto; z-index:200;
+}
+.sol-dropdown.open { display:block; }
+.sol-item {
+  padding:5px 8px; cursor:pointer; font-size:11px;
+  border-bottom:1px solid var(--rule-2);
+}
+.sol-item:last-child { border-bottom:none; }
+.sol-item:hover { background:var(--rule-2); }
+.sol-item-title { font-weight:600; color:var(--ink); }
+.sol-item-cat { font-size:9px; color:var(--ink-3); text-transform:uppercase; letter-spacing:.06em; margin-top:1px; }
+.sol-badge {
+  display:inline-flex; align-items:center; gap:4px;
+  font-size:9px; font-weight:600; color:var(--navy-3);
+  background:rgba(42,90,154,.08); border:1px solid rgba(42,90,154,.2);
+  border-radius:2px; padding:1px 5px; margin-top:2px; cursor:pointer;
+}
+.sol-badge:hover { background:rgba(42,90,154,.15); }
+
+/* ── SOLUTION RATING ── */
+.sr-row { display:flex; gap:0; }
+.sr-btn {
+  flex:1; height:28px; border:1px solid var(--rule); margin-right:-1px;
+  background:var(--paper); cursor:pointer;
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  gap:1px; font-family:'Source Sans 3',sans-serif; transition:all .1s;
+}
+.sr-btn:first-child { border-radius:4px 0 0 4px; }
+.sr-btn:last-child  { border-radius:0 4px 4px 0; margin-right:0; }
+.sr-btn:hover { background:var(--rule-2); z-index:1; }
+.sr-num { font-family:'DM Mono',monospace; font-size:11px; font-weight:700; color:var(--ink-3); line-height:1; }
+.sr-lbl { font-size:7.5px; color:var(--ink-3); text-align:center; }
+.sr-btn.sr-w  { background:var(--red-bg);   border-color:var(--red);   z-index:1; }
+.sr-btn.sr-w  .sr-num, .sr-btn.sr-w  .sr-lbl { color:var(--red); }
+.sr-btn.sr-0  { background:var(--rule-2);   border-color:var(--ink-3); z-index:1; }
+.sr-btn.sr-0  .sr-num, .sr-btn.sr-0  .sr-lbl { color:var(--ink-2); }
+.sr-btn.sr-p1 { background:var(--green-bg); border-color:#70B090; z-index:1; }
+.sr-btn.sr-p1 .sr-num, .sr-btn.sr-p1 .sr-lbl { color:var(--green); }
+.sr-btn.sr-p2 { background:#D8F0E4; border-color:#1A6A3A; z-index:1; }
+.sr-btn.sr-p2 .sr-num, .sr-btn.sr-p2 .sr-lbl { color:#0F5C30; }
+
+</style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="spedumap_config.js"></script>
+<script>
+const _SB_URL = 'https://sfwmcdezjlkedyjjgkng.supabase.co';
+const _SB_KEY = 'sb_publishable_vp7-C3CtbV8v1MSbiodgiA_hB0c42Gb';
+const sb = supabase.createClient(_SB_URL, _SB_KEY);
+</script>
+
+</head>
+<body>
+
+<!-- Print bar (no-print) -->
+<div class="print-bar no-print">
+  <button class="btn-close">← Goals</button>
+  <div style="flex:1;display:flex;align-items:center;gap:10px;padding:0 8px">
+    <span id="topChildName" style="font-size:12px;font-weight:600;color:var(--ink-2)">—</span>
+    <span id="topSession" style="font-family:'DM Mono',monospace;font-size:11px;font-weight:600;background:var(--red-bg);color:var(--red);border:1px solid #F0CACA;border-radius:3px;padding:2px 8px">—</span>
+    <span id="topStatus" style="font-size:11px;color:var(--ink-3)">Chưa nộp</span>
+  </div>
+  <button style="height:30px;padding:0 14px;border:1.5px solid var(--rule);border-radius:4px;background:transparent;font-size:12px;font-weight:600;color:var(--ink-3);cursor:pointer" onclick="saveDraft()">Lưu nháp</button>
+  <button class="btn-print" id="btnSubmit" style="opacity:.4;pointer-events:none" onclick="submitSession()">Nộp Session ✓</button>
+  <button class="btn-print" onclick="window.print()" style="background:var(--ink-2)">🖨 In / PDF</button>
+</div>
+
+<!-- PAGE -->
+<div class="page">
+
+  <!-- HEADER -->
+  <div class="doc-header">
+    <div class="doc-header-left">
+      <h1>SPEDUMAP — Daily Session Report</h1>
+      <div class="doc-sub">Báo cáo buổi trị liệu · Tài liệu lâm sàng nội bộ</div>
+    </div>
+    <div class="doc-header-right">
+      <div class="date-field">
+        <span>Ngày:</span>
+        <input id="rDate" type="date" style="font-family:'DM Mono',monospace;font-size:12px;font-weight:500;color:#fff;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);border-radius:4px;padding:3px 10px;outline:none;width:140px">
+      </div>
+    </div>
+  </div>
+
+  <div class="doc-body">
+
+    <!-- ROW 1: THÔNG TIN + TÓM TẮT -->
+    <div class="two-col sec">
+
+      <!-- Thông tin chung -->
+      <div class="card">
+        <div class="card-head">Thông tin chung</div>
+        <div class="card-body">
+          <div class="info-grid">
+            <div class="info-row"><span class="info-label">Họ và tên trẻ</span><span class="info-val" id="rChildName">Nguyễn Văn A</span></div>
+            <div class="info-row"><span class="info-label">ID trẻ</span><span class="info-val" id="rChildId">—</span></div>
+            <div class="info-row"><span class="info-label">Tuổi</span><span class="info-val" id="rAge">—</span></div>
+            <div class="info-row"><span class="info-label">Chu kỳ</span><span class="info-val" id="rCycle">—</span></div>
+            <div class="info-row"><span class="info-label">Buổi số</span><span class="info-val" id="rSessionNum">—</span></div>
+            <div class="info-row"><span class="info-label">Therapist</span>
+              <select id="rTherapist" class="info-val" style="border:none;background:transparent;font-weight:600;font-size:11.5px;color:var(--ink);outline:none;cursor:pointer">
+                <option value="t_001">Nguyễn Thị Bình</option>
+                <option value="t_002">Trần Văn Minh</option>
+                <option value="t_003">Lê Thị Hoa</option>
+              </select></div>
+            <div class="info-row"><span class="info-label">Thời gian</span>
+              <div style="display:flex;gap:4px;align-items:center">
+                <input id="tStart" type="time" class="info-val" style="border:none;background:transparent;font-weight:600;font-size:11px;color:var(--ink);outline:none;cursor:pointer;width:72px">
+                <span style="color:var(--ink-3);font-size:11px">–</span>
+                <input id="tEnd" type="time" class="info-val" style="border:none;background:transparent;font-weight:600;font-size:11px;color:var(--ink);outline:none;cursor:pointer;width:72px">
+              </div></div>
+            <div class="info-row"><span class="info-label">Địa điểm</span>
+              <select id="rEnv" class="info-val" style="border:none;background:transparent;font-weight:600;font-size:11.5px;color:var(--ink);outline:none;cursor:pointer">
+                <option value="clinic">Tại clinic</option>
+                <option value="home">Tại nhà</option>
+                <option value="school">Tại trường</option>
+                <option value="online">Online</option>
+              </select></div>
+
+          </div>
+        </div>
+      </div>
+
+      <!-- Tóm tắt nhanh -->
+      <div class="summary-panel">
+        <div class="sp-row">
+          <div class="sp-kpi">
+            <div class="sp-kpi-label">Tổng điểm hiện tại</div>
+            <div class="sp-kpi-val" id="rCurrentScore">—</div>
+            <div class="sp-kpi-sub">/ 100</div>
+          </div>
+          <div class="donut-wrap">
+            <svg class="donut-svg" viewBox="0 0 60 60">
+              <circle cx="30" cy="30" r="24" fill="none" stroke="rgba(255,255,255,.15)" stroke-width="7"/>
+              <circle cx="30" cy="30" r="24" fill="none" stroke="#6EE7A0" stroke-width="7"
+                stroke-dasharray="150.8" stroke-dashoffset="150.8"
+                stroke-linecap="round" transform="rotate(-90 30 30)"
+                id="donutArc"/>
+              <text x="30" y="34" text-anchor="middle" font-family="DM Mono,monospace" font-size="11" font-weight="700" fill="white" id="donutText">0%</text>
+            </svg>
+            <div class="donut-pct">% phát triển</div>
+          </div>
+        </div>
+        <div class="sp-chips">
+          <div class="sp-chip">
+            <div class="sp-chip-label">Baseline</div>
+            <div class="sp-chip-val" id="rBaseline">—</div>
+          </div>
+          <div class="sp-chip">
+            <div class="sp-chip-label">Target cuối chu kỳ</div>
+            <div class="sp-chip-val" id="rTarget">—</div>
+          </div>
+          <div class="sp-chip">
+            <div class="sp-chip-label">Delta từ baseline</div>
+            <div class="sp-chip-val delta" id="rDelta">—</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ROW 2: LAYER TABLE + REFERENCE -->
+    <div class="two-col sec">
+
+      <!-- Target delta score -->
+      <div class="card">
+        <div class="card-head">Target Delta Score (Mục tiêu của chu kỳ)</div>
+        <div class="card-body" style="padding:0">
+          <table class="layer-table">
+            <thead>
+              <tr>
+                <th>Layer</th>
+                <th>Hiện tại</th>
+                <th>Target</th>
+                <th>Delta</th>
+                <th class="progress-cell">% Hoàn thành</th>
+              </tr>
+            </thead>
+            <tbody id="layerTableBody"></tbody>
+          </table>
+          <div style="padding:5px 8px;font-size:9px;color:var(--ink-3);border-top:1px solid var(--rule-2);font-style:italic">
+            * % hoàn thành tính dựa trên delta đã đạt so với delta cần đạt trong chu kỳ.
+          </div>
+        </div>
+      </div>
+
+      <!-- Reference data -->
+      <div class="card">
+        <div class="card-head">Dữ liệu tham chiếu</div>
+        <div class="card-body">
+          <div style="margin-bottom:8px">
+            <div style="font-size:10px;font-weight:700;color:var(--navy-2);letter-spacing:.04em;text-transform:uppercase;margin-bottom:5px">
+              Baseline gần nhất (<span id="rBaselineDate">—</span>)
+            </div>
+            <div style="display:flex;gap:14px">
+              <div><span style="font-size:10px;color:var(--ink-3)">Tổng điểm: </span><span style="font-family:'DM Mono',monospace;font-size:12px;font-weight:700;color:var(--navy)" id="rBaselineTotal">—</span></div>
+              <div><span style="font-size:10px;color:var(--ink-3)">Giai đoạn: </span><span style="font-family:'DM Mono',monospace;font-size:12px;font-weight:700;color:var(--navy)" id="rBaselineStage">—</span></div>
+            </div>
+          </div>
+          <div style="font-size:10px;font-weight:700;color:var(--navy-2);letter-spacing:.04em;text-transform:uppercase;margin-bottom:5px">Timeline tóm tắt</div>
+          <div class="ref-timeline" id="rTimeline"></div>
+
+          <!-- Observed blocks -->
+          <div class="obs-section" id="obsSection" style="display:none">
+            <div style="font-size:10px;font-weight:700;color:var(--teal);letter-spacing:.04em;text-transform:uppercase;margin-bottom:4px;margin-top:8px">Tiến bộ quan sát được (buổi này)</div>
+            <div class="obs-badge-row" id="obsBadges"></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ROW 3: TARGET BLOCKS INPUT -->
+    <div class="sec card">
+      <div class="card-head" style="display:flex;justify-content:space-between;align-items:center">
+        <span>Hoạt động hôm nay</span>
+        <span id="targetFilled" style="font-family:'DM Mono',monospace;font-size:10px;font-weight:600;color:rgba(255,255,255,.6)">0 / 0</span>
+      </div>
+      <div class="card-body" style="padding:0">
+        <table class="act-table">
+          <thead>
+            <tr>
+              <th style="width:24px">STT</th>
+              <th>Hoạt động / Bài tập</th>
+              <th>Mục đích (Liên quan đến)</th>
+              <th style="text-align:center">Target Delta<br>(chu kỳ)</th>
+              <th style="min-width:160px">Block hôm nay<br><span style="font-weight:400;font-size:8.5px;text-transform:none;letter-spacing:0;color:rgba(255,255,255,.55)">Mức đánh giá so với session trước</span></th>
+              <th style="min-width:130px">Solution hiệu quả<br><span style="font-weight:400;font-size:8.5px;text-transform:none;letter-spacing:0;color:rgba(255,255,255,.55)">Bài tập thực hiện tốt không</span></th>
+              <th>Ghi chú (Điều chỉnh / Phản ứng của trẻ)</th>
+            </tr>
+          </thead>
+          <tbody id="targetTableBody"></tbody>
+          <tfoot>
+            <tr id="obsPickerRow">
+              <td colspan="6" style="padding:6px 8px;background:#EEF8F8;border-top:1.5px dashed #A0D0D0">
+                <div style="display:flex;align-items:center;gap:8px">
+                  <button onclick="toggleObsPicker()" style="display:flex;align-items:center;gap:5px;padding:4px 10px;border:1.5px dashed #A0D0D0;border-radius:4px;background:transparent;font-size:10px;font-weight:600;color:#0A6060;cursor:pointer;transition:all .15s" onmouseover="this.style.background='#D8F0F0'" onmouseout="this.style.background='transparent'">
+                    ＋ Tiến bộ ngoài dự kiến
+                  </button>
+                  <span style="font-size:10px;color:#0A6060;opacity:.7">Thêm nếu có block cải thiện ngoài mục tiêu đã đặt</span>
+                </div>
+                <div id="obsPicker" style="display:none;margin-top:8px;background:var(--paper);border:1px solid #A0D0D0;border-radius:4px;padding:10px">
+                  <div style="font-size:10px;font-weight:700;color:#0A6060;letter-spacing:.06em;text-transform:uppercase;margin-bottom:8px">Block nào cải thiện thụ động?</div>
+                  <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:8px">
+                    <div>
+                      <div style="font-size:9px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);margin-bottom:3px">Upstream đang can thiệp</div>
+                      <select id="opUpstream" style="width:100%;height:26px;border:1px solid var(--rule);border-radius:3px;font-size:11px;padding:0 6px;background:var(--bg);outline:none">
+                        <option value="">— Chọn upstream —</option>
+                      </select>
+                    </div>
+                    <div>
+                      <div style="font-size:9px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);margin-bottom:3px">Nguồn thông tin</div>
+                      <input type="text" id="opNote" style="width:100%;height:26px;border:1px solid var(--rule);border-radius:3px;font-size:10px;padding:0 6px;background:var(--bg);outline:none" placeholder="Gia đình báo, quan sát trực tiếp...">
+                    </div>
+                  </div>
+                  <input type="text" id="opSearch" oninput="filterObs(this.value)" style="width:100%;height:26px;border:1px solid var(--rule);border-radius:3px;font-size:11px;padding:0 7px;background:var(--bg);outline:none;margin-bottom:6px" placeholder="Tìm block...">
+                  <div id="opList" style="max-height:120px;overflow-y:auto;display:flex;flex-direction:column;gap:1px"></div>
+                </div>
+              </td>
+            </tr>
+            <tr class="act-total">
+              <td colspan="2" style="font-size:11px;color:var(--ink-2)">
+                Tổng thời gian:
+                <input id="rDuration" type="number" min="0" max="240" value="90" style="width:48px;border:none;border-bottom:1px solid var(--rule);font-family:'DM Mono',monospace;font-size:12px;color:var(--navy);background:transparent;outline:none;text-align:center"> phút
+              </td>
+              <td colspan="3" style="text-align:right;font-size:11px;color:var(--ink-2)">Mức độ hợp tác chung:</td>
+              <td>
+                <div class="stars" id="rStars" style="cursor:pointer"></div>
+              </td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+    </div>
+
+    <!-- ROW 4: ĐÁNH GIÁ TIẾN BỘ -->
+    <div class="sec card">
+      <div class="card-head">Nhận xét cuối ngày & Đánh giá tiến bộ</div>
+      <div class="card-body">
+
+        <div style="font-size:11px;font-weight:600;color:var(--ink-2);margin-bottom:6px">
+          1. Đánh giá tiến bộ theo mục tiêu
+          <span style="font-weight:400;color:var(--ink-3);font-size:10px">(Hệ thống sẽ tự động quy đổi điểm và cập nhật % hoàn thành mục tiêu)</span>
+        </div>
+
+        <!-- Scale header -->
+        <div class="eval-scale-header">
+          <div class="esh-item" style="color:var(--s0)">0<span>Tệ hơn<br>rất nhiều</span></div>
+          <div class="esh-item" style="color:var(--s1)">1<span>Tệ hơn</span></div>
+          <div class="esh-item" style="color:var(--s2)">2<span>Không<br>tiến bộ</span></div>
+          <div class="esh-item" style="color:var(--s3)">3<span>Cải thiện<br>nhẹ</span></div>
+          <div class="esh-item" style="color:var(--s4)">4<span>Tiến bộ<br>vừa</span></div>
+          <div class="esh-item" style="color:var(--s5)">5<span>Tiến bộ<br>nhiều</span></div>
+          <div class="esh-item" style="color:var(--s6)">6<span>Rất tiến<br>bộ</span></div>
+        </div>
+
+        <table class="eval-table">
+          <thead>
+            <tr>
+              <th style="width:90px">Layer / Mục tiêu</th>
+              <th>Mô tả mục tiêu</th>
+              <th>Mức đánh giá (0–6)</th>
+            </tr>
+          </thead>
+          <tbody id="evalTableBody"></tbody>
+          <!-- rows built by JS -->
+        </table>
+
+        <!-- REGRESSION WARNING — hiện khi có mức 0 hoặc 1 -->
+        <div id="regWarnBox" style="display:none;margin-top:8px;padding:9px 12px;background:#FDF8EC;border:1px solid #E8C880;border-radius:4px;font-size:11px;color:#885500">
+          <div style="font-weight:600;margin-bottom:6px">⚠ Có mục tiêu đang tệ hơn — Phân loại:</div>
+          <div style="display:flex;gap:6px;align-items:center;margin-bottom:6px">
+            <button id="regCls-transitional" onclick="setRegClass('transitional')" style="padding:3px 10px;border-radius:3px;border:1.5px solid #E8C880;background:#C07010;color:#fff;font-size:10px;font-weight:600;cursor:pointer">Tạm thời</button>
+            <button id="regCls-pathological" onclick="setRegClass('pathological')" style="padding:3px 10px;border-radius:3px;border:1.5px solid #F0CACA;background:transparent;color:#B52020;font-size:10px;font-weight:600;cursor:pointer">Cần điều tra</button>
+            <button id="regCls-noise"        onclick="setRegClass('noise')"        style="padding:3px 10px;border-radius:3px;border:1.5px solid #E8C880;background:transparent;color:#C07010;font-size:10px;font-weight:600;cursor:pointer">Nhiễu đo lường</button>
+          </div>
+          <input type="text" id="regNoteInput" style="width:100%;height:26px;border:1px solid #E8C880;border-radius:3px;padding:0 8px;font-size:10px;color:#555;background:transparent;outline:none" placeholder="Lý do lâm sàng (candida die-off, ngủ kém tối qua, sensory overload...)">
+        </div>
+
+        <!-- Notes + plan -->
+        <div class="notes-grid" style="margin-top:10px">
+          <div>
+            <div class="notes-box-label">2. Nhận xét tổng quan</div>
+            <div class="notes-box" id="rNotes" contenteditable="true">
+              <span style="color:#bbb;font-style:italic">Nhập nhận xét...</span>
+            </div>
+          </div>
+          <div>
+            <div class="notes-box-label">3. Kế hoạch điều chỉnh cho buổi tới</div>
+            <div class="notes-box" id="rPlan" contenteditable="true">
+              <span style="color:#bbb;font-style:italic">Nhập kế hoạch...</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- SIGNATURES -->
+    <div class="sig-row">
+      <div class="sig-field">
+        <div class="sig-label">Therapist ký tên:</div>
+        <div class="sig-line"></div>
+        <div class="sig-name" id="rSigTherapist">—</div>
+      </div>
+      <div class="sig-field">
+        <div class="sig-label">Phụ huynh xác nhận:</div>
+        <div class="sig-line"></div>
+        <div class="sig-name">Họ tên + chữ ký</div>
+      </div>
+      <div class="sig-field" style="flex:.6">
+        <div class="sig-label">Ngày / Giờ kết thúc:</div>
+        <div class="sig-line"></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+
+
+<script>
+// ══════════════════════════════════════════
+// Load từ localStorage (từ Goal Setting)
+// ══════════════════════════════════════════
+// Ưu tiên spedumap_active_cycle (sau khi Open Cycle), fallback về spedumap_cycle
+// lsGetCycle: normalize + assertValidCycle tự động
+// Ưu tiên ACTIVE_CYCLE (đã qua Cycle Open), fallback CYCLE (từ Goal Setting)
+const _cycleData = lsGetCycle(LS_KEYS.ACTIVE_CYCLE) || lsGetCycle(LS_KEYS.CYCLE);
+
+// Nếu _cycleData tồn tại: đã canonical — chỉ đảm bảo các fields bắt buộc có giá trị mặc định
+// Không re-map toàn bộ (tránh drop fields như parent_email, goal_detail, cycle_settings)
+const _normalizedCycle = _cycleData ? {
+  ..._cycleData,
+  cycle_id:        _cycleData.cycle_id || ('C_' + Date.now()),
+  cycle_name:      _cycleData.cycle_name || '',
+  daily_sessions:  _cycleData.daily_sessions || [],
+  observed_blocks: _cycleData.observed_blocks || [],
+  baseline_source: _cycleData.baseline_source || 'behavioral',
+  planned_sessions:_cycleData.planned_sessions || _cycleData.cycle_settings?.planned_sessions || 24,
+  started_at:      _cycleData.started_at || _cycleData.cycle_settings?.start_date || '',
+  governance_meta: _cycleData.governance_meta || { knowledge_domain:'senior_therapist', protocol_version:'engine_v3' },
+  // Đảm bảo baseline canonical — normalizeCycle đã xử lý, nhưng fallback phòng thủ
+  baseline: _cycleData.baseline?.blocks
+    ? _cycleData.baseline
+    : {
+        blocks:      _cycleData.baseline_blocks || {},
+        total_score: _cycleData.engine_snapshot?.total ?? 0,
+        stage:       _cycleData.engine_snapshot?.stage ?? 'L0',
+        date:        _cycleData.eval_date || '',
+      },
+  // Đảm bảo target canonical
+  target: _cycleData.target?.blocks
+    ? _cycleData.target
+    : { blocks: _cycleData.target_blocks || {} },
+} : {
+  // Mock data — nested block_state format (v2 schema)
+  cycle_id: "C_001",
+  child: { name:"Nguyễn Văn A", dob:"2019-03-15", id:"child_001" },
+  baseline: {
+    blocks: {
+      microbiome:{score:0.5}, sleep:{score:1.5}, arousal:{score:1.0}, ns_stability:{score:1.5},
+      attention:{score:1.0}, interoception:{score:1.0}, oral_language:{score:1.5},
+      vestibular:{score:2.0,directionality:"hyper"}, proprioception:{score:1.5},
+    },
+    total_score: 51.4, stage: "L2",
+  },
+  target: { blocks: { microbiome:{score:1.5}, arousal:{score:2.0}, attention:{score:2.0}, sleep:{score:2.5} } },
+  observed_blocks: [],
+  daily_sessions: [],
+  governance_meta: { knowledge_domain:"senior_therapist", protocol_version:"engine_v3" },
+};
+// lsGetCycle() đã normalize + _normalizedCycle giữ nguyên tất cả fields
+const CYCLE = _normalizedCycle;
+
+// B2L — defined in spedumap_config.js
+// BN — defined in spedumap_config.js
+const LC={L0:"#8B1A1A",L1:"#A02020",L2:"#B83030",L3:"#C55030",L4:"#C87020",L5:"#4A8A60",L6:"#2A6A9A",L7:"#3A5AAA"};
+const LAYER_NAMES={L0:"L0 Health & Nutrition",L1:"L1 Regulation",L2:"L2 Sensory",L3:"L3 Motor",L4:"L4 Processing",L5:"L5 Communication",L6:"L6 Social",L7:"L7 Academic"};
+const L2D={"-2":-0.50,"-1":-0.20,"0":0.00,"1":0.20,"2":0.40};
+const LS=[{val:-2,num:"-2",lbl:"Tệ hơn rõ",cls:"sel-w"},{val:0,num:"0",lbl:"Như cũ",cls:"sel-0"},{val:1,num:"+1",lbl:"Tốt hơn",cls:"sel-p1"},{val:2,num:"+2",lbl:"Tốt hơn rõ",cls:"sel-p2"}];
+// LAYER_IDS — defined in spedumap_config.js
+// LAYER_W — defined in spedumap_config.js
+// BW — defined in spedumap_config.js
+
+const STATE={targetInputs:{},observedInputs:{},observedBlocks:[],regressionClass:'transitional',cooperation:4,solutionRatings:{}};
+
+function computeCurrent(){
+  const cur={};
+  // baseline: always via getBlockScore — handles both primitive (legacy) and nested (v2)
+  for(const [k,v] of Object.entries(CYCLE.baseline.blocks)) cur[k]=getBlockScore(v);
+  // observed_blocks baseline originals
+  for(const ob of (CYCLE.observed_blocks||[])) cur[ob.block]=getBlockScore(ob.baseline_original);
+  // accumulate sessions: current_after is canonical scalar after normalizeCycle
+  for(const s of CYCLE.daily_sessions){
+    for(const a of (s.activities||[])) cur[a.block]=getBlockScore(a.current_after);
+    for(const a of (s.observed_activities||[])) cur[a.block]=getBlockScore(a.current_after);
+  }
+  return cur;
+}
+
+// Tính delta điểm tổng từ target blocks (không tính lại 35 blocks)
+// baseline_total đã chính xác từ CYCLE — chỉ cộng thêm delta của các blocks được target
+function computeTotalFromBaseline(cur){
+  let delta=0;
+  for(const [key,curVal] of Object.entries(cur)){
+    if(!(key in CYCLE.baseline.blocks)) continue;
+    const baseVal=getBlockScore(CYCLE.baseline.blocks[key]);
+    const lid=B2L[key];
+    const blockWeight=BW[lid]?.[key]??0;
+    const layerWeight=LAYER_W[lid]??0;
+    delta += ((curVal - baseVal) * blockWeight / 4) * layerWeight;
+  }
+  return CYCLE.baseline.total_score + delta;
+}
+
+function layerScore(blocks,lid){
+  let s=0; for(const [k,w] of Object.entries(BW[lid])) s+=getBlockScore(blocks[k]??0)*w; return s;
+}
+function totalScore(blocks){
+  let t=0; LAYER_IDS.forEach(l=>t+=(layerScore(blocks,l)/4)*LAYER_W[l]); return t;
+}
+
+// ── INIT ──
+function init(){
+  loadSolutions(); // async — populates SOLUTIONS cache for autocomplete
+  const sessionNum=CYCLE.daily_sessions.length+1;
+  const cur=computeCurrent();
+  const child=CYCLE.child;
+  const age=Math.floor((new Date()-new Date(child.dob))/31557600000);
+  const mos=Math.floor(((new Date()-new Date(child.dob))/2628000000)%12);
+
+  // Header fields
+  document.getElementById('rDate').value=new Date().toISOString().split('T')[0];
+  document.getElementById('rChildName').textContent=child.name;
+  document.getElementById('rChildId').textContent=child.id;
+  document.getElementById('rAge').textContent=`${age}y${mos}m`;
+  document.getElementById('rCycle').textContent=CYCLE.cycle_id;
+  document.getElementById('rSessionNum').textContent=`${sessionNum} / ${CYCLE.planned_sessions||24}`;
+  document.getElementById('rSigTherapist').textContent='';
+
+  // Top bar
+  document.getElementById('topChildName').textContent=child.name;
+  // Source badge
+  const _dsrc=CYCLE.baseline_source||'behavioral';
+  const _dsbEl=document.getElementById('dailySourceBadge');
+  if(_dsbEl) _dsbEl.innerHTML=_dsrc==='clinical'
+    ?'<span style="font-size:9px;font-weight:700;padding:1px 7px;border-radius:3px;background:#EEF8F2;color:#1A6A3A;border:1px solid #B0D8C0">📋 L0: Clinical</span>'
+    :'<span style="font-size:9px;font-weight:700;padding:1px 7px;border-radius:3px;background:#FDF8EC;color:#8A6200;border:1px solid #E8C880">👁 L0: Behavioral</span>';
+  document.getElementById('topSession').textContent=`Session ${sessionNum}`;
+
+  // Summary panel
+  const tot=computeTotalFromBaseline(cur);
+  const baseTotal=CYCLE.baseline.total_score;
+  // targetTotal: baseline + delta nếu target blocks đạt goal
+  const targetCur={...cur};
+  for(const [k,v] of Object.entries(CYCLE.target.blocks)) targetCur[k]=getBlockScore(v);
+  const targetTotal=computeTotalFromBaseline(targetCur);
+  document.getElementById('rCurrentScore').textContent=tot.toFixed(1);
+  document.getElementById('rBaseline').textContent=baseTotal.toFixed(1);
+  document.getElementById('rTarget').textContent=targetTotal.toFixed(1);
+  const deltaFromBase=tot-baseTotal;
+  document.getElementById('rDelta').textContent=(deltaFromBase>=0?'+':'')+deltaFromBase.toFixed(1);
+  // Donut = % hành trình tổng thể (current / 100)
+  const pctDone=Math.round(tot);
+  const circ=150.8;
+  document.getElementById('donutArc').setAttribute('stroke-dashoffset',circ-(pctDone/100*circ));
+  document.getElementById('donutText').textContent=pctDone+'%';
+
+  // Reference
+  document.getElementById('rBaselineDate').textContent=CYCLE.baseline.date||'—';
+  document.getElementById('rBaselineTotal').textContent=CYCLE.baseline.total_score.toFixed(1);
+  document.getElementById('rBaselineStage').textContent=CYCLE.baseline.stage;
+  buildTimeline(sessionNum);
+
+  // Layer table
+  buildLayerTable(cur);
+
+  // Target blocks input table
+  buildTargetTable(cur,sessionNum===1);
+
+  // Stars
+  buildStars(STATE.cooperation);
+
+  // Eval table
+  buildEvalTable();
+
+  // Upstream options in picker
+  const upSel=document.getElementById('opUpstream');
+  for(const k of Object.keys(CYCLE.target.blocks)){
+    const opt=document.createElement('option'); opt.value=k; opt.textContent=BN[k]; upSel.appendChild(opt);
+  }
+  buildObsPickerList();
+}
+
+// ── LAYER TABLE ──
+function buildLayerTable(cur){
+  const tbody=document.getElementById('layerTableBody');
+  tbody.innerHTML='';
+  LAYER_IDS.forEach(l=>{
+    const ls=layerScore(cur,l);
+    const targetBlocks=Object.entries(CYCLE.target.blocks).filter(([k])=>B2L[k]===l);
+    if(!targetBlocks.length) return;
+    const baseLS=layerScore(CYCLE.baseline.blocks,l);
+    const targetLS=targetBlocks.reduce((s,[k,tv])=>{
+      const tmp={}; for(const [bk,bv] of Object.entries(CYCLE.baseline.blocks)) tmp[bk]=getBlockScore(bv); tmp[k]=getBlockScore(tv); return layerScore(tmp,l);
+    },baseLS);
+    const needed=targetLS-baseLS;
+    const achieved=ls-baseLS;
+    const pct=needed>0?Math.max(0,Math.min(100,Math.round(achieved/needed*100))):100;
+    const pc=pct>=60?'#1A6A3A':pct>=30?'#C07010':'#B52020';
+    tbody.innerHTML+=`<tr>
+      <td><span class="layer-dot" style="background:${LC[l]}"></span><span class="layer-name">${LAYER_NAMES[l]}</span></td>
+      <td class="num-cell">${ls.toFixed(2)}</td>
+      <td class="num-cell">${targetLS.toFixed(2)}</td>
+      <td class="num-cell"><span class="delta-pos">+${(targetLS-ls).toFixed(2)}</span></td>
+      <td class="progress-cell">
+        <div class="progress-bar-wrap">
+          <div class="progress-bar"><div class="progress-fill" style="width:${pct}%;background:${pc}"></div></div>
+          <span class="progress-pct" style="color:${pc}">${pct}%</span>
+        </div>
+      </td></tr>`;
+  });
+}
+
+
+
+// ── SOLUTION LIBRARY CACHE ──
+let SOLUTIONS = []; // loaded from Supabase on init
+
+async function loadSolutions(){
+  try{
+    const {data,error} = await sb.from('solution_library').select('id,code,title,category').eq('is_active',true).order('title');
+    if(error) throw error;
+    SOLUTIONS = data || [];
+  }catch(e){
+    console.warn('solution_library load failed:', e.message);
+    SOLUTIONS = [];
+  }
+}
+
+function buildSolutionAutocomplete(key){
+  const wrap = document.createElement('div'); wrap.className='sol-wrap';
+
+  // Hidden fields
+  const hidId = document.createElement('input'); hidId.type='hidden'; hidId.id='sol-id-'+key;
+  const hidTitle = document.createElement('input'); hidTitle.type='hidden'; hidTitle.id='sol-title-'+key;
+
+  // Text input
+  const inp = document.createElement('input'); inp.className='sol-input'; inp.id='act-'+key;
+  inp.placeholder='Tìm hoặc gõ tên bài tập...'; inp.autocomplete='off';
+
+  // Dropdown
+  const dd = document.createElement('div'); dd.className='sol-dropdown'; dd.id='sol-dd-'+key;
+
+  function renderDropdown(q){
+    const filtered = q.length < 1 ? SOLUTIONS :
+      SOLUTIONS.filter(s=>s.title.toLowerCase().includes(q.toLowerCase()));
+    dd.innerHTML='';
+    if(!filtered.length){
+      dd.innerHTML='<div style="padding:6px 8px;font-size:11px;color:var(--ink-3);font-style:italic">Không tìm thấy — sẽ lưu tên tự do</div>';
+    } else {
+      filtered.slice(0,8).forEach(s=>{
+        const item=document.createElement('div'); item.className='sol-item';
+        item.innerHTML='<div class="sol-item-title">'+s.title+'</div><div class="sol-item-cat">'+s.category+'</div>';
+        item.addEventListener('mousedown',e=>{
+          e.preventDefault();
+          inp.value=s.title; inp.classList.add('linked');
+          hidId.value=s.id; hidTitle.value=s.title;
+          dd.classList.remove('open');
+          // Show badge
+          renderBadge(key,s);
+        });
+        dd.appendChild(item);
+      });
+    }
+    dd.classList.add('open');
+  }
+
+  function renderBadge(key,s){
+    const existing=wrap.querySelector('.sol-badge');
+    if(existing) existing.remove();
+    const badge=document.createElement('div'); badge.className='sol-badge';
+    badge.title='Bấm để bỏ chọn';
+    badge.innerHTML='✓ '+s.code+' &nbsp;<span style="opacity:.5">×</span>';
+    badge.addEventListener('click',()=>{
+      inp.value=''; inp.classList.remove('linked');
+      hidId.value=''; hidTitle.value='';
+      badge.remove();
+    });
+    wrap.appendChild(badge);
+  }
+
+  inp.addEventListener('input',()=>{ hidId.value=''; hidTitle.value=''; inp.classList.remove('linked'); renderDropdown(inp.value); });
+  inp.addEventListener('focus',()=>renderDropdown(inp.value));
+  inp.addEventListener('blur',()=>setTimeout(()=>dd.classList.remove('open'),150));
+
+  wrap.appendChild(hidId); wrap.appendChild(hidTitle); wrap.appendChild(inp); wrap.appendChild(dd);
+  return wrap;
+}
+
+const SR_OPTS=[{val:-2,num:'-2',lbl:'Rất kém',cls:'sr-w'},{val:-1,num:'-1',lbl:'Kém',cls:'sr-w'},{val:0,num:'0',lbl:'Trung bình',cls:'sr-0'},{val:1,num:'+1',lbl:'Tốt',cls:'sr-p1'},{val:2,num:'+2',lbl:'Rất tốt',cls:'sr-p2'}];
+
+function buildSolutionRating(key){
+  const div=document.createElement('div'); div.className='sr-row'; div.id='sr-'+key;
+  SR_OPTS.forEach(o=>{
+    const btn=document.createElement('button'); btn.className='sr-btn';
+    btn.innerHTML='<span class="sr-num">'+o.num+'</span><span class="sr-lbl">'+o.lbl+'</span>';
+    btn.addEventListener('click',()=>{
+      div.querySelectorAll('.sr-btn').forEach(b=>b.className='sr-btn');
+      btn.className='sr-btn '+o.cls;
+      if(!STATE.solutionRatings) STATE.solutionRatings={};
+      STATE.solutionRatings[key]=o.val;
+    });
+    div.appendChild(btn);
+  });
+  return div;
+}
+
+const LAYER_BG = {
+  L0:'#FDF5F5',L1:'#FDF2F0',L2:'#FDF5F0',L3:'#FDF8F0',
+  L4:'#FDF8EC',L5:'#EEF8F2',L6:'#EEF2FC',L7:'#F0F2FF'
+};
+
+// ── TARGET BLOCKS TABLE ──
+function buildTargetTable(cur,isFirst){
+  const tbody=document.getElementById('targetTableBody');
+  tbody.innerHTML='';
+  const keys=Object.keys(CYCLE.target.blocks);
+  document.getElementById('targetFilled').textContent='0 / '+keys.length;
+
+  keys.forEach((key,i)=>{
+    const lid=B2L[key]; const color=LC[lid];
+    const baseline=getBlockScore(CYCLE.baseline.blocks[key]??0);
+    const target=getBlockScore(CYCLE.target.blocks[key]??0);
+    const current=cur[key]??baseline;
+    const targetDelta=target-baseline;
+    const lbg=LAYER_BG[lid]||'#FDF8EC';
+    const lsHTML=LS.map(o=>`<button class="ls-btn" onclick="setScore('${key}',${o.val},'target')"><span class="ls-num">${o.num}</span><span class="ls-lbl">${o.lbl}</span></button>`).join('');
+
+    const tr=document.createElement('tr');
+    tr.id='tr-'+key;
+
+    // Col1: STT
+    const c1=document.createElement('td'); c1.className='act-stt'; c1.textContent=i+1; tr.appendChild(c1);
+
+    // Col2: Solution autocomplete + sub note
+    const c2=document.createElement('td');
+    const solAC=buildSolutionAutocomplete(key);
+    const inp2=document.createElement('input'); inp2.className='inline-input'; inp2.id='actsub-'+key;
+    inp2.placeholder='Kỹ thuật / ghi chú thêm...'; inp2.style.cssText='font-size:10px;color:var(--ink-3);width:100%;margin-top:4px';
+    c2.appendChild(solAC); c2.appendChild(inp2); tr.appendChild(c2);
+
+    // Col3: Purpose (layer chip + focus)
+    const c3=document.createElement('td');
+    const chip=document.createElement('span'); chip.className='layer-chip';
+    chip.style.cssText='background:'+lbg+';color:'+color+';border:1px solid '+color+'40';
+    chip.textContent=LAYER_NAMES[lid]||lid;
+    const inp3=document.createElement('input'); inp3.className='inline-input'; inp3.id='focus-'+key;
+    inp3.placeholder='Mục đích hôm nay...';
+    inp3.style.cssText='font-size:10px;width:100%;margin-top:4px;color:var(--ink-3)';
+    c3.appendChild(chip); c3.appendChild(inp3); tr.appendChild(c3);
+
+    // Col4: Target delta
+    const c4=document.createElement('td'); c4.className='act-delta';
+    c4.textContent='+'+targetDelta.toFixed(1); tr.appendChild(c4);
+
+    // Col5: Block score buttons + delta preview
+    const c5=document.createElement('td');
+    const lsDiv=document.createElement('div'); lsDiv.className='ls-row'; lsDiv.id='ls-'+key;
+    lsDiv.innerHTML=lsHTML;
+    const dpDiv=document.createElement('div'); dpDiv.id='dp-'+key;
+    dpDiv.style.cssText='display:none;font-size:10px;color:var(--ink-3);margin-top:4px;padding:2px 5px;background:var(--rule-2);border-radius:3px';
+    dpDiv.innerHTML='<span style="font-family:DM Mono,monospace;font-size:11px;color:var(--ink-2)">'+current.toFixed(1)+'</span><span style="margin:0 4px">→</span><span id="dpNew-'+key+'" style="font-family:DM Mono,monospace;font-size:12px;font-weight:700">—</span>';
+    c5.appendChild(lsDiv); c5.appendChild(dpDiv); tr.appendChild(c5);
+
+    // Col6: Solution rating
+    const c6=document.createElement('td');
+    c6.appendChild(buildSolutionRating(key)); tr.appendChild(c6);
+
+    // Col7: Note
+    const c7=document.createElement('td');
+    const inp4=document.createElement('input'); inp4.className='inline-input act-note-highlight';
+    inp4.id='note-'+key; inp4.placeholder='Phản ứng trẻ, điều chỉnh...';
+    inp4.style.cssText='font-size:10.5px;width:100%';
+    c7.appendChild(inp4); tr.appendChild(c7);
+
+    tbody.appendChild(tr);
+  });
+}
+
+// ── SCORE INPUT ──
+function setScore(key,val,type){
+  const cur=computeCurrent();
+  const currentVal=cur[key]??0;
+  const targetDelta=CYCLE.target.blocks[key]?(getBlockScore(CYCLE.target.blocks[key])-(getBlockScore(CYCLE.baseline.blocks[key]??0))):1.0;
+  const delta=targetDelta*L2D[String(val)];
+  const newVal=Math.round((currentVal+delta)*100)/100;
+
+  document.getElementById(`ls-${key}`).querySelectorAll('.ls-btn').forEach((btn,i)=>{
+    btn.className='ls-btn'+(LS[i].val===val?' '+LS[i].cls:'');
+  });
+  const dp=document.getElementById(`dp-${key}`);
+  const dpNew=document.getElementById(`dpNew-${key}`);
+  if(dp&&dpNew){
+    dp.style.display='block';
+    dpNew.textContent=`${newVal.toFixed(1)} (${delta>=0?'+':''}${delta.toFixed(2)})`;
+    dpNew.style.color=delta>0?'var(--green)':delta<0?'var(--red)':'var(--ink-3)';
+  }
+  const sc=document.getElementById(`bcscore-${key}`);
+  if(sc) sc.textContent=newVal.toFixed(1);
+
+  if(type==='target') STATE.targetInputs[key]={local_score:val,delta,current_after:newVal};
+  else                STATE.observedInputs[key]={local_score:val,delta,current_after:newVal};
+
+  // Update layer table live
+  const liveCur={...computeCurrent()};
+  for(const [k,v] of Object.entries(STATE.targetInputs)) liveCur[k]=v.current_after;
+  buildLayerTable(liveCur);
+  updateSummary(liveCur);
+  checkSubmitReady();
+
+  // Regression check
+  const hasWorse=Object.values(STATE.targetInputs).some(v=>v.local_score===-2)||Object.values(STATE.observedInputs).some(v=>v.local_score===-2);
+  document.getElementById('regWarnBox').style.display=hasWorse?'block':'none';
+}
+
+function updateSummary(cur){
+  const tot=computeTotalFromBaseline(cur);
+  document.getElementById('rCurrentScore').textContent=tot.toFixed(1);
+  const baseTotal=CYCLE.baseline.total_score;
+  const d=tot-baseTotal;
+  document.getElementById('rDelta').textContent=(d>=0?'+':'')+d.toFixed(1);
+  const p=Math.round(tot);
+  document.getElementById('donutArc').setAttribute('stroke-dashoffset',150.8-(p/100*150.8));
+  document.getElementById('donutText').textContent=p+'%';
+}
+
+function checkSubmitReady(){
+  const total=Object.keys(CYCLE.target.blocks).length;
+  const filled=Object.keys(STATE.targetInputs).length;
+  document.getElementById('targetFilled').textContent=`${filled} / ${total}`;
+  const btn=document.getElementById('btnSubmit');
+  if(filled===total){btn.style.opacity='1';btn.style.pointerEvents='auto';}
+  else{btn.style.opacity='.4';btn.style.pointerEvents='none';}
+}
+
+// ── STARS ──
+function buildStars(n){
+  const el=document.getElementById('rStars'); el.innerHTML='';
+  for(let i=1;i<=5;i++){
+    const s=document.createElement('span');
+    s.className='star '+(i<=n?'on':'off');
+    s.textContent=i<=n?'★':'☆';
+    s.onclick=(()=>{const v=i;return()=>{STATE.cooperation=v;buildStars(v);}})();
+    el.appendChild(s);
+  }
+}
+
+// ── TIMELINE ──
+function buildTimeline(sessionNum){
+  const tl=document.getElementById('rTimeline');
+  tl.innerHTML='';
+  CYCLE.daily_sessions.forEach(s=>{
+    const tot=totalScore(computeCurrent());
+    tl.innerHTML+=`<div class="ref-tl-item"><span class="ref-tl-date">${s.date}</span><span class="ref-tl-label">Session ${s.session_index}</span><span class="ref-tl-score">—</span></div>`;
+  });
+  tl.innerHTML+=`<div class="ref-tl-item"><span class="ref-tl-date">${new Date().toLocaleDateString('vi-VN')}</span><span class="ref-tl-label">Session ${sessionNum} (Hiện tại)</span><span class="ref-tl-score">—</span></div>`;
+}
+
+// ── EVAL TABLE ──
+function buildEvalTable(){
+  const tbody=document.getElementById('evalTableBody');
+  tbody.innerHTML='';
+  LAYER_IDS.forEach(l=>{
+    const targets=Object.keys(CYCLE.target.blocks).filter(k=>B2L[k]===l);
+    if(!targets.length) return;
+    const desc=targets.map(k=>BN[k]).join(', ');
+    const radioHTML=[0,1,2,3,4,5,6].map(v=>`<div class="radio-cell" onclick="setEval(this,${v},'${l}')">${v}</div>`).join('');
+    tbody.innerHTML+=`<tr id="eval-${l}"><td class="eval-goal">${LAYER_NAMES[l]}</td><td class="eval-desc">Cải thiện: ${desc}</td><td><div class="radio-row">${radioHTML}</div></td></tr>`;
+  });
+}
+function setEval(el,val,lid){
+  const row=document.getElementById(`eval-${lid}`);
+  row.querySelectorAll('.radio-cell').forEach(c=>{c.classList.remove('selected');c.style.background='';});
+  el.classList.add('selected');
+  STATE.evalScores=STATE.evalScores||{};
+  STATE.evalScores[lid]=val;
+  // Show regression warning nếu có bất kỳ mức nào ≤ 1
+  const hasReg=Object.values(STATE.evalScores||{}).some(v=>v<=1);
+  document.getElementById('regWarnBox').style.display=hasReg?'block':'none';
+}
+
+// ── OBSERVED PICKER ──
+let _pickerOpen=false;
+function toggleObsPicker(){
+  _pickerOpen=!_pickerOpen;
+  document.getElementById('obsPicker').style.display=_pickerOpen?'block':'none';
+  if(_pickerOpen) document.getElementById('opSearch').focus();
+}
+function buildObsPickerList(){
+  const already=new Set([...Object.keys(CYCLE.target.blocks),...(CYCLE.observed_blocks||[]).map(o=>o.block),...STATE.observedBlocks]);
+  const list=document.getElementById('opList');
+  list.innerHTML='';
+  Object.keys(BN).forEach(k=>{
+    const dis=already.has(k);
+    const div=document.createElement('div');
+    div.id='opi-'+k;
+    div.style.cssText='padding:4px 7px;border-radius:3px;font-size:11px;display:flex;justify-content:space-between;cursor:'+(dis?'not-allowed':'pointer')+';color:'+(dis?'#bbb':'var(--ink-2)');
+    div.innerHTML='<span>'+BN[k]+'</span><span style="font-size:9px;color:var(--ink-3)">'+B2L[k]+'</span>';
+    if(!dis){
+      div.addEventListener('mouseover',()=>div.style.background='var(--rule-2)');
+      div.addEventListener('mouseout', ()=>div.style.background='');
+      div.addEventListener('click',()=>addObsBlock(k));
+    }
+    list.appendChild(div);
+  });
+}
+function filterObs(q){
+  document.querySelectorAll('#opList > div').forEach(el=>{
+    el.style.display=el.textContent.toLowerCase().includes(q.toLowerCase())?'':'none';
+  });
+}
+function addObsBlock(key){
+  const cur=computeCurrent();
+  const currentVal=cur[key]??(getBlockScore(CYCLE.baseline.blocks[key]??0));
+  const upstream=document.getElementById('opUpstream').value||null;
+  const note=document.getElementById('opNote').value||null;
+  const baseline=getBlockScore(CYCLE.baseline.blocks[key]??0)||currentVal;
+  STATE.observedBlocks.push(key);
+  STATE.observedInputs[key]={local_score:null,delta:0,upstream,note,baseline_original:baseline,current_at_add:currentVal,is_first_observation:true,observation_confidence:0.7,parent_confirmed:false};
+
+  const lid=B2L[key]; const color=LC[lid];
+  const lbg=LAYER_BG[lid]||'#EEF8F8';
+  const upLabel=upstream?`← ${BN[upstream]||upstream}`:'';
+  const lsHTML=LS.map(o=>`<button class="ls-btn" onclick="setScore('${key}',${o.val},'observed')"><span class="ls-num">${o.num}</span><span class="ls-lbl">${o.lbl}</span></button>`).join('');
+
+  // Insert vào targetTableBody (trước obsPickerRow)
+  const insertBefore=document.getElementById('obsPickerRow');
+  const tbody=insertBefore.closest('tfoot').previousElementSibling; // tbody
+  const tr=document.createElement('tr');
+  tr.id=`tr-${key}`;
+  tr.style.background='#EEF8F8';
+  tr.innerHTML=`
+    <td class="act-stt" style="color:#0A6060">${Object.keys(CYCLE.target.blocks).length+STATE.observedBlocks.length}</td>
+    <td>
+      <div class="act-name" style="color:#0A6060">
+        <input class="inline-input" id="act-${key}" placeholder="Hoạt động quan sát..." style="font-weight:600;font-size:11.5px;color:#0A6060">
+      </div>
+      <div style="margin-top:2px;display:flex;gap:4px;align-items:center">
+        <span style="font-size:9px;font-weight:600;color:#0A6060;background:#EEF8F8;border:1px solid #A0D0D0;padding:1px 5px;border-radius:2px">Quan sát</span>
+        ${note?`<span style="font-size:9px;color:var(--ink-3);font-style:italic">${note}</span>`:''}
+      </div>
+    </td>
+    <td>
+      <span class="layer-chip" style="background:${lbg};color:${color};border:1px solid ${color}40">${LAYER_NAMES[lid]||lid}</span>
+      ${upLabel?`<div style="font-size:9px;color:#0A6060;margin-top:3px">${upLabel}</div>`:''}
+    </td>
+    <td class="act-delta" style="color:#0A6060">obs</td>
+    <td>
+      <div class="ls-row" id="ls-${key}">${lsHTML}</div>
+      <div id="dp-${key}" style="display:none;font-size:10px;color:var(--ink-3);margin-top:4px;padding:2px 5px;background:var(--rule-2);border-radius:3px">
+        <span style="font-family:'DM Mono',monospace;font-size:11px;color:var(--ink-2)">${currentVal.toFixed(1)}</span>
+        <span style="margin:0 4px">→</span>
+        <span id="dpNew-${key}" style="font-family:'DM Mono',monospace;font-size:12px;font-weight:700">—</span>
+      </div>
+    </td>
+    <td><input class="inline-input" id="note-${key}" placeholder="Phản ứng trẻ..." style="font-size:10.5px"></td>`;
+  tbody.appendChild(tr);
+
+  // Update reference panel badge
+  document.getElementById('obsBadges').innerHTML+=`<div class="obs-badge">${upstream?BN[upstream]+' <span class="obs-arrow">→</span> ':''} ${BN[key]}</div>`;
+  document.getElementById('obsSection').style.display='block';
+
+  const item=document.getElementById(`opi-${key}`);
+  if(item){item.style.color='#bbb';item.style.cursor='not-allowed';item.onclick=null;item.onmouseover=null;item.onmouseout=null;}
+  document.getElementById('opNote').value=''; document.getElementById('opUpstream').value='';
+  toggleObsPicker();
+}
+
+// ── REGRESSION CLASSIFY ──
+function setRegClass(cls){
+  STATE.regressionClass=cls;
+  ['transitional','pathological','noise'].forEach(c=>{
+    const btn=document.getElementById(`regCls-${c}`); if(!btn) return;
+    btn.style.background=c===cls?(c==='pathological'?'#B52020':'#C07010'):'transparent';
+    btn.style.color=c===cls?'#fff':(c==='pathological'?'#B52020':'#C07010');
+  });
+}
+
+// ── SUBMIT ──
+function saveDraft(){
+  console.log('Draft:', buildOutput()); alert('✓ Đã lưu nháp');
+}
+async function submitSession(){
+  const output=buildOutput();
+  // Supabase: insert daily_session
+  try{
+    const cycleId = CYCLE.supabase_cycle_id || CYCLE.cycle_id;
+    const childId = CYCLE.child?.id;
+    const therapistId = document.getElementById('rTherapist')?.value || null;
+    if(cycleId && cycleId.includes('-')){  // valid uuid
+      const {error} = await sb.from('daily_sessions').insert({
+        cycle_id: cycleId,
+        child_id: childId,
+        therapist_id: therapistId,
+        date: output.date,
+        session_index: output.session_index,
+        is_first_session: output.is_first_session,
+        activities: output.activities,
+        observed_activities: output.observed_activities,
+        notes: output.notes,
+        parent_email: output.parent_email || null,
+        parent_confirmed: false,
+      });
+      if(error) throw error;
+      console.log('Supabase: session saved');
+      // Gửi confirm link nếu có email phụ huynh
+      if(output.parent_email){
+        await sendParentConfirmLink(output.parent_email, cycleId, output.session_index);
+      }
+    }
+  }catch(err){ console.warn('Supabase save failed:', err.message); }
+  // Cập nhật localStorage với session mới
+  CYCLE.daily_sessions.push({
+    session_index: output.session_index,
+    date:          output.date,
+    therapist:     output.therapist_id,
+    activities:    output.activities,
+    observed_activities: output.observed_activities,
+    notes:         output.notes,
+    regression_note: null,
+  });
+  lsSet(LS_KEYS.ACTIVE_CYCLE, CYCLE);
+
+  console.log('Submitted:', JSON.stringify(output,null,2));
+  document.getElementById('topStatus').textContent='✓ Đã nộp';
+  document.getElementById('topStatus').style.color='var(--green)';
+  alert(`✓ Session ${CYCLE.daily_sessions.length} đã nộp`);
+}
+async function sendParentConfirmLink(email, cycleId, sessionIndex){
+  try{
+    // Encode session info vào redirectTo URL
+    const confirmUrl = window.location.href.replace('ui_daily_session.html','ui_parent_confirm.html')
+      + '?cycle_id='+cycleId+'&session_index='+sessionIndex;
+    const {error} = await sb.auth.signInWithOtp({
+      email,
+      options:{
+        emailRedirectTo: confirmUrl,
+        data:{ role:'parent', cycle_id:cycleId, session_index:sessionIndex }
+      }
+    });
+    if(error) throw error;
+    console.log('Confirm link sent to:', email);
+    // Hiện thông báo nhỏ
+    const msg = document.createElement('div');
+    msg.style.cssText='position:fixed;bottom:20px;right:20px;background:#1A6A3A;color:#fff;padding:10px 16px;border-radius:6px;font-size:12px;font-weight:600;z-index:9999';
+    msg.textContent='✓ Đã gửi link xác nhận tới '+email;
+    document.body.appendChild(msg);
+    setTimeout(()=>msg.remove(), 4000);
+  }catch(err){
+    console.warn('Send confirm link failed:', err.message);
+  }
+}
+
+function buildOutput(){
+  const idx=CYCLE.daily_sessions.length+1;
+  return {
+    session_id:`S${idx}`, cycle_id:CYCLE.cycle_id, session_index:idx,
+    date:document.getElementById('rDate').value,
+    therapist_id:document.getElementById('rTherapist').value,
+    environment:document.getElementById('rEnv').value,
+    duration_min:parseInt(document.getElementById('rDuration').value)||90,
+    cooperation:STATE.cooperation,
+    is_first_session:idx===1,
+    notes:document.getElementById('rNotes').textContent,
+    plan:document.getElementById('rPlan').textContent,
+    parent_email:CYCLE.child?.parent_email||null,
+    activities:Object.entries(STATE.targetInputs).map(([block,v])=>({
+      block,target_delta:getBlockScore(CYCLE.target.blocks[block])-getBlockScore(CYCLE.baseline.blocks[block]??0),
+      local_score:v.local_score,delta:v.delta,current_after:makeBlock(v.current_after),
+      solution_id:document.getElementById(`sol-id-${block}`)?.value||null,
+      solution_title:document.getElementById(`sol-title-${block}`)?.value||document.getElementById(`act-${block}`)?.value||'',
+      solution_rating:STATE.solutionRatings?.[block]??null,
+      activity_note:document.getElementById(`actsub-${block}`)?.value||'',
+      therapist_note:document.getElementById(`note-${block}`)?.value||'',
+    })),
+    observed_activities:Object.entries(STATE.observedInputs).filter(([,v])=>v.local_score!==null).map(([block,v])=>({block,local_score:v.local_score,delta:v.delta,current_after:makeBlock(v.current_after)})),
+    new_observed_blocks:STATE.observedBlocks.map(key=>{const ob=STATE.observedInputs[key];return{block:key,upstream_block:ob.upstream||null,trigger_note:ob.note||null,baseline_original:ob.baseline_original,value_at_add:ob.current_at_add,source:'therapist_observation',observation_confidence:ob.observation_confidence??0.7,parent_confirmed:ob.parent_confirmed??false};}),
+    regression_events:Object.entries(STATE.targetInputs).filter(([,v])=>v.local_score===-2).map(([block])=>({block,regression_class:STATE.regressionClass,regression_note:document.getElementById('regNoteInput')?.value||null})),
+  };
+}
+
+init();
+</script>
+</body>
+</html>

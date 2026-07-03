@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pipeline & Data Model — Cycle System v2</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500;600&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --ink:    #1A1614; --ink-2: #4A4440; --ink-3: #8A807A;
+  --paper:  #FDFBF8; --card:  #FFFFFF; --rule:  #E8E0D8; --rule-2: #F2EDE6;
+  --red:    #9B1B1B; --red-bg: #FDF2F0;
+  --gold:   #A07010; --gold-bg: #FDF8EE;
+  --green:  #1A6A40; --green-bg: #EEF8F2;
+  --blue:   #1A3A7A; --blue-bg: #EEF2FC;
+  --purple: #5A1A8A; --purple-bg: #F5EEFF;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{font-size:14px;scroll-behavior:smooth}
+body{font-family:'DM Sans',sans-serif;background:var(--paper);color:var(--ink);line-height:1.7}
+.page{max-width:960px;margin:0 auto;padding:40px 32px 80px}
+
+/* HEADER */
+.doc-header{border-top:4px solid var(--red);padding:28px 0 20px;margin-bottom:36px;border-bottom:1px solid var(--rule)}
+.doc-tag{font-size:9px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:var(--red);margin-bottom:8px}
+.doc-title{font-family:'DM Serif Display',serif;font-size:34px;line-height:1.1;margin-bottom:6px}
+.doc-title em{font-style:italic;color:var(--red)}
+.doc-sub{font-size:12px;color:var(--ink-3);font-style:italic}
+
+/* SECTION */
+.sec-head{display:flex;align-items:center;gap:12px;margin-bottom:18px;margin-top:44px}
+.sec-num{font-family:'DM Serif Display',serif;font-size:11px;font-weight:700;color:#fff;background:var(--red);border-radius:50%;width:26px;height:26px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.sec-title{font-family:'DM Serif Display',serif;font-size:22px}
+p{margin-bottom:10px;color:var(--ink-2)}
+
+/* CODE */
+.code-wrap{background:#1E1E2E;border-radius:8px;overflow:hidden;margin-bottom:20px}
+.code-bar{background:#313244;padding:7px 14px;display:flex;align-items:center;gap:6px}
+.cd{width:10px;height:10px;border-radius:50%}
+.cf{font-size:10px;color:#BAC2E8;margin-left:4px;font-family:'DM Mono',monospace}
+pre{padding:16px 18px;overflow-x:auto;font-family:'DM Mono',monospace;font-size:12px;line-height:1.8;color:#CDD6F4}
+.kw{color:#CBA6F7}.fn{color:#89B4FA}.st{color:#A6E3A1}.cm{color:#6C7086;font-style:italic}
+.nm{color:#FAB387}.op{color:#89DCEB}.key{color:#F38BA8}.tp{color:#F9E2AF}
+
+/* CALLOUT */
+.callout{border-radius:6px;padding:12px 16px;margin:14px 0;font-size:12.5px;line-height:1.6}
+.callout.info{background:var(--blue-bg);border-left:3px solid var(--blue)}
+.callout.warn{background:var(--gold-bg);border-left:3px solid var(--gold)}
+.callout.good{background:var(--green-bg);border-left:3px solid var(--green)}
+.callout.red{background:var(--red-bg);border-left:3px solid var(--red)}
+.callout.purple{background:var(--purple-bg);border-left:3px solid var(--purple)}
+.ct{font-size:9px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;margin-bottom:4px}
+.callout.info .ct{color:var(--blue)}.callout.warn .ct{color:var(--gold)}
+.callout.good .ct{color:var(--green)}.callout.red .ct{color:var(--red)}
+.callout.purple .ct{color:var(--purple)}
+
+/* TABLE */
+.tbl{width:100%;border-collapse:collapse;font-size:12px;margin:16px 0}
+.tbl th{font-size:9.5px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);border-bottom:2px solid var(--rule);padding:6px 12px 8px;text-align:left}
+.tbl td{padding:9px 12px;border-bottom:1px solid var(--rule);vertical-align:top;line-height:1.5}
+.tbl tr:last-child td{border-bottom:none}
+.tbl tr:hover td{background:#F5F1EB}
+.tag{display:inline-block;font-size:9.5px;font-weight:600;padding:2px 7px;border-radius:3px}
+.tag.red{background:var(--red-bg);color:var(--red);border:1px solid #F0CACA}
+.tag.blue{background:var(--blue-bg);color:var(--blue);border:1px solid #C0CCEA}
+.tag.green{background:var(--green-bg);color:var(--green);border:1px solid #B0D8C0}
+.tag.gold{background:var(--gold-bg);color:var(--gold);border:1px solid #E8D890}
+.tag.purple{background:var(--purple-bg);color:var(--purple);border:1px solid #D0B0F0}
+.tag.gray{background:#F0EFED;color:#666;border:1px solid #DDD}
+
+/* SCALE TABLE */
+.scale-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin:14px 0}
+.scale-cell{border-radius:7px;padding:10px 8px;text-align:center;border:1px solid var(--rule)}
+.sc-val{font-family:'DM Mono',monospace;font-size:18px;font-weight:600;margin-bottom:3px}
+.sc-label{font-size:10px;color:var(--ink-3);line-height:1.3}
+.sc-delta{font-family:'DM Mono',monospace;font-size:11px;font-weight:500;margin-top:4px}
+
+/* FLOW DIAGRAM */
+.flow-row{display:flex;align-items:stretch;gap:0;margin:16px 0}
+.flow-box{background:var(--card);border:1px solid var(--rule);border-radius:8px;padding:12px 14px;flex:1}
+.flow-arrow{display:flex;align-items:center;padding:0 8px;color:var(--ink-3);font-size:18px;flex-shrink:0}
+.fb-who{font-size:8.5px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;margin-bottom:4px}
+.fb-who.human{color:var(--blue)}.fb-who.system{color:var(--green)}
+.fb-title{font-size:13px;font-weight:600;color:var(--ink);margin-bottom:4px}
+.fb-desc{font-size:11px;color:var(--ink-3);line-height:1.5}
+
+/* LIFECYCLE */
+.lc{display:flex;align-items:center;gap:0;margin:16px 0;overflow-x:auto}
+.lc-step{background:var(--card);border:1px solid var(--rule);border-radius:6px;padding:10px 14px;min-width:120px;flex-shrink:0}
+.lc-arr{color:var(--rule);font-size:20px;padding:0 4px;flex-shrink:0}
+.lc-tag{font-size:8.5px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);margin-bottom:3px}
+.lc-title{font-size:12px;font-weight:600;color:var(--ink)}
+.lc-fn{font-family:'DM Mono',monospace;font-size:9.5px;color:var(--red);margin-top:3px}
+
+/* FOOTER */
+.doc-footer{border-top:1px solid var(--rule);margin-top:48px;padding-top:16px;display:flex;justify-content:space-between;align-items:center}
+.footer-note{font-size:10.5px;color:var(--ink-3);font-style:italic}
+.footer-v{font-family:'DM Mono',monospace;font-size:10px;color:var(--red)}
+</style>
+</head>
+<body>
+<div class="page">
+
+<!-- HEADER -->
+<div class="doc-header">
+  <div class="doc-tag">Pyramid Scoring Engine · Cycle System · Pipeline & Data Model</div>
+  <div class="doc-title">Cycle System — <em>Local Input · Absolute Tracking</em></div>
+  <div class="doc-sub">Confirmed design · Local score (−2→+2) · Asymmetric delta · Regression allowed · No floor</div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     SECTION 1: TRIẾT LÝ THIẾT KẾ
+══════════════════════════════════════════ -->
+<div class="sec-head"><div class="sec-num">1</div><div class="sec-title">Triết lý thiết kế</div></div>
+
+<div class="flow-row">
+  <div class="flow-box">
+    <div class="fb-who human">👩‍🏫 Human (Therapist)</div>
+    <div class="fb-title">Local Input</div>
+    <div class="fb-desc">Chỉ cần so sánh với session gần nhất.<br>Câu hỏi: <em>"So với lần trước, tốt hơn hay tệ hơn?"</em><br>Thang −2 → +2. Tự nhiên, không cần nhớ số tuyệt đối.</div>
+  </div>
+  <div class="flow-arrow">→</div>
+  <div class="flow-box">
+    <div class="fb-who system">⚙ System</div>
+    <div class="fb-title">Absolute Tracking</div>
+    <div class="fb-desc">Tích lũy delta qua mọi session.<br>Tính current state từ baseline + Σdelta.<br>Suy ra absolute score (0–6) cho report.</div>
+  </div>
+</div>
+
+<div class="callout purple">
+  <div class="ct">✦ Nguyên tắc cốt lõi</div>
+  <strong>Human → đánh giá dễ (local) · System → tính toán chuẩn (absolute)</strong><br>
+  Therapist không bao giờ phải nhớ con số tuyệt đối. Hệ thống chịu trách nhiệm tích lũy, quy đổi, và hiển thị toàn bộ hành trình.
+</div>
+
+<!-- ══════════════════════════════════════════
+     SECTION 2: THANG LOCAL −2 → +2
+══════════════════════════════════════════ -->
+<div class="sec-head"><div class="sec-num">2</div><div class="sec-title">Thang Local Input (−2 → +2)</div></div>
+
+<div class="scale-grid">
+  <div class="scale-cell" style="background:#FDF0EE;border-color:#F0CACA">
+    <div class="sc-val" style="color:#9B1B1B">−2</div>
+    <div class="sc-label">Tệ hơn rõ rệt</div>
+    <div class="sc-delta" style="color:#9B1B1B">Δ = −0.50</div>
+  </div>
+  <div class="scale-cell" style="background:#FDF8EE;border-color:#E8C88A">
+    <div class="sc-val" style="color:#A07010">−1</div>
+    <div class="sc-label">Hơi tệ hơn</div>
+    <div class="sc-delta" style="color:#A07010">Δ = −0.20</div>
+  </div>
+  <div class="scale-cell" style="background:#F5F1EB;border-color:#DDD">
+    <div class="sc-val" style="color:#666">0</div>
+    <div class="sc-label">Tương đương</div>
+    <div class="sc-delta" style="color:#666">Δ = 0.00</div>
+  </div>
+  <div class="scale-cell" style="background:#EEF8F2;border-color:#B0D8C0">
+    <div class="sc-val" style="color:#1A6A40">+1</div>
+    <div class="sc-label">Tốt hơn</div>
+    <div class="sc-delta" style="color:#1A6A40">Δ = +0.20</div>
+  </div>
+  <div class="scale-cell" style="background:#E8F5EE;border-color:#80C8A0">
+    <div class="sc-val" style="color:#0A5A30">+2</div>
+    <div class="sc-label">Tốt hơn rõ rệt</div>
+    <div class="sc-delta" style="color:#0A5A30">Δ = +0.40</div>
+  </div>
+</div>
+
+<div class="callout warn">
+  <div class="ct">⚠ Asymmetric — có chủ đích</div>
+  <strong>Tụt lùi dễ hơn tiến bộ</strong> — phản ánh đúng thực tế lâm sàng.<br>
+  Tiến bộ tối đa (+2) = +0.40 &nbsp;|&nbsp; Tụt lùi tối đa (−2) = −0.50<br>
+  → Cần nhiều session tốt để bù 1 session xấu. Không có floor — current có thể âm nếu regression nặng.
+</div>
+
+<div class="callout info">
+  <div class="ct">💡 Session đầu tiên trong cycle</div>
+  Therapist tự nhập đánh giá so với baseline trực tiếp.<br>
+  <strong>Session 1 là special case</strong> — không có "lần trước" → therapist quan sát và so sánh với trạng thái baseline đã biết.
+</div>
+
+<!-- ══════════════════════════════════════════
+     SECTION 3: PIPELINE HOÀN CHỈNH
+══════════════════════════════════════════ -->
+<div class="sec-head"><div class="sec-num">3</div><div class="sec-title">Pipeline hoàn chỉnh</div></div>
+
+<div class="code-wrap">
+  <div class="code-bar">
+    <div class="cd" style="background:#FF5F57"></div>
+    <div class="cd" style="background:#FFBD2E"></div>
+    <div class="cd" style="background:#28C840"></div>
+    <div class="cf">pipeline.py · confirmed final</div>
+  </div>
+  <pre><span class="cm"># ── STEP 0: SCALE MAP (Asymmetric — có chủ đích) ─────────</span>
+LOCAL_TO_DELTA = {
+    <span class="nm">-2</span>: <span class="nm">-0.50</span>,  <span class="cm"># tệ hơn rõ — tụt lùi dễ hơn tiến bộ</span>
+    <span class="nm">-1</span>: <span class="nm">-0.20</span>,  <span class="cm"># hơi tệ hơn</span>
+     <span class="nm">0</span>:  <span class="nm">0.00</span>,  <span class="cm"># tương đương</span>
+    <span class="nm">+1</span>:  <span class="nm">0.20</span>,  <span class="cm"># tốt hơn</span>
+    <span class="nm">+2</span>:  <span class="nm">0.40</span>,  <span class="cm"># tốt hơn rõ rệt</span>
+}
+
+<span class="cm"># ── STEP 1: NORMALIZE LOCAL → DELTA ──────────────────────</span>
+<span class="kw">def</span> <span class="fn">compute_block_delta</span>(activity):
+    <span class="op">"""</span>
+    <span class="op">activity = { block, target_delta, local_score }</span>
+    <span class="op">target_delta: khoảng cần đạt (target - baseline)</span>
+    <span class="op">local_score: −2 → +2 (so với session gần nhất)</span>
+    <span class="op">"""</span>
+    normalized = LOCAL_TO_DELTA[activity[<span class="st">"local_score"</span>]]
+    <span class="kw">return</span> activity[<span class="st">"target_delta"</span>] * normalized
+
+<span class="cm"># ── STEP 2: AGGREGATE DELTA ──────────────────────────────</span>
+<span class="kw">def</span> <span class="fn">aggregate_deltas</span>(daily_sessions):
+    <span class="op">"""Cộng dồn delta qua mọi session trong cycle"""</span>
+    block_delta = {}
+    <span class="kw">for</span> session <span class="kw">in</span> daily_sessions:
+        <span class="kw">for</span> act <span class="kw">in</span> session[<span class="st">"activities"</span>]:
+            b = act[<span class="st">"block"</span>]
+            d = <span class="fn">compute_block_delta</span>(act)
+            block_delta[b] = block_delta.<span class="fn">get</span>(b, <span class="nm">0</span>) + d
+    <span class="kw">return</span> block_delta
+
+<span class="cm"># ── STEP 3: CURRENT STATE ────────────────────────────────</span>
+<span class="kw">def</span> <span class="fn">compute_current_blocks</span>(baseline_blocks, block_delta):
+    <span class="op">"""</span>
+    <span class="op">current = baseline + cumulative_delta</span>
+    <span class="op">KHÔNG có floor — có thể âm nếu regression nặng</span>
+    <span class="op">Regression = thông tin lâm sàng quan trọng, không ẩn đi</span>
+    <span class="op">"""</span>
+    current = {}
+    <span class="kw">for</span> block, base_val <span class="kw">in</span> baseline_blocks.<span class="fn">items</span>():
+        current[block] = base_val + block_delta.<span class="fn">get</span>(block, <span class="nm">0</span>)
+    <span class="kw">return</span> current
+
+<span class="cm"># ── STEP 4: CLAMP TRẦN (không vượt target) ───────────────</span>
+<span class="kw">def</span> <span class="fn">clamp_to_target</span>(current, target_blocks):
+    <span class="op">"""Chặn trần tại target — không clamp sàn"""</span>
+    <span class="kw">for</span> block <span class="kw">in</span> current:
+        <span class="kw">if</span> block <span class="kw">in</span> target_blocks:
+            current[block] = <span class="fn">min</span>(current[block], target_blocks[block])
+    <span class="kw">return</span> current
+
+<span class="cm"># ── STEP 5: PROGRESS % ───────────────────────────────────</span>
+<span class="kw">def</span> <span class="fn">compute_progress_percent</span>(baseline_blocks, current_blocks, target_blocks):
+    <span class="op">"""</span>
+    <span class="op">progress < 0  → regression so với baseline</span>
+    <span class="op">progress = 0  → giữ nguyên baseline</span>
+    <span class="op">0 < p < 1     → đang tiến bộ, chưa đạt target</span>
+    <span class="op">progress = 1  → đạt target (clamped)</span>
+    <span class="op">"""</span>
+    result = {}
+    <span class="kw">for</span> block <span class="kw">in</span> target_blocks:
+        base = baseline_blocks.<span class="fn">get</span>(block, <span class="nm">0</span>)
+        curr = current_blocks.<span class="fn">get</span>(block, <span class="nm">0</span>)
+        tgt  = target_blocks.<span class="fn">get</span>(block, <span class="nm">0</span>)
+        <span class="kw">if</span> tgt == base:
+            result[block] = <span class="nm">1.0</span>
+        <span class="kw">else</span>:
+            result[block] = (curr - base) / (tgt - base)
+    <span class="kw">return</span> result
+
+<span class="cm"># ── STEP 6: ABSOLUTE SCORE (0–6) ─────────────────────────</span>
+<span class="kw">def</span> <span class="fn">absolute_score</span>(progress_pct):
+    <span class="op">"""Hệ thống tự convert progress % → absolute score để hiển thị"""</span>
+    <span class="kw">if</span>   progress_pct <= <span class="nm">-0.80</span>: <span class="kw">return</span> <span class="nm">0</span>  <span class="cm"># tệ hơn nhiều</span>
+    <span class="kw">elif</span> progress_pct <= <span class="nm">-0.20</span>: <span class="kw">return</span> <span class="nm">1</span>  <span class="cm"># hơi tệ hơn baseline</span>
+    <span class="kw">elif</span> progress_pct <=  <span class="nm">0.10</span>: <span class="kw">return</span> <span class="nm">2</span>  <span class="cm"># gần như giữ nguyên</span>
+    <span class="kw">elif</span> progress_pct <=  <span class="nm">0.40</span>: <span class="kw">return</span> <span class="nm">3</span>  <span class="cm"># tiến bộ ít</span>
+    <span class="kw">elif</span> progress_pct <=  <span class="nm">0.70</span>: <span class="kw">return</span> <span class="nm">4</span>  <span class="cm"># tiến bộ</span>
+    <span class="kw">elif</span> progress_pct <   <span class="nm">1.00</span>: <span class="kw">return</span> <span class="nm">5</span>  <span class="cm"># tiến bộ rõ rệt</span>
+    <span class="kw">else</span>:                        <span class="kw">return</span> <span class="nm">6</span>  <span class="cm"># xử lý hoàn toàn</span>
+
+<span class="cm"># ── FULL PIPELINE ────────────────────────────────────────</span>
+<span class="kw">def</span> <span class="fn">compute_progress_state</span>(cycle):
+    baseline       = cycle[<span class="st">"baseline"</span>]
+    target         = cycle[<span class="st">"target"</span>]
+    daily_sessions = cycle[<span class="st">"daily_sessions"</span>]
+
+    <span class="cm"># 1. Tích lũy delta</span>
+    block_delta = <span class="fn">aggregate_deltas</span>(daily_sessions)
+
+    <span class="cm"># 2. Current state</span>
+    current_blocks = <span class="fn">compute_current_blocks</span>(
+        baseline[<span class="st">"blocks"</span>], block_delta
+    )
+
+    <span class="cm"># 3. Clamp trần</span>
+    current_blocks = <span class="fn">clamp_to_target</span>(
+        current_blocks, target[<span class="st">"blocks"</span>]
+    )
+
+    <span class="cm"># 4. Layer scores (engine v3)</span>
+    current_layers = <span class="fn">compute_all_layers</span>(current_blocks)
+
+    <span class="cm"># 5. Progress %</span>
+    progress = <span class="fn">compute_progress_percent</span>(
+        baseline[<span class="st">"blocks"</span>], current_blocks, target[<span class="st">"blocks"</span>]
+    )
+
+    <span class="cm"># 6. Absolute scores</span>
+    abs_scores = {
+        block: <span class="fn">absolute_score</span>(pct)
+        <span class="kw">for</span> block, pct <span class="kw">in</span> progress.<span class="fn">items</span>()
+    }
+
+    <span class="cm"># 7. Regression flags</span>
+    regressions = {
+        block: pct
+        <span class="kw">for</span> block, pct <span class="kw">in</span> progress.<span class="fn">items</span>()
+        <span class="kw">if</span> pct < <span class="nm">0</span>
+    }
+
+    <span class="kw">return</span> {
+        <span class="st">"blocks"</span>:        current_blocks,
+        <span class="st">"layers"</span>:        current_layers,
+        <span class="st">"block_delta"</span>:   block_delta,
+        <span class="st">"progress"</span>:      progress,
+        <span class="st">"absolute"</span>:      abs_scores,
+        <span class="st">"regressions"</span>:   regressions,   <span class="cm"># flag lâm sàng quan trọng</span>
+        <span class="st">"sessions_count"</span>: <span class="fn">len</span>(daily_sessions)
+    }</pre>
+</div>
+
+<!-- ══════════════════════════════════════════
+     SECTION 4: DATA STRUCTURE
+══════════════════════════════════════════ -->
+<div class="sec-head"><div class="sec-num">4</div><div class="sec-title">Data Structure hoàn chỉnh</div></div>
+
+<div class="code-wrap">
+  <div class="code-bar">
+    <div class="cd" style="background:#FF5F57"></div>
+    <div class="cd" style="background:#FFBD2E"></div>
+    <div class="cd" style="background:#28C840"></div>
+    <div class="cf">cycle_data.json · full structure</div>
+  </div>
+  <pre>{
+  <span class="key">"child_id"</span>: <span class="st">"CHD-001"</span>,
+  <span class="key">"child_name"</span>: <span class="st">"Nguyễn Văn A"</span>,
+
+  <span class="key">"cycles"</span>: [
+    {
+      <span class="key">"cycle_id"</span>: <span class="st">"C1"</span>,
+      <span class="key">"status"</span>: <span class="st">"active"</span>,          <span class="cm">// active | closed</span>
+      <span class="key">"close_reason"</span>: <span class="kw">null</span>,           <span class="cm">// "completed" | "incident" | "timeout"</span>
+      <span class="key">"started_at"</span>: <span class="st">"2025-01-15"</span>,
+      <span class="key">"ended_at"</span>: <span class="kw">null</span>,
+
+      <span class="cm">// ── BASELINE: frozen, không recompute ────────────────</span>
+      <span class="key">"baseline"</span>: {
+        <span class="key">"locked_at"</span>: <span class="st">"2025-01-15"</span>,
+        <span class="key">"blocks"</span>: {
+          <span class="key">"gut"</span>: <span class="nm">1.0</span>,
+          <span class="key">"sleep"</span>: <span class="nm">2.5</span>,
+          <span class="key">"arousal"</span>: <span class="nm">2.0</span>,
+          <span class="key">"reflex"</span>: <span class="nm">3.5</span>
+        },
+        <span class="key">"layers"</span>: { <span class="key">"L0"</span>: <span class="nm">2.10</span>, <span class="key">"L1"</span>: <span class="nm">2.73</span> },
+        <span class="key">"total_score"</span>: <span class="nm">53.2</span>
+      },
+
+      <span class="cm">// ── TARGET: set thủ công, không thay đổi trong cycle ──</span>
+      <span class="key">"target"</span>: {
+        <span class="key">"set_at"</span>: <span class="st">"2025-01-15"</span>,
+        <span class="key">"set_by"</span>: <span class="st">"Nguyễn Thị B"</span>,
+        <span class="key">"blocks"</span>: {
+          <span class="key">"gut"</span>: <span class="nm">2.0</span>,      <span class="cm">// target_delta = 1.0</span>
+          <span class="key">"sleep"</span>: <span class="nm">3.0</span>,    <span class="cm">// target_delta = 0.5</span>
+          <span class="key">"arousal"</span>: <span class="nm">3.0</span>, <span class="cm">// target_delta = 1.0</span>
+          <span class="key">"reflex"</span>: <span class="nm">4.0</span>   <span class="cm">// target_delta = 0.5</span>
+        },
+        <span class="key">"layers"</span>: { <span class="key">"L0"</span>: <span class="nm">2.80</span>, <span class="key">"L1"</span>: <span class="nm">3.20</span> },
+        <span class="key">"total_score"</span>: <span class="nm">65.0</span>
+      },
+
+      <span class="cm">// ── DAILY SESSIONS: incremental input ─────────────────</span>
+      <span class="key">"daily_sessions"</span>: [
+        {
+          <span class="key">"session_id"</span>: <span class="st">"S1"</span>,
+          <span class="key">"cycle_id"</span>: <span class="st">"C1"</span>,
+          <span class="key">"date"</span>: <span class="st">"2025-01-22"</span>,
+          <span class="key">"therapist"</span>: <span class="st">"Nguyễn Thị B"</span>,
+          <span class="key">"is_first_session"</span>: <span class="kw">true</span>,  <span class="cm">// so với baseline trực tiếp</span>
+          <span class="key">"activities"</span>: [
+            {
+              <span class="key">"block"</span>: <span class="st">"gut"</span>,
+              <span class="key">"target_delta"</span>: <span class="nm">1.0</span>,   <span class="cm">// = target - baseline</span>
+              <span class="key">"local_score"</span>: <span class="nm">1</span>,       <span class="cm">// therapist nhập: tốt hơn</span>
+              <span class="cm">// system computes:</span>
+              <span class="key">"delta"</span>: <span class="nm">0.20</span>,           <span class="cm">// 1.0 × 0.20</span>
+              <span class="key">"current_after"</span>: <span class="nm">1.20</span>   <span class="cm">// 1.0 + 0.20</span>
+            },
+            {
+              <span class="key">"block"</span>: <span class="st">"arousal"</span>,
+              <span class="key">"target_delta"</span>: <span class="nm">1.0</span>,
+              <span class="key">"local_score"</span>: <span class="nm">-1</span>,      <span class="cm">// hơi tệ hơn</span>
+              <span class="key">"delta"</span>: <span class="nm">-0.20</span>,
+              <span class="key">"current_after"</span>: <span class="nm">1.80</span>
+            }
+          ],
+          <span class="key">"notes"</span>: <span class="st">"Trẻ hợp tác tốt phần đầu, mệt mỏi sau 30 phút"</span>
+        },
+        {
+          <span class="key">"session_id"</span>: <span class="st">"S2"</span>,
+          <span class="key">"cycle_id"</span>: <span class="st">"C1"</span>,
+          <span class="key">"date"</span>: <span class="st">"2025-01-29"</span>,
+          <span class="key">"therapist"</span>: <span class="st">"Nguyễn Thị B"</span>,
+          <span class="key">"is_first_session"</span>: <span class="kw">false</span>,
+          <span class="key">"activities"</span>: [
+            {
+              <span class="key">"block"</span>: <span class="st">"gut"</span>,
+              <span class="key">"target_delta"</span>: <span class="nm">1.0</span>,
+              <span class="key">"local_score"</span>: <span class="nm">2</span>,       <span class="cm">// tốt hơn rõ — so với S1</span>
+              <span class="key">"delta"</span>: <span class="nm">0.40</span>,
+              <span class="key">"current_after"</span>: <span class="nm">1.60</span>  <span class="cm">// 1.20 + 0.40</span>
+            },
+            {
+              <span class="key">"block"</span>: <span class="st">"arousal"</span>,
+              <span class="key">"target_delta"</span>: <span class="nm">1.0</span>,
+              <span class="key">"local_score"</span>: <span class="nm">-2</span>,     <span class="cm">// tệ hơn rõ — regression!</span>
+              <span class="key">"delta"</span>: <span class="nm">-0.50</span>,
+              <span class="key">"current_after"</span>: <span class="nm">1.30</span>  <span class="cm">// 1.80 - 0.50 → dưới baseline 2.0!</span>
+            }
+          ],
+          <span class="key">"notes"</span>: <span class="st">"Arousal regression — xem xét lại môi trường"</span>
+        }
+      ]
+    }
+  ]
+}</pre>
+</div>
+
+<!-- ══════════════════════════════════════════
+     SECTION 5: MAPPING REPORTS
+══════════════════════════════════════════ -->
+<div class="sec-head"><div class="sec-num">5</div><div class="sec-title">Mapping vào 2 Reports</div></div>
+
+<table class="tbl">
+  <thead>
+    <tr>
+      <th>Data point</th>
+      <th>Baseline Report</th>
+      <th>Progress Report</th>
+      <th>Tính khi nào</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code style="font-family:'DM Mono',monospace;font-size:11px">baseline.blocks</code></td>
+      <td><span class="tag red">Hiển thị chính</span></td>
+      <td><span class="tag gray">Mốc tham chiếu</span></td>
+      <td>Lock khi tạo cycle</td>
+    </tr>
+    <tr>
+      <td><code style="font-family:'DM Mono',monospace;font-size:11px">target.blocks</code></td>
+      <td><span class="tag gold">Set thủ công</span></td>
+      <td><span class="tag gold">Đường đích</span></td>
+      <td>Set khi tạo cycle</td>
+    </tr>
+    <tr>
+      <td><code style="font-family:'DM Mono',monospace;font-size:11px">current_blocks</code></td>
+      <td>—</td>
+      <td><span class="tag green">Trạng thái hiện tại</span></td>
+      <td>Tính on-the-fly</td>
+    </tr>
+    <tr>
+      <td><code style="font-family:'DM Mono',monospace;font-size:11px">progress %</code></td>
+      <td>—</td>
+      <td><span class="tag green">% hoàn thành</span></td>
+      <td>Tính on-the-fly</td>
+    </tr>
+    <tr>
+      <td><code style="font-family:'DM Mono',monospace;font-size:11px">absolute_score</code></td>
+      <td>—</td>
+      <td><span class="tag blue">0–6 hiển thị</span></td>
+      <td>Tính on-the-fly</td>
+    </tr>
+    <tr>
+      <td><code style="font-family:'DM Mono',monospace;font-size:11px">regressions</code></td>
+      <td><span class="tag red">Outlier flag</span></td>
+      <td><span class="tag red">⚠ Flag lâm sàng</span></td>
+      <td>Tính on-the-fly</td>
+    </tr>
+    <tr>
+      <td><code style="font-family:'DM Mono',monospace;font-size:11px">upstream_pressure</code></td>
+      <td><span class="tag red">Primary signal</span></td>
+      <td><span class="tag gold">Theo dõi giảm dần</span></td>
+      <td>Tính on-the-fly</td>
+    </tr>
+    <tr>
+      <td><code style="font-family:'DM Mono',monospace;font-size:11px">block_delta / session</code></td>
+      <td>—</td>
+      <td><span class="tag blue">Timeline chart</span></td>
+      <td>Tính on-the-fly</td>
+    </tr>
+  </tbody>
+</table>
+
+<!-- ══════════════════════════════════════════
+     SECTION 6: LIFECYCLE
+══════════════════════════════════════════ -->
+<div class="sec-head"><div class="sec-num">6</div><div class="sec-title">Cycle Lifecycle</div></div>
+
+<div class="lc">
+  <div class="lc-step">
+    <div class="lc-tag">Bước 1</div>
+    <div class="lc-title">Tạo Cycle</div>
+    <div class="lc-fn">createCycle()</div>
+  </div>
+  <div class="lc-arr">→</div>
+  <div class="lc-step">
+    <div class="lc-tag">Bước 2</div>
+    <div class="lc-title">Lock Baseline</div>
+    <div class="lc-fn">lockBaseline()</div>
+  </div>
+  <div class="lc-arr">→</div>
+  <div class="lc-step">
+    <div class="lc-tag">Bước 3</div>
+    <div class="lc-title">Set Target</div>
+    <div class="lc-fn">setTarget()</div>
+  </div>
+  <div class="lc-arr">→</div>
+  <div class="lc-step">
+    <div class="lc-tag">Bước 4 (lặp)</div>
+    <div class="lc-title">Daily Session</div>
+    <div class="lc-fn">addSession()</div>
+  </div>
+  <div class="lc-arr">→</div>
+  <div class="lc-step">
+    <div class="lc-tag">Bước 5 (lặp)</div>
+    <div class="lc-title">Progress Report</div>
+    <div class="lc-fn">computeProgress()</div>
+  </div>
+  <div class="lc-arr">→</div>
+  <div class="lc-step">
+    <div class="lc-tag">Bước 6</div>
+    <div class="lc-title">Đóng Cycle</div>
+    <div class="lc-fn">closeCycle(reason)</div>
+  </div>
+  <div class="lc-arr">→</div>
+  <div class="lc-step">
+    <div class="lc-tag">Bước 7</div>
+    <div class="lc-title">Cycle Mới</div>
+    <div class="lc-fn">new baseline = current</div>
+  </div>
+</div>
+
+<div class="callout good">
+  <div class="ct">✦ Khi mở Cycle mới</div>
+  <strong>Baseline của cycle mới = current state của cycle cũ</strong><br>
+  Toàn bộ lịch sử cycle cũ được giữ nguyên để so sánh liên cycle.<br>
+  Target mới được set lại dựa trên đánh giá mới với gia đình.
+</div>
+
+<!-- SUPABASE NOTE -->
+<div class="sec-head"><div class="sec-num">7</div><div class="sec-title">Supabase Schema Update</div></div>
+
+<div class="code-wrap">
+  <div class="code-bar">
+    <div class="cd" style="background:#FF5F57"></div>
+    <div class="cd" style="background:#FFBD2E"></div>
+    <div class="cd" style="background:#28C840"></div>
+    <div class="cf">schema_update.sql · thêm cycles + daily_sessions</div>
+  </div>
+  <pre><span class="cm">-- ── CYCLES TABLE ─────────────────────────────────────────</span>
+<span class="kw">CREATE TABLE</span> cycles (
+  id           <span class="tp">uuid</span>        <span class="kw">PRIMARY KEY DEFAULT</span> <span class="fn">gen_random_uuid</span>(),
+  child_id     <span class="tp">uuid</span>        <span class="kw">REFERENCES</span> children(id),
+  teacher_id   <span class="tp">uuid</span>        <span class="kw">REFERENCES</span> user_profiles(id),
+  status       <span class="tp">text</span>        <span class="kw">DEFAULT</span> <span class="st">'active'</span>,  <span class="cm">-- active | closed</span>
+  close_reason <span class="tp">text</span>,                           <span class="cm">-- completed | incident | timeout</span>
+  baseline     <span class="tp">jsonb</span>       <span class="kw">NOT NULL</span>,           <span class="cm">-- frozen forever</span>
+  target       <span class="tp">jsonb</span>       <span class="kw">NOT NULL</span>,           <span class="cm">-- frozen for cycle duration</span>
+  started_at   <span class="tp">date</span>        <span class="kw">NOT NULL</span>,
+  ended_at     <span class="tp">date</span>,
+  created_at   <span class="tp">timestamptz</span> <span class="kw">DEFAULT NOW</span>()
+);
+
+<span class="cm">-- ── DAILY SESSIONS TABLE ──────────────────────────────────</span>
+<span class="kw">CREATE TABLE</span> daily_sessions (
+  id               <span class="tp">uuid</span>        <span class="kw">PRIMARY KEY DEFAULT</span> <span class="fn">gen_random_uuid</span>(),
+  cycle_id         <span class="tp">uuid</span>        <span class="kw">REFERENCES</span> cycles(id),
+  child_id         <span class="tp">uuid</span>        <span class="kw">REFERENCES</span> children(id),
+  therapist_id     <span class="tp">uuid</span>        <span class="kw">REFERENCES</span> user_profiles(id),
+  date             <span class="tp">date</span>        <span class="kw">NOT NULL</span>,
+  is_first_session <span class="tp">boolean</span>     <span class="kw">DEFAULT FALSE</span>,
+  activities       <span class="tp">jsonb</span>       <span class="kw">NOT NULL</span>,  <span class="cm">-- [{block, target_delta, local_score, delta}]</span>
+  notes            <span class="tp">text</span>,
+  created_at       <span class="tp">timestamptz</span> <span class="kw">DEFAULT NOW</span>()
+);
+
+<span class="cm">-- ── RLS: chỉ GV của cycle mới được insert session ─────────</span>
+<span class="kw">CREATE POLICY</span> <span class="st">"teacher_inserts_own_sessions"</span>
+  <span class="kw">ON</span> daily_sessions <span class="kw">FOR INSERT</span>
+  <span class="kw">WITH CHECK</span> (
+    therapist_id = <span class="fn">auth.uid</span>()
+    <span class="kw">AND</span> cycle_id <span class="kw">IN</span> (
+      <span class="kw">SELECT</span> id <span class="kw">FROM</span> cycles
+      <span class="kw">WHERE</span> teacher_id = <span class="fn">auth.uid</span>()
+      <span class="kw">AND</span> status = <span class="st">'active'</span>
+    )
+  );
+
+<span class="cm">-- ── PREVENT BASELINE UPDATE sau khi lock ─────────────────</span>
+<span class="kw">CREATE POLICY</span> <span class="st">"baseline_is_immutable"</span>
+  <span class="kw">ON</span> cycles <span class="kw">FOR UPDATE</span>
+  <span class="kw">USING</span> (status = <span class="st">'active'</span>)
+  <span class="kw">WITH CHECK</span> (
+    baseline = (
+      <span class="kw">SELECT</span> baseline <span class="kw">FROM</span> cycles <span class="kw">WHERE</span> id = cycles.id
+    )
+  );</pre>
+</div>
+
+<!-- FOOTER -->
+<div class="doc-footer">
+  <div class="footer-note">Pyramid Scoring Engine · Cycle System · Pipeline confirmed</div>
+  <div class="footer-v">cycle_v1 · local_input · asymmetric_delta · regression_allowed</div>
+</div>
+
+</div>
+</body>
+</html>

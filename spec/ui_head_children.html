@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SPEDUMAP — Trẻ & Phụ huynh</title>
+<link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700&family=Source+Sans+3:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="spedumap_config.js"></script>
+<style>
+:root{
+  --navy:#0D2240;--navy-2:#1A3A6A;--navy-3:#2A5A9A;
+  --red:#B52020;--red-bg:#FDF2F0;--red-bd:#F0CACA;
+  --green:#1A6A3A;--green-bg:#EEF8F2;--green-bd:#B0D8C0;
+  --gold:#8A6200;--gold-bg:#FDF8EC;--gold-bd:#E8C880;
+  --teal:#0A6060;--teal-bg:#EEF8F8;--teal-bd:#A0D0D0;
+  --bronze:#6B4423;
+  --ink:#111827;--ink-2:#374151;--ink-3:#6B7280;
+  --rule:#E5E7EB;--rule-2:#F3F4F6;--paper:#FFFFFF;--bg:#F0F2F5;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Source Sans 3',sans-serif;background:var(--bg);color:var(--ink);min-height:100vh}
+
+/* HEADER */
+header{background:var(--navy);height:52px;display:flex;align-items:center;justify-content:space-between;padding:0 20px;position:sticky;top:0;z-index:100}
+.hlogo{font-family:'Libre Baskerville',serif;font-size:15px;font-weight:700;color:#fff}
+.hlogo span{color:rgba(255,255,255,.45);font-weight:400;font-size:12px}
+.hright{display:flex;align-items:center;gap:10px}
+.hdate{font-size:11px;color:rgba(255,255,255,.55)}
+.btn-refresh{height:28px;padding:0 12px;border:1px solid rgba(255,255,255,.25);border-radius:4px;background:transparent;font-size:11px;font-weight:600;color:rgba(255,255,255,.7);cursor:pointer}
+.btn-refresh:hover{background:rgba(255,255,255,.1);color:#fff}
+
+/* PAGE */
+.page{max-width:1100px;margin:0 auto;padding:16px 16px 60px}
+.page-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.page-title{font-family:'Libre Baskerville',serif;font-size:18px;font-weight:700;color:var(--navy)}
+.page-sub{font-size:11px;color:var(--ink-3);margin-top:2px}
+
+/* BTN PRIMARY */
+.btn-primary{height:34px;padding:0 16px;border:none;border-radius:5px;background:var(--green);color:#fff;font-size:12px;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:6px}
+.btn-primary:hover{background:#155830}
+
+/* CARD */
+.card{background:var(--paper);border:1px solid var(--rule);border-radius:8px;overflow:hidden;margin-bottom:14px}
+.card-head{background:var(--navy);padding:8px 14px;font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#fff;display:flex;align-items:center;justify-content:space-between}
+.card-badge{font-family:'DM Mono',monospace;font-size:10px;color:rgba(255,255,255,.55)}
+.card-body{padding:0}
+
+/* TABLE */
+.tbl{width:100%;border-collapse:collapse;font-size:11.5px}
+.tbl th{font-size:9px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);border-bottom:2px solid var(--rule);padding:7px 12px;text-align:left;background:var(--rule-2)}
+.tbl td{padding:9px 12px;border-bottom:1px solid var(--rule-2);vertical-align:middle}
+.tbl tr:last-child td{border-bottom:none}
+.tbl tr:hover td{background:#FAFAFA}
+
+/* CHILD CELL */
+.cc{display:flex;align-items:center;gap:8px}
+.avi{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'DM Mono',monospace;font-size:9px;font-weight:700;flex-shrink:0;background:var(--navy);color:#fff}
+.cc-name{font-size:12px;font-weight:600;color:var(--ink)}
+.cc-meta{font-size:9.5px;color:var(--ink-3)}
+
+/* STATUS PILL */
+.pill{display:inline-flex;align-items:center;font-size:9px;font-weight:700;padding:2px 8px;border-radius:10px;letter-spacing:.04em;text-transform:uppercase}
+.pill.pending{background:var(--gold-bg);color:var(--gold);border:1px solid var(--gold-bd)}
+.pill.active{background:var(--green-bg);color:var(--green);border:1px solid var(--green-bd)}
+.pill.none{background:var(--rule-2);color:var(--ink-3);border:1px solid var(--rule)}
+
+/* TEAM CHIPS */
+.team{display:flex;flex-wrap:wrap;gap:4px;align-items:center}
+.chip{display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:600;padding:2px 8px;border-radius:12px;background:var(--teal-bg);color:var(--teal);border:1px solid var(--teal-bd)}
+.chip.lead{background:var(--navy);color:#fff;border-color:var(--navy)}
+.chip-empty{font-size:10px;color:var(--ink-3);font-style:italic}
+
+/* ACTION BTN */
+.btn-act{height:26px;padding:0 11px;border:1px solid var(--rule);border-radius:4px;background:transparent;font-size:10px;font-weight:600;color:var(--navy-2);cursor:pointer}
+.btn-act:hover{background:var(--navy);color:#fff;border-color:var(--navy)}
+.btn-act:disabled{opacity:.4;cursor:not-allowed}
+.btn-act:disabled:hover{background:transparent;color:var(--navy-2);border-color:var(--rule)}
+
+/* MODAL */
+.modal-bg{position:fixed;inset:0;background:rgba(13,34,64,.55);display:none;align-items:flex-start;justify-content:center;z-index:200;padding:40px 16px;overflow-y:auto}
+.modal-bg.open{display:flex}
+.modal{background:var(--paper);border-radius:10px;width:100%;max-width:480px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.3)}
+.modal-head{background:var(--navy);padding:14px 18px;display:flex;align-items:center;justify-content:space-between}
+.modal-title{font-family:'Libre Baskerville',serif;font-size:14px;font-weight:700;color:#fff}
+.modal-close{background:none;border:none;color:rgba(255,255,255,.6);font-size:20px;cursor:pointer;line-height:1}
+.modal-close:hover{color:#fff}
+.modal-body{padding:18px}
+.modal-foot{padding:14px 18px;border-top:1px solid var(--rule);display:flex;justify-content:space-between;align-items:center;gap:10px}
+
+/* STEP INDICATOR */
+.steps{display:flex;gap:6px;margin-bottom:16px}
+.step{flex:1;height:4px;border-radius:2px;background:var(--rule)}
+.step.done{background:var(--green)}
+.step.cur{background:var(--navy)}
+
+/* FORM */
+.fg{margin-bottom:13px}
+.fg label{display:block;font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3);margin-bottom:5px}
+.fg input,.fg select{width:100%;height:36px;padding:0 11px;border:1px solid var(--rule);border-radius:5px;font-size:13px;font-family:'Source Sans 3',sans-serif;color:var(--ink);outline:none}
+.fg input:focus,.fg select:focus{border-color:var(--navy-3)}
+.fg-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.hint{font-size:10px;color:var(--ink-3);margin-top:4px}
+
+/* LOOKUP RESULT */
+.lk-result{margin-top:10px;padding:11px 13px;border-radius:6px;font-size:12px}
+.lk-result.found{background:var(--green-bg);border:1px solid var(--green-bd)}
+.lk-result.notfound{background:var(--gold-bg);border:1px solid var(--gold-bd)}
+.lk-result.hidden{display:none}
+.lk-title{font-size:11px;font-weight:700;margin-bottom:2px}
+.lk-result.found .lk-title{color:var(--green)}
+.lk-result.notfound .lk-title{color:var(--gold)}
+.lk-sub{font-size:10.5px;color:var(--ink-2)}
+
+/* THERAPIST PICKER */
+.tp-list{display:flex;flex-direction:column;gap:6px;max-height:300px;overflow-y:auto}
+.tp-row{display:flex;align-items:center;gap:10px;padding:9px 11px;border:1px solid var(--rule);border-radius:6px;cursor:pointer}
+.tp-row:hover{border-color:var(--navy-3);background:#FAFBFD}
+.tp-row.sel{border-color:var(--navy);background:var(--green-bg)}
+.tp-check{width:18px;height:18px;border:2px solid var(--rule);border-radius:4px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:12px;color:#fff}
+.tp-row.sel .tp-check{background:var(--green);border-color:var(--green)}
+.tp-info{flex:1}
+.tp-name{font-size:12px;font-weight:600;color:var(--ink)}
+.tp-role{font-size:9.5px;color:var(--ink-3);text-transform:capitalize}
+.tp-lead{display:flex;align-items:center;gap:4px;font-size:10px;color:var(--ink-3)}
+.tp-lead input{width:auto;height:auto}
+.tp-row:not(.sel) .tp-lead{visibility:hidden}
+
+/* EMPTY */
+.empty{padding:30px 14px;text-align:center;color:var(--ink-3);font-size:12px}
+
+/* TOAST */
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--navy);color:#fff;padding:11px 20px;border-radius:6px;font-size:12px;font-weight:600;z-index:300;opacity:0;transition:opacity .2s;pointer-events:none}
+.toast.show{opacity:1}
+.toast.err{background:var(--red)}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="hlogo">SPEDUMAP <span>/ Trẻ &amp; Phụ huynh</span></div>
+  <div class="hright">
+    <div class="hdate" id="hDate"></div>
+    <button class="btn-refresh" onclick="loadAll()">↻ Tải lại</button>
+  </div>
+</header>
+
+<div class="page">
+  <div class="page-head">
+    <div>
+      <div class="page-title">Quản lý Trẻ &amp; Phụ huynh</div>
+      <div class="page-sub">Tạo hồ sơ trẻ, gắn phụ huynh, phân công therapist cho cycle</div>
+    </div>
+    <button class="btn-primary" onclick="openParentModal()">＋ Thêm trẻ mới</button>
+  </div>
+
+  <div class="card">
+    <div class="card-head">Danh sách trẻ <span class="card-badge" id="childCount">—</span></div>
+    <div class="card-body">
+      <table class="tbl">
+        <thead><tr>
+          <th>Trẻ</th><th>Phụ huynh</th><th>Cycle hiện tại</th><th>Therapist team</th><th style="text-align:right">Thao tác</th>
+        </tr></thead>
+        <tbody id="childRows"></tbody>
+      </table>
+      <div class="empty" id="childEmpty" style="display:none">Chưa có trẻ nào. Bấm "Thêm trẻ mới" để bắt đầu.</div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: PARENT + CHILD (2 bước) -->
+<div class="modal-bg" id="parentModal">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title" id="pmTitle">Bước 1 — Phụ huynh</div>
+      <button class="modal-close" onclick="closeParentModal()">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="steps"><div class="step cur" id="pmStep1"></div><div class="step" id="pmStep2"></div></div>
+
+      <!-- BƯỚC 1: LOOKUP / CREATE PARENT -->
+      <div id="pmPhase1">
+        <div class="fg">
+          <label>Tìm phụ huynh (email hoặc SĐT)</label>
+          <input type="text" id="pmLookup" placeholder="email@example.com hoặc 09xxxxxxxx">
+          <div class="hint">Hệ thống tìm phụ huynh đã có. Không thấy sẽ tạo mới + gửi magic link.</div>
+        </div>
+        <button class="btn-act" onclick="doLookup()" style="height:32px;padding:0 14px">Tìm</button>
+        <div class="lk-result hidden" id="pmLkResult">
+          <div class="lk-title" id="pmLkTitle"></div>
+          <div class="lk-sub" id="pmLkSub"></div>
+        </div>
+        <div id="pmNewParent" style="display:none;margin-top:14px;border-top:1px solid var(--rule);padding-top:14px">
+          <div class="fg"><label>Họ tên phụ huynh</label><input type="text" id="pmParentName" placeholder="Nguyễn Văn A"></div>
+          <div class="fg-row">
+            <div class="fg"><label>Email</label><input type="email" id="pmParentEmail" placeholder="email@example.com"></div>
+            <div class="fg"><label>SĐT</label><input type="text" id="pmParentPhone" placeholder="09xxxxxxxx"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- BƯỚC 2: CHILD -->
+      <div id="pmPhase2" style="display:none">
+        <div class="fg"><label>Họ tên trẻ</label><input type="text" id="pmChildName" placeholder="Nguyễn Văn B"></div>
+        <div class="fg-row">
+          <div class="fg"><label>Ngày sinh</label><input type="date" id="pmChildDob"></div>
+          <div class="fg"><label>Giới tính</label>
+            <select id="pmChildGender"><option value="male">Nam</option><option value="female">Nữ</option><option value="other">Khác</option></select>
+          </div>
+        </div>
+        <div class="hint">Ràng buộc UNIQUE(tên, ngày sinh, phụ huynh) — không tạo trùng.</div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn-act" id="pmBack" onclick="pmGoBack()" style="visibility:hidden">← Quay lại</button>
+      <button class="btn-primary" id="pmNext" onclick="pmGoNext()" disabled>Tiếp →</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: ASSIGN THERAPIST -->
+<div class="modal-bg" id="assignModal">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title">Phân công therapist</div>
+      <button class="modal-close" onclick="closeAssignModal()">×</button>
+    </div>
+    <div class="modal-body">
+      <div style="font-size:12px;color:var(--ink-2);margin-bottom:14px" id="amContext"></div>
+      <div class="tp-list" id="amList"></div>
+      <div class="empty" id="amEmpty" style="display:none">Không có therapist khả dụng. Tạo account qua /admin.</div>
+    </div>
+    <div class="modal-foot">
+      <div style="font-size:10px;color:var(--ink-3)" id="amCount">0 đã chọn</div>
+      <button class="btn-primary" id="amSave" onclick="saveAssign()" disabled>Lưu phân công</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const sb = supabase.createClient(
+  'https://sfwmcdezjlkedyjjgkng.supabase.co',
+  'sb_publishable_vp7-C3CtbV8v1MSbiodgiA_hB0c42Gb'
+);
+
+// ─────────────────────────────────────────────────────────────
+// SCHEMA NOTE (Option A — CC thực thi migration):
+//   TABLE cycle_therapists (
+//     cycle_id      uuid REFERENCES cycles(id) ON DELETE CASCADE,
+//     therapist_id  uuid REFERENCES user_profiles(id),
+//     role_in_cycle text CHECK IN ('lead','member') DEFAULT 'member',
+//     assigned_at   timestamptz DEFAULT now(),
+//     assigned_by   uuid REFERENCES user_profiles(id),
+//     PRIMARY KEY (cycle_id, therapist_id)
+//   );
+//   RLS: head_therapist + admin → ALL. therapist → SELECT own rows.
+//   lead = teacher_id của cycle (người lock baseline). Auto-seed khi lock.
+//   Assign chỉ áp cho cycle.status = 'pending'.
+// ─────────────────────────────────────────────────────────────
+
+const THERAPIST_ROLES = ['senior_therapist','technician_therapist','junior_therapist'];
+const ROLE_LABEL = {senior_therapist:'Senior',technician_therapist:'Technician',junior_therapist:'Junior',head_therapist:'Head',admin:'Admin'};
+
+// ── MOCK DATA (CC thay bằng Supabase fetch khi implement .tsx) ──
+let CHILDREN = [];
+let THERAPISTS = [];
+function seedMock(){
+  THERAPISTS = [
+    {id:'t1',name:'Nguyễn Thị Bình',role:'senior_therapist'},
+    {id:'t2',name:'Trần Văn Minh',role:'technician_therapist'},
+    {id:'t3',name:'Lê Thị Hoa',role:'junior_therapist'},
+    {id:'t4',name:'Phạm Văn Đức',role:'junior_therapist'},
+  ];
+  CHILDREN = [
+    {id:'c1',name:'Nguyễn Văn An',dob:'2022-03-15',gender:'male',parent_name:'Nguyễn Thị Lan',
+     cycle:{id:'cy1',name:'Cycle 02',status:'pending',teacher_id:'t1'},
+     team:[{therapist_id:'t1',role_in_cycle:'lead'}]},
+    {id:'c2',name:'Trần Thị Bảo',dob:'2020-07-22',gender:'female',parent_name:'Trần Văn Hùng',
+     cycle:{id:'cy2',name:'Cycle 01',status:'active',teacher_id:'t1'},
+     team:[{therapist_id:'t1',role_in_cycle:'lead'},{therapist_id:'t2',role_in_cycle:'member'}]},
+    {id:'c3',name:'Lê Văn Minh',dob:'2021-01-10',gender:'male',parent_name:'Lê Thị Mai',
+     cycle:null,team:[]},
+  ];
+}
+
+function loadAll(){
+  seedMock();  // CC: thay bằng await sb.from('children').select(...) ⨝ cycles ⨝ cycle_therapists
+  renderChildren();
+  document.getElementById('hDate').textContent = new Date().toLocaleDateString('vi-VN',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+}
+
+function ageFromDob(dob){
+  const d=new Date(dob), n=new Date();
+  let a=n.getFullYear()-d.getFullYear();
+  if(n.getMonth()<d.getMonth()||(n.getMonth()===d.getMonth()&&n.getDate()<d.getDate()))a--;
+  return a;
+}
+function initials(name){return name.trim().split(/\s+/).slice(-2).map(w=>w[0]).join('').toUpperCase();}
+function tName(id){return (THERAPISTS.find(t=>t.id===id)||{}).name||'?';}
+
+function renderChildren(){
+  const tb=document.getElementById('childRows');
+  document.getElementById('childCount').textContent=CHILDREN.length;
+  document.getElementById('childEmpty').style.display=CHILDREN.length?'none':'block';
+  tb.innerHTML=CHILDREN.map(c=>{
+    const cyc=c.cycle;
+    const cycCell=cyc
+      ? `<span class="pill ${cyc.status}">${cyc.status==='pending'?'Chờ mở':'Active'}</span> <span style="font-size:11px;color:var(--ink-2)">${cyc.name}</span>`
+      : `<span class="pill none">Chưa có cycle</span>`;
+    const team=(c.team||[]);
+    const teamCell=team.length
+      ? `<div class="team">${team.map(m=>`<span class="chip ${m.role_in_cycle==='lead'?'lead':''}">${m.role_in_cycle==='lead'?'★ ':''}${tName(m.therapist_id)}</span>`).join('')}</div>`
+      : `<span class="chip-empty">— chưa phân công —</span>`;
+    // Assign chỉ bật khi có cycle status='pending'
+    const canAssign = cyc && cyc.status==='pending';
+    const assignBtn = `<button class="btn-act" ${canAssign?'':'disabled'} onclick="openAssignModal('${c.id}')" title="${canAssign?'':'Chỉ phân công khi cycle ở trạng thái Chờ mở'}">Phân công</button>`;
+    return `<tr>
+      <td><div class="cc"><div class="avi">${initials(c.name)}</div><div><div class="cc-name">${c.name}</div><div class="cc-meta">${ageFromDob(c.dob)} tuổi · ${c.gender==='male'?'Nam':c.gender==='female'?'Nữ':'Khác'}</div></div></div></td>
+      <td style="font-size:11.5px">${c.parent_name||'—'}</td>
+      <td>${cycCell}</td>
+      <td>${teamCell}</td>
+      <td style="text-align:right">${assignBtn}</td>
+    </tr>`;
+  }).join('');
+}
+
+// ── PARENT + CHILD MODAL ──
+let pmStep=1, pmParent=null;
+function openParentModal(){
+  pmStep=1; pmParent=null;
+  document.getElementById('pmLookup').value='';
+  document.getElementById('pmParentName').value='';
+  document.getElementById('pmParentEmail').value='';
+  document.getElementById('pmParentPhone').value='';
+  document.getElementById('pmChildName').value='';
+  document.getElementById('pmChildDob').value='';
+  document.getElementById('pmLkResult').className='lk-result hidden';
+  document.getElementById('pmNewParent').style.display='none';
+  pmRender();
+  document.getElementById('parentModal').classList.add('open');
+}
+function closeParentModal(){document.getElementById('parentModal').classList.remove('open');}
+function pmRender(){
+  document.getElementById('pmPhase1').style.display=pmStep===1?'block':'none';
+  document.getElementById('pmPhase2').style.display=pmStep===2?'block':'none';
+  document.getElementById('pmTitle').textContent=pmStep===1?'Bước 1 — Phụ huynh':'Bước 2 — Trẻ';
+  document.getElementById('pmStep1').className='step '+(pmStep>1?'done':'cur');
+  document.getElementById('pmStep2').className='step '+(pmStep===2?'cur':'');
+  document.getElementById('pmBack').style.visibility=pmStep===2?'visible':'hidden';
+  document.getElementById('pmNext').textContent=pmStep===2?'Tạo trẻ':'Tiếp →';
+  pmValidate();
+}
+function doLookup(){
+  const q=document.getElementById('pmLookup').value.trim();
+  if(!q){showToast('Nhập email hoặc SĐT',true);return;}
+  // CC: await fetch('/api/head/manage-parent',{action:'lookup', query:q})
+  // MOCK: tìm trong THERAPISTS-like set — giả định không tìm thấy để demo nhánh tạo mới
+  const r=document.getElementById('pmLkResult');
+  const found = q.toLowerCase()==='lan@demo.com'; // mock: 1 email có sẵn
+  if(found){
+    pmParent={existing:true,id:'p_existing',name:'Nguyễn Thị Lan'};
+    r.className='lk-result found';
+    document.getElementById('pmLkTitle').textContent='Đã tìm thấy phụ huynh';
+    document.getElementById('pmLkSub').textContent='Nguyễn Thị Lan — sẽ gắn trẻ vào hồ sơ này.';
+    document.getElementById('pmNewParent').style.display='none';
+  }else{
+    pmParent=null;
+    r.className='lk-result notfound';
+    document.getElementById('pmLkTitle').textContent='Chưa có phụ huynh này';
+    document.getElementById('pmLkSub').textContent='Nhập thông tin bên dưới để tạo mới + gửi magic link.';
+    document.getElementById('pmNewParent').style.display='block';
+    const v=document.getElementById('pmLookup').value.trim();
+    if(v.includes('@'))document.getElementById('pmParentEmail').value=v;
+    else document.getElementById('pmParentPhone').value=v;
+  }
+  pmValidate();
+}
+function pmValidate(){
+  let ok=false;
+  if(pmStep===1){
+    if(pmParent&&pmParent.existing)ok=true;
+    else{
+      const n=document.getElementById('pmParentName').value.trim();
+      const e=document.getElementById('pmParentEmail').value.trim();
+      ok = !!n && !!e && document.getElementById('pmNewParent').style.display!=='none';
+    }
+  }else{
+    ok = !!document.getElementById('pmChildName').value.trim() && !!document.getElementById('pmChildDob').value;
+  }
+  document.getElementById('pmNext').disabled=!ok;
+}
+['pmParentName','pmParentEmail','pmChildName','pmChildDob'].forEach(id=>{
+  document.addEventListener('input',e=>{if(e.target.id===id)pmValidate();});
+});
+function pmGoBack(){if(pmStep===2){pmStep=1;pmRender();}}
+function pmGoNext(){
+  if(pmStep===1){
+    if(!pmParent||!pmParent.existing){
+      pmParent={existing:false,
+        name:document.getElementById('pmParentName').value.trim(),
+        email:document.getElementById('pmParentEmail').value.trim(),
+        phone:document.getElementById('pmParentPhone').value.trim()};
+    }
+    pmStep=2;pmRender();
+  }else{
+    submitChild();
+  }
+}
+function submitChild(){
+  const child={
+    name:document.getElementById('pmChildName').value.trim(),
+    dob:document.getElementById('pmChildDob').value,
+    gender:document.getElementById('pmChildGender').value,
+    parent_name:pmParent.name,
+  };
+  // CC: 
+  //  1) /api/head/manage-parent {action: existing? 'reuse':'create', parent} → parent_id (+ magic link nếu mới)
+  //  2) sb.from('children').insert({...child, parent_id, created_by: auth.uid()})
+  //     UNIQUE(name,dob,parent_id) chặn trùng → bắt lỗi 23505 → showToast
+  CHILDREN.unshift({...child, id:'new_'+Date.now(), cycle:null, team:[]});
+  renderChildren();
+  closeParentModal();
+  showToast(pmParent.existing?'Đã thêm trẻ vào phụ huynh có sẵn':'Đã tạo trẻ + gửi magic link cho phụ huynh');
+}
+
+// ── ASSIGN THERAPIST MODAL ──
+let amChild=null, amSel={};  // therapist_id → role_in_cycle
+function openAssignModal(childId){
+  amChild=CHILDREN.find(c=>c.id===childId);
+  if(!amChild||!amChild.cycle||amChild.cycle.status!=='pending'){showToast('Chỉ phân công cycle ở trạng thái Chờ mở',true);return;}
+  amSel={};
+  // Seed từ team hiện tại
+  (amChild.team||[]).forEach(m=>amSel[m.therapist_id]=m.role_in_cycle);
+  // lead mặc định = teacher_id (người lock baseline)
+  const lead=amChild.cycle.teacher_id;
+  if(lead && !amSel[lead])amSel[lead]='lead';
+  document.getElementById('amContext').innerHTML=`<b>${amChild.name}</b> · ${amChild.cycle.name} · <span class="pill pending">Chờ mở</span><br><span style="font-size:10.5px;color:var(--ink-3)">★ Lead = therapist khóa baseline. Chọn thêm member cho team.</span>`;
+  renderTpList();
+  document.getElementById('assignModal').classList.add('open');
+}
+function closeAssignModal(){document.getElementById('assignModal').classList.remove('open');}
+function renderTpList(){
+  const avail=THERAPISTS.filter(t=>THERAPIST_ROLES.includes(t.role)||amSel[t.id]);
+  document.getElementById('amEmpty').style.display=avail.length?'none':'block';
+  const lead=amChild.cycle.teacher_id;
+  document.getElementById('amList').innerHTML=avail.map(t=>{
+    const sel=t.id in amSel;
+    const isLead=amSel[t.id]==='lead';
+    return `<div class="tp-row ${sel?'sel':''}" onclick="toggleTp('${t.id}')">
+      <div class="tp-check">${sel?'✓':''}</div>
+      <div class="tp-info"><div class="tp-name">${t.name}${t.id===lead?' <span style="font-size:9px;color:var(--ink-3)">(khóa baseline)</span>':''}</div><div class="tp-role">${ROLE_LABEL[t.role]||t.role}</div></div>
+      <label class="tp-lead" onclick="event.stopPropagation()"><input type="radio" name="leadPick" ${isLead?'checked':''} onchange="setLead('${t.id}')"> Lead</label>
+    </div>`;
+  }).join('');
+  const n=Object.keys(amSel).length;
+  document.getElementById('amCount').textContent=n+' đã chọn';
+  document.getElementById('amSave').disabled=n===0;
+}
+function toggleTp(id){
+  if(id in amSel){
+    if(amSel[id]==='lead'){showToast('Không bỏ lead. Đổi lead trước.',true);return;}
+    delete amSel[id];
+  }else amSel[id]='member';
+  renderTpList();
+}
+function setLead(id){
+  Object.keys(amSel).forEach(k=>{if(amSel[k]==='lead')amSel[k]='member';});
+  amSel[id]='lead';
+  renderTpList();
+}
+function saveAssign(){
+  const team=Object.entries(amSel).map(([therapist_id,role_in_cycle])=>({therapist_id,role_in_cycle}));
+  if(!team.some(m=>m.role_in_cycle==='lead')){showToast('Cần đúng 1 lead',true);return;}
+  // CC: 
+  //  await sb.from('cycle_therapists').delete().eq('cycle_id', amChild.cycle.id);
+  //  await sb.from('cycle_therapists').insert(team.map(m=>({...m, cycle_id:amChild.cycle.id, assigned_by:auth.uid()})));
+  amChild.team=team;
+  renderChildren();
+  closeAssignModal();
+  showToast('Đã lưu phân công therapist');
+}
+
+// ── TOAST ──
+let toastT;
+function showToast(msg,err){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.className='toast show'+(err?' err':'');
+  clearTimeout(toastT);toastT=setTimeout(()=>t.className='toast'+(err?' err':''),2600);
+}
+
+loadAll();
+</script>
+</body>
+</html>
