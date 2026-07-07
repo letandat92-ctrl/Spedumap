@@ -21,7 +21,12 @@ export async function GET(
       status: 200,
       headers: {
         'Content-Type': 'application/pdf',
-        'Content-Disposition': `inline; filename="spedumap-${data.childName || 'report'}.pdf"`,
+        'Content-Disposition': (() => {
+          const raw = data.childName || 'report'
+          const ascii = raw.normalize('NFD').replace(/[̀-ͯ]/g, '')
+            .replace(/đ/g, 'd').replace(/Đ/g, 'D').replace(/[^\x20-\x7E]/g, '_')
+          return `inline; filename="spedumap-${ascii}.pdf"; filename*=UTF-8''${encodeURIComponent(`spedumap-${raw}.pdf`)}`
+        })(),
       },
     })
   } catch (e) {
